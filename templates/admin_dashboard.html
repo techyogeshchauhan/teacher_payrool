@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<!-- Header -->
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
+        <i class="fas fa-tachometer-alt text-orange-500"></i>
+        Admin Dashboard
+    </h1>
+    <p class="text-gray-500 text-sm hindi">स्वागत है, {{ admin_name }} जी | आज: {{ today }}</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-orange-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-xs hindi">कुल शिक्षक</p>
+                <p class="text-3xl font-bold text-orange-600">{{ total }}</p>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-users text-orange-500 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-xs hindi">आज उपस्थित</p>
+                <p class="text-3xl font-bold text-green-600">{{ present_today }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-user-check text-green-500 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-red-400">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-xs hindi">आज अनुपस्थित</p>
+                <p class="text-3xl font-bold text-red-500">{{ total - present_today }}</p>
+            </div>
+            <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-user-times text-red-400 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-yellow-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-xs">Today</p>
+                <p class="text-lg font-bold text-yellow-600">{{ today }}</p>
+            </div>
+            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-calendar text-yellow-500 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="grid md:grid-cols-3 gap-4 mb-8">
+    <a href="{{ url_for('mark_attendance') }}" class="saffron-grad rounded-2xl p-6 text-white hover:opacity-90 transition card-shadow group">
+        <i class="fas fa-calendar-check text-3xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-bold text-lg hindi">Attendance लगाएं</h3>
+        <p class="text-orange-100 text-sm hindi">आज की उपस्थिति दर्ज करें</p>
+    </a>
+    <a href="{{ url_for('payroll') }}" class="maroon-grad rounded-2xl p-6 text-white hover:opacity-90 transition card-shadow group">
+        <i class="fas fa-rupee-sign text-3xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-bold text-lg hindi">Payroll देखें</h3>
+        <p class="text-red-200 text-sm hindi">इस महीने की salary calculate करें</p>
+    </a>
+    <a href="{{ url_for('add_teacher') }}" class="green-grad rounded-2xl p-6 text-white hover:opacity-90 transition card-shadow group">
+        <i class="fas fa-user-plus text-3xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-bold text-lg hindi">Teacher जोड़ें</h3>
+        <p class="text-green-200 text-sm hindi">नए शिक्षक को register करें</p>
+    </a>
+</div>
+
+<!-- Teachers Table -->
+<div class="bg-white rounded-2xl card-shadow overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 hindi flex items-center gap-2">
+            <i class="fas fa-list text-orange-500"></i> सभी शिक्षकों की सूची
+        </h2>
+        <a href="{{ url_for('manage_teachers') }}" class="text-orange-600 text-sm hover:underline hindi">सभी देखें →</a>
+    </div>
+    <div class="scroll-x">
+        <table class="w-full">
+            <thead class="bg-orange-50">
+                <tr>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hindi">Teacher ID</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hindi">नाम</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hindi">विषय</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hindi">फ़ोन</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hindi">Basic Salary</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for t in teachers %}
+                <tr class="hover:bg-orange-50 transition">
+                    <td class="px-4 py-3">
+                        <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-lg text-xs font-mono font-bold">{{ t.teacher_id }}</span>
+                    </td>
+                    <td class="px-4 py-3 font-medium text-gray-800 hindi">{{ t.name }}</td>
+                    <td class="px-4 py-3 text-gray-600 hindi text-sm">{{ t.subject }}</td>
+                    <td class="px-4 py-3 text-gray-600 text-sm">{{ t.phone }}</td>
+                    <td class="px-4 py-3 font-semibold text-green-700">₹{{ "{:,.0f}".format(t.basic_salary) }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center py-8 text-gray-400 hindi">कोई शिक्षक नहीं मिले। पहले teacher जोड़ें।</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

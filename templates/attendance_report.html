@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Attendance Report - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
+        <i class="fas fa-chart-bar text-orange-500"></i> Attendance Report
+    </h1>
+    <button onclick="window.print()" class="bg-gray-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-gray-800 transition text-sm no-print">
+        <i class="fas fa-print"></i> Print
+    </button>
+</div>
+
+<!-- Month Selector -->
+<div class="bg-white rounded-2xl card-shadow p-4 mb-6 flex flex-wrap items-center gap-4 no-print">
+    <form method="GET" class="flex items-center gap-3 flex-wrap">
+        <label class="font-semibold text-gray-700 hindi">महीना:</label>
+        <select name="month" class="px-3 py-2 border-2 border-orange-300 rounded-xl focus:outline-none">
+            {% for m in range(1, 13) %}
+            <option value="{{ m }}" {% if m == month %}selected{% endif %}>
+                {{ ['','January','February','March','April','May','June','July','August','September','October','November','December'][m] }}
+            </option>
+            {% endfor %}
+        </select>
+        <select name="year" class="px-3 py-2 border-2 border-orange-300 rounded-xl focus:outline-none">
+            {% for y in range(2023, 2027) %}
+            <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="saffron-grad text-white px-5 py-2 rounded-xl font-semibold">
+            <i class="fas fa-search"></i> देखें
+        </button>
+    </form>
+</div>
+
+<!-- Legend -->
+<div class="flex gap-3 mb-4 flex-wrap no-print">
+    <span class="status-present px-3 py-1 rounded-lg text-xs font-semibold">P = Present</span>
+    <span class="status-absent px-3 py-1 rounded-lg text-xs font-semibold">A = Absent</span>
+    <span class="status-half_day px-3 py-1 rounded-lg text-xs font-semibold">H = Half Day</span>
+    <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg text-xs">– = Not Marked</span>
+</div>
+
+<div class="bg-white rounded-2xl card-shadow overflow-hidden">
+    <div class="px-6 py-4 saffron-grad hidden print:block text-center">
+        <h2 class="text-white font-bold text-xl hindi">गायत्री विद्यापीठ, दाउदनगर</h2>
+        <p class="text-orange-100 hindi">Attendance Report — {{ month_name }} {{ year }}</p>
+    </div>
+    <div class="px-6 py-3 bg-orange-50 border-b">
+        <h2 class="font-bold text-gray-800 hindi">{{ month_name }} {{ year }} — Attendance Sheet</h2>
+    </div>
+    <div class="scroll-x">
+        <table class="w-full text-xs">
+            <thead>
+                <tr class="bg-gray-800 text-white">
+                    <th class="text-left px-3 py-3 sticky left-0 bg-gray-800 min-w-[160px] hindi">शिक्षक नाम</th>
+                    <th class="px-2 py-3 text-center text-gray-400">ID</th>
+                    {% for d in range(1, days+1) %}
+                    <th class="px-1.5 py-3 text-center min-w-[28px]">{{ d }}</th>
+                    {% endfor %}
+                    <th class="px-3 py-3 text-center text-green-400 hindi">P</th>
+                    <th class="px-3 py-3 text-center text-yellow-400 hindi">H</th>
+                    <th class="px-3 py-3 text-center text-red-400 hindi">A</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for r in report %}
+                {% set p_count = r.att_map.values()|list|select('equalto','present')|list|length %}
+                {% set h_count = r.att_map.values()|list|select('equalto','half_day')|list|length %}
+                {% set a_count = r.att_map.values()|list|select('equalto','absent')|list|length %}
+                <tr class="hover:bg-orange-50">
+                    <td class="px-3 py-2 font-semibold text-gray-800 sticky left-0 bg-white hindi">{{ r.name }}</td>
+                    <td class="px-2 py-2 text-center">
+                        <span class="bg-orange-100 text-orange-600 px-1 py-0.5 rounded font-mono">{{ r.teacher_id }}</span>
+                    </td>
+                    {% for d in range(1, days+1) %}
+                    <td class="px-0.5 py-2 text-center">
+                        {% set s = r.att_map.get(d) %}
+                        {% if s == 'present' %}
+                        <span class="status-present px-1 py-0.5 rounded font-bold">P</span>
+                        {% elif s == 'half_day' %}
+                        <span class="status-half_day px-1 py-0.5 rounded font-bold">H</span>
+                        {% elif s == 'absent' %}
+                        <span class="status-absent px-1 py-0.5 rounded font-bold">A</span>
+                        {% else %}
+                        <span class="text-gray-300">–</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td class="px-3 py-2 text-center font-bold text-green-700 bg-green-50">{{ p_count }}</td>
+                    <td class="px-3 py-2 text-center font-bold text-yellow-700 bg-yellow-50">{{ h_count }}</td>
+                    <td class="px-3 py-2 text-center font-bold text-red-600 bg-red-50">{{ a_count }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="{{ days + 5 }}" class="text-center py-12 text-gray-400 hindi">कोई data नहीं मिला।</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+@media print {
+    nav, .no-print { display: none !important; }
+    body { background: white; font-size: 10px; }
+    .card-shadow { box-shadow: none; border: 1px solid #ddd; }
+}
+</style>
+
+{% endblock %}

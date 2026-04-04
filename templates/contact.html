@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>संपर्क करें - गायत्री विद्यापीठ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; background-color: #f8fafc; }
+        .hindi { font-family: 'Noto Sans Devanagari', sans-serif; }
+        
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .saffron-grad { background: linear-gradient(135deg, #FF6B00 0%, #FFB300 100%); }
+        .gentle-grad { background: linear-gradient(to right, #fff7ed, #ecfdf5); }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased flex flex-col min-h-screen">
+    <!-- Navigation -->
+    <nav class="glass-nav fixed w-full z-50 top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="{{ url_for('index') }}" class="flex items-center gap-3 group">
+                    <div class="w-12 h-12 rounded-full overflow-hidden border border-orange-200 shadow-sm group-hover:shadow-md transition">
+                        <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="hindi font-extrabold text-xl sm:text-2xl text-orange-600 leading-none">गायत्री विद्यापीठ</span>
+                    </div>
+                </a>
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="{{ url_for('index') }}" class="text-gray-600 hover:text-orange-600 font-semibold transition hindi">होम</a>
+                    <a href="{{ url_for('about') }}" class="text-gray-600 hover:text-orange-600 font-semibold transition hindi">हमारे बारे में</a>
+                    <a href="{{ url_for('teacher_login') }}" class="text-gray-600 hover:text-green-600 font-semibold transition hindi">शिक्षक कॉर्नर</a>
+                    <a href="{{ url_for('admin_login') }}" class="saffron-grad text-white px-6 py-2 rounded-full font-bold shadow-md hover:shadow-lg transition hindi"><i class="fas fa-shield-alt mr-2"></i>Admin Login</a>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button id="public-mobile-btn" class="text-gray-800 hover:text-green-600 focus:outline-none p-2 border border-gray-200 rounded-lg bg-green-50">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Dropdown -->
+        <div id="public-mobile-menu" class="hidden md:hidden bg-white shadow-2xl absolute w-full border-t border-gray-100 flex-col px-6 py-4 space-y-4 rounded-b-2xl">
+            <a href="{{ url_for('index') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-home w-6 text-center text-orange-500 mr-2"></i> होमपेज</a>
+            <a href="{{ url_for('about') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-info-circle w-6 text-center text-orange-500 mr-2"></i> हमारे बारे में</a>
+            <a href="{{ url_for('contact') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-phone-alt w-6 text-center text-orange-500 mr-2"></i> संपर्क करें</a>
+            <a href="{{ url_for('teacher_login') }}" class="block font-bold text-gray-700 hover:text-green-600 hindi"><i class="fas fa-chalkboard-teacher w-6 text-center text-green-500 mr-2"></i> शिक्षक कॉर्नर</a>
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <a href="{{ url_for('admin_login') }}" class="block font-bold text-white bg-orange-500 px-4 py-3 rounded-xl text-center shadow-md hindi hover:bg-orange-600"><i class="fas fa-shield-alt mr-2"></i> एडमिन लॉगिन</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section class="gentle-grad pt-32 pb-16 relative overflow-hidden">
+        <div class="max-w-4xl mx-auto px-4 text-center relative z-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 hindi leading-tight text-orange-700">हमसे संपर्क करें</h1>
+            <p class="text-lg text-gray-600 hindi font-medium max-w-2xl mx-auto">किसी भी प्रश्न या सहायता के लिए बेझिझक हमसे जुड़ें।</p>
+            <div class="w-24 h-1.5 bg-green-500 mx-auto mt-8 rounded-full"></div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-16 flex-grow w-full">
+        <div class="grid lg:grid-cols-2 gap-12">
+            
+            <!-- Letft Column: Contact Info Cards -->
+            <div class="space-y-6">
+                <!-- Location Card -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-orange-100 flex items-start gap-5 card-hover">
+                    <div class="w-14 h-14 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                        <i class="fas fa-map-marker-alt text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800 hindi mb-2">हमारा पता (Address)</h3>
+                        <p class="text-gray-600 leading-relaxed hindi text-sm sm:text-base">
+                            NH-139, Patna Road, Akodha,<br>
+                            Daudnagar, Aurangabad,<br>
+                            Bihar
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Call Support Card -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-blue-100 flex flex-col sm:flex-row items-center sm:items-start gap-5 card-hover text-center sm:text-left">
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                        <i class="fas fa-phone-alt text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800 hindi mb-2">फ़ोन (Call)</h3>
+                        <div class="flex flex-col gap-1 text-gray-600 font-medium">
+                            <span class="inline-flex items-center gap-2 justify-center sm:justify-start">
+                                <i class="fas fa-phone text-xs text-blue-400"></i> +91 9006564065
+                            </span>
+                            <span class="inline-flex items-center gap-2 justify-center sm:justify-start">
+                                <i class="fas fa-phone text-xs text-blue-400"></i> +91 8767238613
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2 hindi">सुबह 8:00 बजे से दोपहर 4:00 बजे तक</p>
+                    </div>
+                </div>
+
+                <!-- WhatsApp Card -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-green-100 flex flex-col sm:flex-row items-center sm:items-start gap-5 card-hover text-center sm:text-left">
+                    <div class="w-14 h-14 bg-green-50 text-green-600 rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                        <i class="fab fa-whatsapp text-3xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800 hindi mb-2">व्हाट्सएप (WhatsApp)</h3>
+                        <a href="https://wa.me/917906704435" target="_blank" class="inline-flex items-center gap-2 justify-center sm:justify-start text-green-600 hover:text-green-700 font-bold text-lg transition">
+                            <i class="fab fa-whatsapp"></i> +91 7906704435
+                        </a>
+                        <p class="text-xs text-gray-400 mt-2 hindi">किसी भी समय मैसेज करें</p>
+                    </div>
+                </div>
+
+                <!-- Email Card -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-purple-100 flex flex-col sm:flex-row items-center sm:items-start gap-5 card-hover text-center sm:text-left">
+                    <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                        <i class="fas fa-envelope text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800 hindi mb-2">ईमेल (Email)</h3>
+                        <a href="mailto:cp.awgp@gmail.com" class="text-gray-600 hover:text-purple-600 font-medium transition text-base">
+                            cp.awgp@gmail.com
+                        </a>
+                        <p class="text-xs text-gray-400 mt-2 hindi">आधिकारिक पूछताछ के लिए</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Visual Graphic / Decorator -->
+            <div class="hidden lg:flex flex-col items-center justify-center">
+                <div class="bg-gradient-to-br from-orange-100 to-green-100 w-full h-full rounded-3xl flex flex-col items-center justify-center p-12 text-center shadow-inner relative overflow-hidden">
+                    <i class="fas fa-school text-orange-200 text-9xl absolute -top-10 -right-10 opacity-50 transform rotate-12"></i>
+                    <i class="fas fa-book-reader text-green-200 text-9xl absolute -bottom-10 -left-10 opacity-50 -rotate-12"></i>
+                    
+                    <div class="relative z-10">
+                        <img src="{{ url_for('static', filename='logo.jpeg') }}" class="w-48 h-48 rounded-full border-8 border-white shadow-xl mx-auto mb-8" alt="School Logo Large">
+                        <h2 class="text-2xl font-bold text-gray-800 hindi mb-4">हम आपकी सेवा में तत्पर हैं</h2>
+                        <p class="text-gray-600 hindi">
+                            एडमिशन, नौकरी, या स्कूल से जुड़ी किसी भी जानकारी के लिए आप ऊपर दिए गए माध्यमों से संपर्क कर सकते हैं।
+                        </p>
+                        <a href="https://wa.me/917906704435" target="_blank" class="mt-8 inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:-translate-y-1">
+                            <i class="fab fa-whatsapp mr-2"></i> WhatsApp पर मैसेज करें
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8 border-t-8 border-orange-600 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 border-b border-gray-800 pb-12">
+                <!-- Branding & About -->
+                <div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <img src="{{ url_for('static', filename='logo.jpeg') }}" class="w-16 h-16 rounded-full border-2 border-orange-500 object-cover" alt="Footer Logo">
+                        <div>
+                            <h3 class="text-2xl font-bold hindi text-orange-400 leading-tight">गायत्री विद्यापीठ</h3>
+                            <p class="text-gray-400 text-sm hindi">दाउदनगर</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm hindi leading-relaxed pr-4">
+                        ज्ञान, संस्कार और सफलता का केंद्र। हम आपके बच्चों के उज्जवल भविष्य और सर्वांगीण विकास के लिए कटिबद्ध हैं।
+                    </p>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-6 hindi relative inline-block">
+                        महत्वपूर्ण लिंक
+                        <span class="absolute bottom--2 left-0 w-1/2 h-0.5 bg-orange-500"></span>
+                    </h4>
+                    <ul class="space-y-3 hindi">
+                        <li><a href="{{ url_for('index') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> होमपेज</a></li>
+                        <li><a href="{{ url_for('about') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> हमारे बारे में</a></li>
+                        <li><a href="{{ url_for('teacher_login') }}" class="text-gray-400 hover:text-green-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> शिक्षक पोर्टल</a></li>
+                        <li><a href="{{ url_for('admin_login') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> एडमिन लॉगिन</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact & Address -->
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-6 hindi relative inline-block">
+                        संपर्क सूत्र
+                        <span class="absolute bottom--2 left-0 w-1/2 h-0.5 bg-orange-500"></span>
+                    </h4>
+                    <ul class="space-y-4 hindi">
+                        <li class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm leading-relaxed mt-1">
+                                NH-139, Patna Road, Akodha,<br>
+                                Daudnagar, Aurangabad,<br>
+                                Bihar
+                            </span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                                <i class="fas fa-phone-alt"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm hindi">
+                                +91 9006564065, +91 8767238613
+                            </span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-green-500 shrink-0">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm hindi">+91 7906704435</span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm">cp.awgp@gmail.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="text-center text-gray-500 text-sm hindi flex flex-col md:flex-row justify-between items-center gap-4">
+                <p>&copy; 2026 गायत्री विद्यापीठ, दाउदनगर। सभी अधिकार सुरक्षित।</p>
+                <p>डेवलप्ड विथ ❤️ फॉर स्कूल ऑटोमेशन</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('public-mobile-btn');
+            const menu = document.getElementById('public-mobile-menu');
+            if(btn && menu) {
+                btn.addEventListener('click', () => {
+                    if(menu.classList.contains('hidden')) {
+                        menu.classList.remove('hidden');
+                        menu.classList.add('flex');
+                        btn.innerHTML = '<i class="fas fa-times text-2xl"></i>';
+                    } else {
+                        menu.classList.add('hidden');
+                        menu.classList.remove('flex');
+                        btn.innerHTML = '<i class="fas fa-bars text-2xl"></i>';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

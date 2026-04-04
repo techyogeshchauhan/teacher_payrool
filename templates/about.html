@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>हमारे बारे में - गायत्री विद्यापीठ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; background-color: #fcfcfc; }
+        .hindi { font-family: 'Noto Sans Devanagari', sans-serif; }
+        
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .saffron-grad { background: linear-gradient(135deg, #FF6B00 0%, #FFB300 100%); }
+        .gentle-grad { background: linear-gradient(to right, #fff7ed, #fff1f2); }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .om-bg {
+            background-image: radial-gradient(circle at center, rgba(255,107,0,0.05) 0%, transparent 70%);
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+    <!-- Navigation -->
+    <nav class="glass-nav fixed w-full z-50 top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="{{ url_for('index') }}" class="flex items-center gap-3 group">
+                    <div class="w-12 h-12 rounded-full overflow-hidden border border-orange-200 shadow-sm group-hover:shadow-md transition">
+                        <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="hindi font-extrabold text-xl sm:text-2xl text-orange-600 leading-none">गायत्री विद्यापीठ</span>
+                    </div>
+                </a>
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="{{ url_for('index') }}" class="text-gray-600 hover:text-orange-600 font-semibold transition hindi">होम</a>
+                    <a href="{{ url_for('contact') }}" class="text-gray-600 hover:text-orange-600 font-semibold transition hindi">संपर्क करें</a>
+                    <a href="{{ url_for('teacher_login') }}" class="text-gray-600 hover:text-green-600 font-semibold transition hindi">शिक्षक कॉर्नर</a>
+                    <a href="{{ url_for('admin_login') }}" class="saffron-grad text-white px-6 py-2 rounded-full font-bold shadow-md hover:shadow-lg transition hindi"><i class="fas fa-shield-alt mr-2"></i>Admin Login</a>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button id="public-mobile-btn" class="text-gray-800 hover:text-orange-600 focus:outline-none p-2 border border-gray-200 rounded-lg bg-orange-50">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Dropdown -->
+        <div id="public-mobile-menu" class="hidden md:hidden bg-white shadow-2xl absolute w-full border-t border-gray-100 flex-col px-6 py-4 space-y-4 rounded-b-2xl">
+            <a href="{{ url_for('index') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-home w-6 text-center text-orange-500 mr-2"></i> होमपेज</a>
+            <a href="{{ url_for('about') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-info-circle w-6 text-center text-orange-500 mr-2"></i> हमारे बारे में</a>
+            <a href="{{ url_for('contact') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-phone-alt w-6 text-center text-orange-500 mr-2"></i> संपर्क करें</a>
+            <a href="{{ url_for('teacher_login') }}" class="block font-bold text-gray-700 hover:text-green-600 hindi"><i class="fas fa-chalkboard-teacher w-6 text-center text-green-500 mr-2"></i> शिक्षक कॉर्नर</a>
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <a href="{{ url_for('admin_login') }}" class="block font-bold text-white bg-orange-500 px-4 py-3 rounded-xl text-center shadow-md hindi hover:bg-orange-600"><i class="fas fa-shield-alt mr-2"></i> एडमिन लॉगिन</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section class="gentle-grad pt-32 pb-16 relative overflow-hidden">
+        <div class="absolute inset-0 z-0 opacity-10 flex items-center justify-center">
+            <i class="fas fa-om text-[20rem] text-orange-600"></i>
+        </div>
+        <div class="max-w-4xl mx-auto px-4 text-center relative z-10">
+            <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6 hindi leading-tight text-orange-700">गायत्री विद्यापीठ एवं गायत्री विद्या</h1>
+            <p class="text-lg text-gray-600 hindi font-medium max-w-2xl mx-auto">ज्ञान, संस्कार और आध्यात्मिक ऊर्जा का परम केंद्र।</p>
+            <div class="w-24 h-1.5 bg-orange-500 mx-auto mt-8 rounded-full"></div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-4 py-16 space-y-16">
+
+        <!-- 1. School Info -->
+        <div class="bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-gray-100 card-hover flex flex-col md:flex-row gap-8">
+            <div class="md:w-2/3 space-y-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5 hindi flex items-center gap-3">
+                        <div class="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-lg"><i class="fas fa-university"></i></div>
+                        गायत्री विद्यापीठ, शांतिकुंज
+                    </h2>
+                    <ul class="space-y-3 hindi text-gray-600 leading-relaxed text-base">
+                        <li class="flex items-start gap-3"><i class="fas fa-check-circle text-green-500 mt-1"></i><span>गायत्री विद्यापीठ, शांतिकुंज (हरिद्वार) एक प्रतिष्ठित सह-शिक्षा विद्यालय है, जिसकी स्थापना <strong>सन् 1982</strong> में की गई थी।</span></li>
+                        <li class="flex items-start gap-3"><i class="fas fa-check-circle text-green-500 mt-1"></i><span>यह विद्यालय <strong>CBSE</strong> से सम्बद्ध है एवं गायत्री परिवार के अंतर्गत संचालित होता है।</span></li>
+                        <li class="flex items-start gap-3"><i class="fas fa-check-circle text-green-500 mt-1"></i><span>यह विद्यालय केवल शैक्षिक ज्ञान ही नहीं, बल्कि संस्कार, अनुशासन, योग एवं व्यक्तित्व विकास की शिक्षा भी प्रदान करता है।</span></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-5 hindi flex items-center gap-3">
+                        <div class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-lg"><i class="fas fa-school"></i></div>
+                        हमारी शाखा के बारे में
+                    </h2>
+                    <p class="text-gray-600 hindi leading-relaxed bg-orange-50 p-4 rounded-xl border border-orange-100 mb-4">
+                        हमें गर्व है कि हमने भी गायत्री विद्यापीठ, शांतिकुंज के मार्गदर्शन में अपनी इस नई शाखा का प्रारम्भ किया है। यह शाखा मुख्य विद्यालय से पूर्णतः प्रेरित है और यहाँ भी उसी महान आदर्श, शिक्षा पद्धति एवं संस्कार प्रणाली को अपनाया गया है।
+                    </p>
+                    <ul class="space-y-2 hindi text-gray-600 font-medium ml-2">
+                        <li class="flex items-center gap-2"><i class="fas fa-angle-right text-orange-500"></i> गुणवत्तापूर्ण शिक्षा</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-angle-right text-orange-500"></i> नैतिक एवं आध्यात्मिक संस्कार</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-angle-right text-orange-500"></i> अनुशासन और व्यक्तित्व विकास</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="md:w-1/3 flex flex-col items-center justify-center">
+                <img src="{{ url_for('static', filename='logo.jpeg') }}" class="w-48 h-48 rounded-2xl shadow-lg border-4 border-orange-100 object-cover mb-4" alt="School Logo">
+                <p class="text-sm font-bold text-orange-600 hindi text-center">गायत्री विद्यापीठ, दाउदनगर</p>
+            </div>
+        </div>
+
+        <!-- 2. Features Grid -->
+        <div>
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-8 hindi"><i class="fas fa-bullseye text-orange-500 mr-2"></i> हमारी विशेषताएँ</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-orange-50 rounded-2xl p-6 border-t-4 border-orange-500 card-hover text-center">
+                    <i class="fas fa-child text-3xl text-orange-500 mb-4"></i>
+                    <h3 class="font-bold text-gray-800 hindi mb-2">सर्वांगीण विकास</h3>
+                    <p class="text-sm text-gray-600 hindi">विद्यार्थियों के शैक्षिक, सांस्कृतिक और आध्यात्मिक विकास पर विशेष रूप से ध्यान दिया जाता है।</p>
+                </div>
+                <div class="bg-green-50 rounded-2xl p-6 border-t-4 border-green-500 card-hover text-center">
+                    <i class="fas fa-om text-3xl text-green-500 mb-4"></i>
+                    <h3 class="font-bold text-gray-800 hindi mb-2">नैतिक संस्कार</h3>
+                    <p class="text-sm text-gray-600 hindi">आधुनिक शिक्षा के साथ-साथ नैतिक संस्कार, योग और सांस्कृतिक गतिविधियाँ भी सिखाई जाती हैं।</p>
+                </div>
+                <div class="bg-blue-50 rounded-2xl p-6 border-t-4 border-blue-500 card-hover text-center">
+                    <i class="fas fa-campground text-3xl text-blue-500 mb-4"></i>
+                    <h3 class="font-bold text-gray-800 hindi mb-2">उत्कृष्ट प्रदर्शन</h3>
+                    <p class="text-sm text-gray-600 hindi">स्काउट्स एंड गाइड्स, योग एवं सांस्कृतिक कार्यक्रमों में हमारा विद्यालय उत्कृष्टता के लिए प्रसिद्ध है।</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Gayatri Details with image -->
+        <div class="bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100 flex flex-col md:flex-row">
+            <div class="md:w-1/3 bg-gray-900 relative">
+                <img src="https://gurukulam.awgp.in/var/profiles/3044/post/15715/Guruji-Mataji-11.jpg" class="w-full h-full object-cover opacity-80" alt="Guruji Mataji">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
+                    <p class="text-white font-bold hindi text-lg drop-shadow-md">वंदनीया माताजी एवं परम पूज्य गुरुदेव</p>
+                </div>
+            </div>
+            <div class="md:w-2/3 p-8 md:p-10 space-y-8 om-bg">
+                <div>
+                    <h3 class="text-xl font-bold text-orange-600 mb-3 hindi flex items-center gap-2"><i class="fas fa-sun text-yellow-500"></i> 'गायत्री' शब्द का अर्थ</h3>
+                    <p class="text-gray-700 hindi leading-relaxed">
+                        “गायत्री” का अर्थ है — <strong>प्राणों का उत्कर्ष करने वाली शक्ति या प्रक्रिया</strong>। यह एक उच्च आध्यात्मिक ऊर्जा है, जो जीवन को परम उन्नत और पवित्र बनाती है।
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-orange-600 mb-3 hindi flex items-center gap-2"><i class="fas fa-crown text-yellow-500"></i> माता गायत्री का महत्व</h3>
+                    <ul class="list-disc list-inside text-gray-700 hindi space-y-2">
+                        <li>गायत्री माता को हिन्दू धर्म में <strong>वेदों की जननी (वेदमाता)</strong> माना जाता है।</li>
+                        <li>वे ज्ञान, बुद्धि और शक्ति की सर्वोच्च देवी हैं।</li>
+                        <li>गायत्री माता को सरस्वती, लक्ष्मी और पार्वती का संयुक्त स्वरूप माना जाता है और उनका वाहन हंस है।</li>
+                        <li>सृष्टि के आरंभ में ब्रह्मा जी ने गायत्री मंत्र के माध्यम से ही उनका आह्वान किया था।</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Mantra Info Grid -->
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-white rounded-2xl p-8 shadow-lg border border-orange-100 card-hover">
+                <div class="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-xl mb-4"><i class="fas fa-pray"></i></div>
+                <h3 class="text-xl font-bold text-gray-800 mb-4 hindi">गायत्री मंत्र</h3>
+                <ul class="space-y-3 hindi text-gray-600">
+                    <li class="flex gap-2"><i class="fas fa-angle-right text-orange-400 mt-1"></i> <span>महर्षि विश्वामित्र द्वारा रचित यह हिन्दू धर्म का सबसे प्राचीन और प्रमुख मंत्र है।</span></li>
+                    <li class="flex gap-2"><i class="fas fa-angle-right text-orange-400 mt-1"></i> <span>इसकी उत्पत्ति ऋग्वेद से हुई है और इसमें कुल 24 अक्षर (शब्द) होते हैं।</span></li>
+                    <li class="flex gap-2"><i class="fas fa-angle-right text-orange-400 mt-1"></i> <span>यह महामंत्र सूर्यदेव (सविता) को पूर्ण रूप से समर्पित है।</span></li>
+                </ul>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-8 shadow-lg border border-green-100 card-hover">
+                <div class="w-12 h-12 bg-green-100 text-green-500 rounded-full flex items-center justify-center text-xl mb-4"><i class="fas fa-brain"></i></div>
+                <h3 class="text-xl font-bold text-gray-800 mb-4 hindi">गायत्री साधना का महत्व</h3>
+                <ul class="space-y-3 hindi text-gray-600">
+                    <li class="flex gap-2"><i class="fas fa-angle-right text-green-500 mt-1"></i> <span>गायत्री साधना मन, बुद्धि और चेतना को अत्यधिक शुद्ध व शक्तिशाली बनाती है।</span></li>
+                    <li class="flex gap-2"><i class="fas fa-angle-right text-green-500 mt-1"></i> <span>यह साधक के जीवन से भय, तनाव और नकारात्मकता को समूल नष्ट कर देती है।</span></li>
+                    <li class="flex gap-2"><i class="fas fa-angle-right text-green-500 mt-1"></i> <span>साधक को असीम आत्मबल, निर्भयता, ज्ञान और गहरी मानसिक शांति प्रदान करती है।</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 5. Gayatri Vidya -->
+        <div class="saffron-grad rounded-3xl p-1 md:p-1.5 shadow-2xl">
+            <div class="bg-white rounded-[22px] p-8 md:p-10">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 hindi mb-4">गायत्री विद्या क्या है?</h2>
+                    <p class="text-gray-600 hindi max-w-2xl mx-auto text-lg leading-relaxed">
+                        गायत्री विद्या भारतीय संस्कृति की उच्चतम आध्यात्मिक विद्याओं में से एक है। इसे <strong>महाविद्या</strong> और <strong>ब्रह्मविद्या</strong> भी कहा जाता है। यह केवल मंत्र-जाप नहीं है, बल्कि यह आत्म-विकास और प्राणशक्ति जागरण का एक पूर्ण विज्ञान है।
+                    </p>
+                </div>
+                
+                <div class="grid sm:grid-cols-2 gap-8 border-t border-gray-100 pt-8">
+                    <div>
+                        <h4 class="text-lg font-bold text-orange-600 mb-4 hindi flex items-center gap-2"><i class="fas fa-crosshairs"></i> प्रमुख उद्देश्य</h4>
+                        <ul class="space-y-3 hindi text-gray-700">
+                            <li class="flex items-center gap-3 bg-orange-50 px-4 py-2 rounded-lg font-medium"><span>१.</span> सद्बुद्धि और सुविचारों का विकास करना</li>
+                            <li class="flex items-center gap-3 bg-orange-50 px-4 py-2 rounded-lg font-medium"><span>२.</span> व्यक्ति को पूर्णतः विवेकशील और जागरूक बनाना</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-green-600 mb-4 hindi flex items-center gap-2"><i class="fas fa-star"></i> अद्भुत लाभ</h4>
+                        <ul class="space-y-2 hindi text-gray-700 text-sm">
+                            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-1"></i> शरीर की सूक्ष्म ग्रंथियों को सक्रिय रूप से जागृत करती है।</li>
+                            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-1"></i> मनुष्य के व्यक्तित्व में गजब का आकर्षण और तेज बढ़ाती है।</li>
+                            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-1"></i> बुद्धि और सही निर्णय लेने की क्षमता का तेजी से विकास करती है।</li>
+                            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-1"></i> कठिन से कठिन परिस्थितियों में भी अभेद्य आत्मबल प्रदान करती है।</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Conclusion -->
+        <div class="bg-gray-900 rounded-3xl p-8 md:p-12 text-center shadow-2xl relative overflow-hidden">
+            <i class="fas fa-quote-left text-6xl text-gray-800 absolute top-6 left-6 opacity-50"></i>
+            <h2 class="text-2xl font-bold text-white mb-6 hindi relative z-10">निष्कर्ष</h2>
+            <p class="text-xl text-gray-300 hindi leading-relaxed max-w-3xl mx-auto font-light relative z-10">
+                गायत्री विद्यापीठ केवल एक विद्यालय नहीं, बल्कि एक ऐसा शिक्षण केंद्र है जहाँ <span class="text-white font-medium">आधुनिक शिक्षा और भारतीय संस्कृति का सुंदर संगम</span> देखने को मिलता है।
+                <span class="block mt-6 text-orange-400 font-medium">हमारी यह शाखा भी इसी महान उद्देश्य के साथ कार्य कर रही है कि प्रत्येक विद्यार्थी का शैक्षिक, मानसिक और आध्यात्मिक रूप से संपूर्ण विकास हो सके।</span>
+            </p>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8 border-t-8 border-orange-600 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 border-b border-gray-800 pb-12">
+                <!-- Branding & About -->
+                <div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <img src="{{ url_for('static', filename='logo.jpeg') }}" class="w-16 h-16 rounded-full border-2 border-orange-500 object-cover" alt="Footer Logo">
+                        <div>
+                            <h3 class="text-2xl font-bold hindi text-orange-400 leading-tight">गायत्री विद्यापीठ</h3>
+                            <p class="text-gray-400 text-sm hindi">दाउदनगर</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm hindi leading-relaxed pr-4">
+                        ज्ञान, संस्कार और सफलता का केंद्र। हम आपके बच्चों के उज्जवल भविष्य और सर्वांगीण विकास के लिए कटिबद्ध हैं।
+                    </p>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-6 hindi relative inline-block">
+                        महत्वपूर्ण लिंक
+                        <span class="absolute bottom--2 left-0 w-1/2 h-0.5 bg-orange-500"></span>
+                    </h4>
+                    <ul class="space-y-3 hindi">
+                        <li><a href="{{ url_for('index') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> होमपेज</a></li>
+                        <li><a href="{{ url_for('contact') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> संपर्क करें</a></li>
+                        <li><a href="{{ url_for('teacher_login') }}" class="text-gray-400 hover:text-green-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> शिक्षक पोर्टल</a></li>
+                        <li><a href="{{ url_for('admin_login') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> एडमिन लॉगिन</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact & Address -->
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-6 hindi relative inline-block">
+                        संपर्क सूत्र
+                        <span class="absolute bottom--2 left-0 w-1/2 h-0.5 bg-orange-500"></span>
+                    </h4>
+                    <ul class="space-y-4 hindi">
+                        <li class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm leading-relaxed mt-1">
+                                NH-139, Patna Road, Akodha,<br>
+                                Daudnagar, Aurangabad,<br>
+                                Bihar
+                            </span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                                <i class="fas fa-phone-alt"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm hindi">
+                                +91 9006564065, +91 8767238613
+                            </span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-green-500 shrink-0">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm hindi">+91 7906704435</span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm">cp.awgp@gmail.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="text-center text-gray-500 text-sm hindi flex flex-col md:flex-row justify-between items-center gap-4">
+                <p>&copy; 2026 गायत्री विद्यापीठ, दाउदनगर। सभी अधिकार सुरक्षित।</p>
+                <p>डेवलप्ड विथ ❤️ फॉर स्कूल ऑटोमेशन</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('public-mobile-btn');
+            const menu = document.getElementById('public-mobile-menu');
+            if(btn && menu) {
+                btn.addEventListener('click', () => {
+                    if(menu.classList.contains('hidden')) {
+                        menu.classList.remove('hidden');
+                        menu.classList.add('flex');
+                        btn.innerHTML = '<i class="fas fa-times text-2xl"></i>';
+                    } else {
+                        menu.classList.add('hidden');
+                        menu.classList.remove('flex');
+                        btn.innerHTML = '<i class="fas fa-bars text-2xl"></i>';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

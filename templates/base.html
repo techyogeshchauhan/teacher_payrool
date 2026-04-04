@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}गायत्री विद्यापीठ{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --saffron: #FF6B00;
+            --deep-saffron: #E55A00;
+            --gold: #FFB300;
+            --maroon: #7B1C1C;
+            --deep-green: #1A5C2E;
+            --cream: #FFF8F0;
+        }
+        body { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; background: #f5f0eb; }
+        .hindi { font-family: 'Noto Sans Devanagari', sans-serif; }
+        .saffron-grad { background: linear-gradient(135deg, #FF6B00 0%, #FFB300 100%); }
+        .maroon-grad { background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%); }
+        .green-grad { background: linear-gradient(135deg, #1A5C2E 0%, #2E8B57 100%); }
+        .card-shadow { box-shadow: 0 4px 24px rgba(0,0,0,0.10); }
+        .nav-link { transition: all 0.2s; }
+        .nav-link:hover { background: rgba(255,255,255,0.18); border-radius: 8px; }
+        .status-present { background: #d1fae5; color: #065f46; }
+        .status-absent { background: #fee2e2; color: #991b1b; }
+        .status-half_day { background: #fef3c7; color: #92400e; }
+        .scroll-x { overflow-x: auto; }
+        ::-webkit-scrollbar { height: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #FF6B00; border-radius: 3px; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen">
+
+{% if session.get('admin') or session.get('teacher_id') %}
+<!-- Navbar -->
+<nav class="saffron-grad shadow-lg relative z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between py-2 min-h-[4.5rem]">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-0.5 shadow-md overflow-hidden border border-orange-300 shrink-0">
+                    <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="text-white font-extrabold text-lg sm:text-xl hindi leading-tight">गायत्री विद्यापीठ</div>
+                    <div class="text-orange-100 text-xs sm:text-sm font-medium tracking-wide">दाउदनगर</div>
+                </div>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden lg:flex items-center gap-2">
+                {% if session.get('admin') %}
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-home text-xs"></i> Dashboard
+                </a>
+                <a href="{{ url_for('manage_teachers') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-users text-xs"></i> Teachers
+                </a>
+                <a href="{{ url_for('mark_attendance') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-calendar-check text-xs"></i> Attendance
+                </a>
+                <a href="{{ url_for('payroll') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-rupee-sign text-xs"></i> Payroll
+                </a>
+                <a href="{{ url_for('attendance_report') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-chart-bar text-xs"></i> Report
+                </a>
+                {% else %}
+                <a href="{{ url_for('teacher_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-home text-xs"></i> Dashboard
+                </a>
+                <a href="{{ url_for('teacher_salary') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-file-invoice-dollar text-xs"></i> Salary
+                </a>
+                <a href="{{ url_for('teacher_change_password') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-key text-xs"></i> Password
+                </a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="bg-white text-orange-600 px-4 py-2 rounded-xl text-sm font-bold shadow hover:bg-orange-50 transition ml-3">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="lg:hidden flex items-center">
+                <button type="button" id="mobile-btn" class="text-white hover:text-orange-200 focus:outline-none focus:ring-2 focus:ring-white rounded-lg p-2 transition">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Dropdown -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-white shadow-2xl absolute w-full left-0 top-full flex-col border-t border-orange-100">
+        <div class="px-4 py-3 space-y-1">
+            {% if session.get('admin') %}
+            <a href="{{ url_for('admin_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-home w-6 text-center text-orange-500"></i> Dashboard
+            </a>
+            <a href="{{ url_for('manage_teachers') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-users w-6 text-center text-orange-500"></i> Teachers
+            </a>
+            <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-calendar-check w-6 text-center text-orange-500"></i> Attendance
+            </a>
+            <a href="{{ url_for('payroll') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-rupee-sign w-6 text-center text-orange-500"></i> Payroll
+            </a>
+            <a href="{{ url_for('attendance_report') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-chart-bar w-6 text-center text-orange-500"></i> Report
+            </a>
+            {% else %}
+            <a href="{{ url_for('teacher_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
+                <i class="fas fa-home w-6 text-center text-green-600"></i> Dashboard
+            </a>
+            <a href="{{ url_for('teacher_salary') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
+                <i class="fas fa-file-invoice-dollar w-6 text-center text-green-600"></i> Salary
+            </a>
+            <a href="{{ url_for('teacher_change_password') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
+                <i class="fas fa-key w-6 text-center text-green-600"></i> Password
+            </a>
+            {% endif %}
+            <div class="border-t border-gray-100 my-2 pt-2">
+                <a href="{{ url_for('logout') }}" class="block px-4 py-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold transition text-center shadow-sm">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('mobile-btn');
+        const menu = document.getElementById('mobile-menu');
+        if(btn && menu) {
+            btn.addEventListener('click', () => {
+                if(menu.classList.contains('hidden')) {
+                    menu.classList.remove('hidden');
+                    menu.classList.add('flex');
+                    btn.innerHTML = '<i class="fas fa-times text-2xl"></i>';
+                } else {
+                    menu.classList.add('hidden');
+                    menu.classList.remove('flex');
+                    btn.innerHTML = '<i class="fas fa-bars text-2xl"></i>';
+                }
+            });
+        }
+    });
+</script>
+{% endif %}
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="max-w-7xl mx-auto px-4 pt-4">
+    {% for msg in messages %}
+    <div class="bg-orange-50 border-l-4 border-orange-500 text-orange-800 px-4 py-3 rounded-lg mb-2 flex items-center gap-2 animate-pulse">
+        <i class="fas fa-info-circle"></i> <span class="hindi">{{ msg }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- Main Content -->
+<main class="max-w-7xl mx-auto px-4 py-6">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="text-center text-xs text-gray-400 py-4 mt-8 hindi">
+    गायत्री विद्यापीठ, दाउदनगर &mdash; Attendance & Payroll System
+</footer>
+
+</body>
+</html>

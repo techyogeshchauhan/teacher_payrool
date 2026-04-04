@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Salary - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
+            <i class="fas fa-file-invoice-dollar text-green-600"></i> Salary Slip
+        </h1>
+        <button onclick="window.print()" class="bg-gray-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm no-print">
+            <i class="fas fa-print"></i> Print
+        </button>
+    </div>
+
+    <!-- Month Selector -->
+    <div class="bg-white rounded-2xl card-shadow p-4 mb-6 flex flex-wrap gap-3 items-center no-print">
+        <form method="GET" class="flex gap-3 items-center flex-wrap">
+            <label class="text-sm font-semibold text-gray-600 hindi">महीना:</label>
+            <select name="month" class="px-3 py-2 border-2 border-green-300 rounded-xl focus:outline-none focus:border-green-500">
+                {% for m in range(1, 13) %}
+                <option value="{{ m }}" {% if m == month %}selected{% endif %}>
+                    {{ ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m] }}
+                </option>
+                {% endfor %}
+            </select>
+            <select name="year" class="px-3 py-2 border-2 border-green-300 rounded-xl focus:outline-none">
+                {% for y in range(2023, 2027) %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="green-grad text-white px-5 py-2 rounded-xl font-semibold">देखें</button>
+        </form>
+    </div>
+
+    <!-- Salary Slip Card -->
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden salary-slip">
+        <!-- Header -->
+        <div class="green-grad p-6 text-center text-white">
+            <div class="text-2xl mb-1">🕉️</div>
+            <h2 class="text-xl font-bold hindi">गायत्री विद्यापीठ, दाउदनगर</h2>
+            <p class="text-green-200 text-sm hindi">Salary Slip — {{ month_name }} {{ year }}</p>
+        </div>
+
+        <!-- Teacher Info -->
+        <div class="p-6 border-b border-gray-100">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs text-gray-400 hindi">शिक्षक नाम</p>
+                    <p class="font-bold text-gray-800 hindi">{{ teacher.name }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400">Teacher ID</p>
+                    <p class="font-bold text-orange-600 font-mono">{{ teacher.teacher_id }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 hindi">विषय</p>
+                    <p class="font-semibold text-gray-700 hindi">{{ teacher.subject }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400">Phone</p>
+                    <p class="font-semibold text-gray-700">{{ teacher.phone }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Summary -->
+        <div class="p-6 border-b border-gray-100">
+            <h3 class="font-bold text-gray-700 hindi mb-4 flex items-center gap-2">
+                <i class="fas fa-calendar-check text-green-500"></i> Attendance Summary
+            </h3>
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-green-50 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-green-700">{{ present }}</p>
+                    <p class="text-xs text-gray-500 hindi">Present</p>
+                </div>
+                <div class="bg-yellow-50 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-yellow-600">{{ half }}</p>
+                    <p class="text-xs text-gray-500 hindi">Half Day</p>
+                </div>
+                <div class="bg-blue-50 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-blue-700">{{ effective }}</p>
+                    <p class="text-xs text-gray-500 hindi">Effective Days</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculation -->
+        <div class="p-6">
+            <h3 class="font-bold text-gray-700 hindi mb-4 flex items-center gap-2">
+                <i class="fas fa-calculator text-green-500"></i> Salary Calculation
+            </h3>
+            <div class="space-y-3">
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-600 hindi">Basic Salary</span>
+                    <span class="font-semibold">₹{{ "{:,.0f}".format(teacher.basic_salary) }}</span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-600 hindi">Working Days ({{ month_name }})</span>
+                    <span class="font-semibold">{{ working_days }} दिन</span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-600 hindi">Per Day Rate</span>
+                    <span class="font-semibold">₹{{ per_day }}</span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-600 hindi">Effective Days (P + H×½)</span>
+                    <span class="font-semibold text-blue-600">{{ effective }} दिन</span>
+                </div>
+                {% if deduction > 0 %}
+                <div class="flex justify-between py-2 border-b border-red-100 bg-red-50 px-3 rounded-lg">
+                    <span class="text-red-600 hindi">Deduction ({{ working_days - effective|int }} दिन absent)</span>
+                    <span class="font-semibold text-red-600">-₹{{ "{:,.0f}".format(deduction) }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between py-3 bg-green-50 px-4 rounded-xl border-2 border-green-200 mt-2">
+                    <span class="font-bold text-gray-800 hindi text-lg">Net Salary</span>
+                    <span class="font-bold text-green-700 text-2xl">₹{{ "{:,.0f}".format(net_salary) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-6 pb-6 text-center text-xs text-gray-400 hindi print:block">
+            यह computer generated salary slip है।
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    nav, .no-print { display: none !important; }
+    body { background: white; }
+    .card-shadow { box-shadow: none; border: 1px solid #ddd; }
+}
+</style>
+
+{% endblock %}

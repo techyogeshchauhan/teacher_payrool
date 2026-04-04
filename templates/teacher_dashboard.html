@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<!-- Welcome Header -->
+<div class="green-grad rounded-2xl p-6 mb-6 text-white card-shadow">
+    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center text-green-700 font-bold text-2xl shrink-0">
+            {{ teacher.name[0] }}
+        </div>
+        <div>
+            <p class="text-green-200 text-sm hindi">नमस्ते 🙏</p>
+            <h1 class="text-2xl font-bold hindi">{{ teacher.name }}</h1>
+            <p class="text-green-200 text-sm hindi">{{ teacher.subject }} | <span class="font-mono bg-green-700 px-2 py-0.5 rounded">{{ teacher.teacher_id }}</span></p>
+        </div>
+        <div class="sm:ml-auto sm:text-right mt-4 sm:mt-0 w-full sm:w-auto bg-white/10 sm:bg-transparent rounded-xl p-3 sm:p-0">
+            <p class="text-green-100 text-xs text-center sm:text-right">Basic Salary</p>
+            <p class="text-3xl font-bold text-center sm:text-right">₹{{ "{:,.0f}".format(teacher.basic_salary) }}</p>
+            <p class="text-green-200 text-xs hindi">प्रति माह</p>
+        </div>
+    </div>
+</div>
+
+<!-- This Month Stats -->
+<h2 class="font-bold text-gray-700 hindi mb-3 flex items-center gap-2">
+    <i class="fas fa-calendar text-green-600"></i> {{ month_name }} {{ year }} — Attendance
+</h2>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-green-500 text-center">
+        <p class="text-gray-500 text-xs hindi mb-1">उपस्थित दिन</p>
+        <p class="text-4xl font-bold text-green-600">{{ present }}</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-yellow-400 text-center">
+        <p class="text-gray-500 text-xs hindi mb-1">Half Day</p>
+        <p class="text-4xl font-bold text-yellow-500">{{ half }}</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-red-400 text-center">
+        <p class="text-gray-500 text-xs hindi mb-1">अनुपस्थित</p>
+        <p class="text-4xl font-bold text-red-500">{{ absent }}</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-blue-400 text-center">
+        <p class="text-gray-500 text-xs hindi mb-1">Working Days</p>
+        <p class="text-4xl font-bold text-blue-600">{{ working_days }}</p>
+    </div>
+</div>
+
+<!-- Estimated Salary Card -->
+<div class="bg-white rounded-2xl card-shadow overflow-hidden mb-6">
+    <div class="green-grad px-6 py-4">
+        <h2 class="text-white font-bold hindi flex items-center gap-2">
+            <i class="fas fa-rupee-sign"></i> {{ month_name }} {{ year }} — अनुमानित Salary
+        </h2>
+    </div>
+    <div class="p-6 flex flex-col md:flex-row items-center md:items-center justify-between gap-6 text-center md:text-left">
+        <div class="w-full">
+            <p class="text-gray-500 text-sm hindi">अब तक की उपस्थिति के आधार पर</p>
+            <p class="text-5xl font-bold text-green-700 mt-2">₹{{ "{:,.0f}".format(estimated_salary) }}</p>
+            <p class="text-gray-400 text-sm hindi mt-1">
+                ({{ present }} दिन + {{ half }} × ½) × ₹{{ "{:,.0f}".format(teacher.basic_salary // working_days) }}/दिन
+            </p>
+        </div>
+        <a href="{{ url_for('teacher_salary') }}" 
+           class="green-grad text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition flex items-center gap-2 hindi">
+            <i class="fas fa-file-invoice-dollar"></i> Salary Details
+        </a>
+    </div>
+</div>
+
+<!-- Recent Attendance -->
+<div class="bg-white rounded-2xl card-shadow overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800 hindi flex items-center gap-2">
+            <i class="fas fa-history text-green-600"></i> हाल की Attendance
+        </h2>
+    </div>
+    <div class="divide-y divide-gray-50">
+        {% for r in recent %}
+        <div class="px-6 py-3 flex items-center justify-between">
+            <span class="text-gray-700 text-sm">{{ r.date }}</span>
+            {% if r.status == 'present' %}
+            <span class="status-present px-3 py-1 rounded-lg text-xs font-semibold hindi">✓ उपस्थित</span>
+            {% elif r.status == 'half_day' %}
+            <span class="status-half_day px-3 py-1 rounded-lg text-xs font-semibold hindi">½ Half Day</span>
+            {% else %}
+            <span class="status-absent px-3 py-1 rounded-lg text-xs font-semibold hindi">✗ अनुपस्थित</span>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="px-6 py-8 text-center text-gray-400 hindi">कोई attendance record नहीं मिला।</div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>गायत्री विद्यापीठ - दाउदनगर</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; scroll-behavior: smooth; }
+        .hindi { font-family: 'Noto Sans Devanagari', sans-serif; }
+        
+        .hero-bg {
+            background-image: url("{{ url_for('static', filename='school_2_photo.jpeg') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .saffron-grad { background: linear-gradient(135deg, #FF6B00 0%, #FFB300 100%); }
+        .green-grad { background: linear-gradient(135deg, #10B981 0%, #047857 100%); }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <!-- Navigation -->
+    <nav class="glass-nav fixed w-full z-50 top-0 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="{{ url_for('index') }}" class="flex items-center gap-3">
+                    <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="w-14 h-14 rounded-full border border-orange-200 shadow-sm object-cover">
+                    <div class="flex flex-col">
+                        <span class="hindi font-extrabold text-xl sm:text-2xl text-orange-600 leading-none">गायत्री विद्यापीठ</span>
+                        <span class="hindi text-sm font-semibold text-gray-500 tracking-wide">दाउदनगर</span>
+                    </div>
+                </a>
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="{{ url_for('about') }}" class="text-gray-600 hover:text-orange-600 font-semibold transition">हमारे बारे में</a>
+                    <a href="{{ url_for('contact') }}" class="text-gray-600 hover:text-orange-600 font-semibold transition">संपर्क करें</a>
+                    <a href="{{ url_for('teacher_login') }}" class="text-gray-600 hover:text-green-600 font-semibold transition">शिक्षक कॉर्नर</a>
+                    <a href="{{ url_for('admin_login') }}" class="saffron-grad text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition"><i class="fas fa-user-shield mr-2"></i>Admin Login</a>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button id="public-mobile-btn" class="text-gray-800 hover:text-orange-600 focus:outline-none p-2 border border-gray-200 rounded-lg bg-white/50">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Dropdown -->
+        <div id="public-mobile-menu" class="hidden md:hidden bg-white shadow-2xl absolute w-full border-t border-gray-100 flex-col px-6 py-4 space-y-4 rounded-b-2xl">
+            <a href="{{ url_for('index') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-home w-6 text-center text-orange-500 mr-2"></i> होमपेज</a>
+            <a href="{{ url_for('about') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-info-circle w-6 text-center text-orange-500 mr-2"></i> हमारे बारे में</a>
+            <a href="{{ url_for('contact') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-phone-alt w-6 text-center text-orange-500 mr-2"></i> संपर्क करें</a>
+            <a href="{{ url_for('teacher_login') }}" class="block font-bold text-gray-700 hover:text-green-600 hindi"><i class="fas fa-chalkboard-teacher w-6 text-center text-green-500 mr-2"></i> शिक्षक कॉर्नर</a>
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <a href="{{ url_for('admin_login') }}" class="block font-bold text-white bg-orange-500 px-4 py-3 rounded-xl text-center shadow-md hindi hover:bg-orange-600"><i class="fas fa-user-shield mr-2"></i> एडमिन लॉगिन</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative hero-bg h-screen flex items-center justify-center pt-20">
+        <!-- Dark Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 z-0"></div>
+        
+        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto w-full flex flex-col items-center">
+            <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden mb-6 floating">
+                <img src="{{ url_for('static', filename='logo.jpeg') }}" class="w-full h-full object-cover" alt="School Logo">
+            </div>
+            <p class="text-orange-300 font-bold tracking-widest uppercase mb-4 text-sm sm:text-base border border-orange-300/30 inline-block px-4 py-1 rounded-full bg-orange-900/40 backdrop-blur-sm">ज्ञान • संस्कार • सफलता</p>
+            <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white mb-6 hindi drop-shadow-lg leading-tight">
+                गायत्री विद्यापीठ
+            </h1>
+            <p class="text-lg sm:text-2xl text-gray-200 mb-10 max-w-2xl mx-auto hindi font-light drop-shadow-md">
+                दाउदनगर का अग्रणी शिक्षण संस्थान, जहाँ बच्चों का भविष्य संवरता है।
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-5 justify-center mt-6 w-full max-w-lg mx-auto">
+                <a href="{{ url_for('teacher_login') }}" class="flex-1 green-grad hover:from-green-600 hover:to-teal-800 text-white font-bold py-4 px-8 rounded-2xl shadow-xl transform hover:-translate-y-1 transition duration-300 flex items-center justify-center gap-3 text-lg border border-white/10">
+                    <i class="fas fa-chalkboard-teacher text-2xl"></i>
+                    <span class="hindi">शिक्षक पोर्टल</span>
+                </a>
+                <a href="{{ url_for('admin_login') }}" class="flex-1 saffron-grad hover:from-orange-600 hover:to-orange-800 text-white font-bold py-4 px-8 rounded-2xl shadow-xl transform hover:-translate-y-1 transition duration-300 flex items-center justify-center gap-3 text-lg border border-white/10">
+                    <i class="fas fa-user-shield text-2xl"></i>
+                    <span class="hindi">एडमिन पोर्टल</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Scroll indicator -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
+            <a href="#features" class="text-white/60 hover:text-white transition">
+                <i class="fas fa-chevron-down text-3xl"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-800 hindi">हमारी विशेषताएं</h2>
+                <div class="w-24 h-1 bg-orange-500 mx-auto mt-4 rounded-full"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-10">
+                <div class="bg-gray-50 rounded-3xl p-8 text-center border-b-4 border-orange-500 hover:shadow-2xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6 text-orange-500 text-2xl shadow-inner">
+                        <i class="fas fa-book-reader"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 hindi text-gray-800">उत्कृष्ट शिक्षा</h3>
+                    <p class="text-gray-500 hindi text-sm leading-relaxed">हम छात्रों को आधुनिक तकनीक और अनुभवी शिक्षकों के माध्यम से सर्वोत्कृष्ट शिक्षा प्रदान करते हैं।</p>
+                </div>
+                
+                <div class="bg-gray-50 rounded-3xl p-8 text-center border-b-4 border-green-500 hover:shadow-2xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-500 text-2xl shadow-inner">
+                        <i class="fas fa-praying-hands"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 hindi text-gray-800">संस्कार और नैतिक मूल्य</h3>
+                    <p class="text-gray-500 hindi text-sm leading-relaxed">हमारा उद्देश्य सिर्फ शिक्षा देना नहीं है बल्कि बच्चों में अच्छे संस्कार और नैतिक मूल्यों का विकास करना भी है।</p>
+                </div>
+                
+                <div class="bg-gray-50 rounded-3xl p-8 text-center border-b-4 border-blue-500 hover:shadow-2xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-500 text-2xl shadow-inner">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 hindi text-gray-800">डिजिटल मैनेजमेंट</h3>
+                    <p class="text-gray-500 hindi text-sm leading-relaxed">सुव्यवस्थित पेरोल सिस्टम और ऑनलाइन पोर्टल द्वारा शिक्षकों एवं स्कूल प्रशासन का संपूर्ण डिजिटलीकरण।</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8 border-t-8 border-orange-600">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 border-b border-gray-800 pb-12">
+                <!-- Branding & About -->
+                <div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <img src="{{ url_for('static', filename='logo.jpeg') }}" class="w-16 h-16 rounded-full border-2 border-orange-500 object-cover" alt="Footer Logo">
+                        <div>
+                            <h3 class="text-2xl font-bold hindi text-orange-400 leading-tight">गायत्री विद्यापीठ</h3>
+                            <p class="text-gray-400 text-sm hindi">दाउदनगर</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm hindi leading-relaxed pr-4">
+                        ज्ञान, संस्कार और सफलता का केंद्र। हम आपके बच्चों के उज्जवल भविष्य और सर्वांगीण विकास के लिए कटिबद्ध हैं।
+                    </p>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-6 hindi relative inline-block">
+                        महत्वपूर्ण लिंक
+                        <span class="absolute bottom--2 left-0 w-1/2 h-0.5 bg-orange-500"></span>
+                    </h4>
+                    <ul class="space-y-3 hindi">
+                        <li><a href="#features" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> विशेषताएँ</a></li>
+                        <li><a href="{{ url_for('about') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> हमारे बारे में</a></li>
+                        <li><a href="{{ url_for('contact') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> संपर्क करें</a></li>
+                        <li><a href="{{ url_for('teacher_login') }}" class="text-gray-400 hover:text-green-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> शिक्षक पोर्टल</a></li>
+                        <li><a href="{{ url_for('admin_login') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> एडमिन लॉगिन</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact & Address -->
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-6 hindi relative inline-block">
+                        संपर्क सूत्र
+                        <span class="absolute bottom--2 left-0 w-1/2 h-0.5 bg-orange-500"></span>
+                    </h4>
+                    <ul class="space-y-4 hindi">
+                        <li class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm leading-relaxed mt-1">
+                                NH-139, Patna Road, Akodha,<br>
+                                Daudnagar, Aurangabad,<br>
+                                Bihar
+                            </span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                                <i class="fas fa-phone-alt"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm hindi">
+                                +91 9006564065, +91 8767238613
+                            </span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-green-500 shrink-0">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm hindi">+91 7906704435</span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <span class="text-gray-400 text-sm">cp.awgp@gmail.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="text-center text-gray-500 text-sm hindi flex flex-col md:flex-row justify-between items-center gap-4">
+                <p>&copy; 2026 गायत्री विद्यापीठ, दाउदनगर। सभी अधिकार सुरक्षित।</p>
+                <p>डेवलप्ड विथ ❤️ फॉर स्कूल ऑटोमेशन</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('public-mobile-btn');
+            const menu = document.getElementById('public-mobile-menu');
+            if(btn && menu) {
+                btn.addEventListener('click', () => {
+                    if(menu.classList.contains('hidden')) {
+                        menu.classList.remove('hidden');
+                        menu.classList.add('flex');
+                        btn.innerHTML = '<i class="fas fa-times text-2xl"></i>';
+                    } else {
+                        menu.classList.add('hidden');
+                        menu.classList.remove('flex');
+                        btn.innerHTML = '<i class="fas fa-bars text-2xl"></i>';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

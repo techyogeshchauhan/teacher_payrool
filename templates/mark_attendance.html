@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Attendance - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
+        <i class="fas fa-calendar-check text-orange-500"></i> Attendance लगाएं
+    </h1>
+</div>
+
+<!-- Date Selector -->
+<div class="bg-white rounded-2xl card-shadow p-4 mb-6 flex items-center gap-4">
+    <label class="font-semibold text-gray-700 hindi flex items-center gap-2">
+        <i class="fas fa-calendar text-orange-500"></i> तारीख चुनें:
+    </label>
+    <input type="date" id="dateSelector" value="{{ selected_date }}"
+        class="px-4 py-2 border-2 border-orange-300 rounded-xl focus:border-orange-500 focus:outline-none"
+        onchange="window.location.href='?date='+this.value">
+    <span class="text-orange-600 font-semibold">{{ selected_date }}</span>
+</div>
+
+{% if teachers %}
+<form method="POST">
+    <input type="hidden" name="att_date" value="{{ selected_date }}">
+    
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden mb-6">
+        <div class="px-6 py-4 saffron-grad flex items-center justify-between">
+            <h2 class="text-white font-bold hindi flex items-center gap-2">
+                <i class="fas fa-users"></i> {{ teachers|length }} शिक्षकों की Attendance
+            </h2>
+            <div class="flex gap-3 text-sm">
+                <button type="button" onclick="markAll('present')" 
+                    class="bg-green-100 text-green-700 px-3 py-1 rounded-lg font-semibold hover:bg-green-200 transition hindi">
+                    ✓ सभी Present
+                </button>
+                <button type="button" onclick="markAll('absent')" 
+                    class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-semibold hover:bg-red-200 transition hindi">
+                    ✗ सभी Absent
+                </button>
+            </div>
+        </div>
+
+        <div class="divide-y divide-gray-100">
+            {% for t in teachers %}
+            <div class="px-6 py-4 flex items-center justify-between hover:bg-orange-50 transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 saffron-grad rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        {{ t.name[0] }}
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800 hindi">{{ t.name }}</p>
+                        <p class="text-xs text-gray-500 hindi">{{ t.subject }} &bull; 
+                            <span class="font-mono bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">{{ t.teacher_id }}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 att-group" data-id="{{ t.teacher_id }}">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="present" class="sr-only peer" 
+                            {% if existing.get(t.teacher_id) == 'present' %}checked{% endif %}>
+                        <span class="px-4 py-2 rounded-xl border-2 border-green-200 text-green-700 text-sm font-semibold
+                            peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 
+                            hover:bg-green-50 transition block hindi">
+                            ✓ Present
+                        </span>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="half_day" class="sr-only peer"
+                            {% if existing.get(t.teacher_id) == 'half_day' %}checked{% endif %}>
+                        <span class="px-4 py-2 rounded-xl border-2 border-yellow-200 text-yellow-700 text-sm font-semibold
+                            peer-checked:bg-yellow-400 peer-checked:text-white peer-checked:border-yellow-400
+                            hover:bg-yellow-50 transition block hindi">
+                            ½ Half Day
+                        </span>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="absent" class="sr-only peer"
+                            {% if existing.get(t.teacher_id, 'absent') == 'absent' and t.teacher_id not in existing %}checked
+                            {% elif existing.get(t.teacher_id) == 'absent' %}checked{% endif %}>
+                        <span class="px-4 py-2 rounded-xl border-2 border-red-200 text-red-600 text-sm font-semibold
+                            peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500
+                            hover:bg-red-50 transition block hindi">
+                            ✗ Absent
+                        </span>
+                    </label>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <button type="submit"
+        class="saffron-grad text-white px-10 py-3.5 rounded-xl font-bold text-lg hover:opacity-90 transition shadow-xl flex items-center gap-3">
+        <i class="fas fa-save"></i>
+        <span class="hindi">Attendance Save करें</span>
+    </button>
+</form>
+
+{% else %}
+<div class="bg-white rounded-2xl card-shadow p-12 text-center">
+    <i class="fas fa-users text-gray-300 text-6xl mb-4"></i>
+    <p class="text-gray-500 hindi text-lg">कोई शिक्षक नहीं मिले।</p>
+    <a href="{{ url_for('add_teacher') }}" class="inline-block mt-4 saffron-grad text-white px-6 py-2.5 rounded-xl hindi">
+        Teacher जोड़ें
+    </a>
+</div>
+{% endif %}
+
+<script>
+function markAll(status) {
+    document.querySelectorAll(`input[type=radio][value="${status}"]`).forEach(r => {
+        r.checked = true;
+    });
+}
+</script>
+
+{% endblock %}

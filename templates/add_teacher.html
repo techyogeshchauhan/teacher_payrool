@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Teacher जोड़ें - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{{ url_for('manage_teachers') }}" class="text-gray-400 hover:text-orange-600 transition">
+            <i class="fas fa-arrow-left text-xl"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
+            <i class="fas fa-user-plus text-orange-500"></i> नया Teacher जोड़ें
+        </h1>
+    </div>
+
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+        <div class="saffron-grad px-6 py-4">
+            <p class="text-white text-sm hindi">सभी जानकारी सही से भरें</p>
+        </div>
+
+        <form method="POST" class="p-6 space-y-5">
+            <div class="grid md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
+                        <i class="fas fa-id-badge text-orange-500 mr-1"></i> Teacher ID *
+                    </label>
+                    <input type="text" name="teacher_id" required value="{{ next_teacher_id }}" placeholder="जैसे: TCH001"
+                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50 uppercase font-mono font-bold">
+                    <p class="text-xs text-gray-400 mt-1">यह unique होनी चाहिए (Login ID)</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
+                        <i class="fas fa-user text-orange-500 mr-1"></i> पूरा नाम *
+                    </label>
+                    <input type="text" name="name" required placeholder="शिक्षक का नाम"
+                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
+                        <i class="fas fa-book text-orange-500 mr-1"></i> विषय *
+                    </label>
+                    <input type="text" name="subject" required placeholder="जैसे: गणित, विज्ञान"
+                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
+                        <i class="fas fa-phone text-orange-500 mr-1"></i> फ़ोन नंबर *
+                    </label>
+                    <input type="text" name="phone" required placeholder="10 अंक का नंबर"
+                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        <i class="fas fa-envelope text-orange-500 mr-1"></i> Email (optional)
+                    </label>
+                    <input type="email" name="email" placeholder="email@example.com"
+                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
+                        <i class="fas fa-calendar text-orange-500 mr-1"></i> Joining Date *
+                    </label>
+                    <input type="date" name="joining_date" required
+                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
+                        <i class="fas fa-rupee-sign text-orange-500 mr-1"></i> Basic Salary (₹/माह) *
+                    </label>
+                    <input type="number" name="basic_salary" required placeholder="जैसे: 15000" min="1000"
+                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
+                        <i class="fas fa-lock text-orange-500 mr-1"></i> Password *
+                    </label>
+                    <input type="password" name="password" required placeholder="Teacher का password"
+                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+                    <p class="text-xs text-gray-400 mt-1">Teacher इसी से login करेंगे</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4 pt-2">
+                <button type="submit"
+                    class="saffron-grad text-white px-8 py-3 rounded-xl font-bold hover:opacity-90 transition shadow-lg flex items-center gap-2">
+                    <i class="fas fa-save"></i>
+                    <span class="hindi">Teacher जोड़ें</span>
+                </button>
+                <a href="{{ url_for('manage_teachers') }}"
+                    class="bg-gray-100 text-gray-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-200 transition hindi">
+                    रद्द करें
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
