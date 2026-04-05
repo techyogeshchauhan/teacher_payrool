@@ -29,11 +29,11 @@
                 <i class="fas fa-users"></i> {{ teachers|length }} शिक्षकों की Attendance
             </h2>
             <div class="flex gap-3 text-sm">
-                <button type="button" onclick="markAll('present')" 
+                <button type="button" onclick="markAll('P')" 
                     class="bg-green-100 text-green-700 px-3 py-1 rounded-lg font-semibold hover:bg-green-200 transition hindi">
                     ✓ सभी Present
                 </button>
-                <button type="button" onclick="markAll('absent')" 
+                <button type="button" onclick="markAll('A')" 
                     class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-semibold hover:bg-red-200 transition hindi">
                     ✗ सभी Absent
                 </button>
@@ -42,47 +42,59 @@
 
         <div class="divide-y divide-gray-100">
             {% for t in teachers %}
-            <div class="px-6 py-4 flex items-center justify-between hover:bg-orange-50 transition">
+            <div class="px-4 py-5 flex flex-col md:flex-row md:items-center justify-between hover:bg-orange-50 transition gap-4">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 saffron-grad rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    <div class="w-12 h-12 saffron-grad rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
                         {{ t.name[0] }}
                     </div>
                     <div>
-                        <p class="font-semibold text-gray-800 hindi">{{ t.name }}</p>
+                        <p class="font-bold text-gray-800 hindi text-lg">{{ t.name }}</p>
                         <p class="text-xs text-gray-500 hindi">{{ t.subject }} &bull; 
-                            <span class="font-mono bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">{{ t.teacher_id }}</span>
+                            <span class="font-mono bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">{{ t.teacher_id }}</span>
                         </p>
                     </div>
                 </div>
 
-                <div class="flex gap-2 att-group" data-id="{{ t.teacher_id }}">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="status_{{ t.teacher_id }}" value="present" class="sr-only peer" 
-                            {% if existing.get(t.teacher_id) == 'present' %}checked{% endif %}>
-                        <span class="px-4 py-2 rounded-xl border-2 border-green-200 text-green-700 text-sm font-semibold
+                <div class="flex flex-wrap gap-2 md:gap-3 att-group" data-id="{{ t.teacher_id }}">
+                    <label class="flex-1 min-w-[70px] md:flex-none cursor-pointer group">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="P" class="sr-only peer" 
+                            {% if existing.get(t.teacher_id) in ['present', 'P'] %}checked{% endif %}>
+                        <div class="px-2 py-3 md:px-5 md:py-2 rounded-xl border-2 border-green-200 text-green-700 text-center font-bold
                             peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 
-                            hover:bg-green-50 transition block hindi">
-                            ✓ Present
-                        </span>
+                            hover:bg-green-50 transition-all duration-200 shadow-sm">
+                            <span class="block text-lg">P</span>
+                            <span class="text-[10px] md:text-xs hindi opacity-80">Present</span>
+                        </div>
                     </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="status_{{ t.teacher_id }}" value="half_day" class="sr-only peer"
-                            {% if existing.get(t.teacher_id) == 'half_day' %}checked{% endif %}>
-                        <span class="px-4 py-2 rounded-xl border-2 border-yellow-200 text-yellow-700 text-sm font-semibold
-                            peer-checked:bg-yellow-400 peer-checked:text-white peer-checked:border-yellow-400
-                            hover:bg-yellow-50 transition block hindi">
-                            ½ Half Day
-                        </span>
-                    </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="status_{{ t.teacher_id }}" value="absent" class="sr-only peer"
-                            {% if existing.get(t.teacher_id, 'absent') == 'absent' and t.teacher_id not in existing %}checked
-                            {% elif existing.get(t.teacher_id) == 'absent' %}checked{% endif %}>
-                        <span class="px-4 py-2 rounded-xl border-2 border-red-200 text-red-600 text-sm font-semibold
+                    <label class="flex-1 min-w-[70px] md:flex-none cursor-pointer group">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="A" class="sr-only peer"
+                            {% if existing.get(t.teacher_id) in ['absent', 'A'] %}checked{% endif %}>
+                        <div class="px-2 py-3 md:px-5 md:py-2 rounded-xl border-2 border-red-200 text-red-600 text-center font-bold
                             peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500
-                            hover:bg-red-50 transition block hindi">
-                            ✗ Absent
-                        </span>
+                            hover:bg-red-50 transition-all duration-200 shadow-sm">
+                            <span class="block text-lg">A</span>
+                            <span class="text-[10px] md:text-xs hindi opacity-80">Absent</span>
+                        </div>
+                    </label>
+                    <label class="flex-1 min-w-[70px] md:flex-none cursor-pointer group">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="H" class="sr-only peer"
+                            {% if existing.get(t.teacher_id) in ['half_day', 'H'] %}checked{% endif %}>
+                        <div class="px-2 py-3 md:px-5 md:py-2 rounded-xl border-2 border-yellow-300 text-yellow-700 text-center font-bold
+                            peer-checked:bg-yellow-400 peer-checked:text-white peer-checked:border-yellow-400
+                            hover:bg-yellow-50 transition-all duration-200 shadow-sm">
+                            <span class="block text-lg">H</span>
+                            <span class="text-[10px] md:text-xs hindi opacity-80">Half Day</span>
+                        </div>
+                    </label>
+                    <label class="flex-1 min-w-[70px] md:flex-none cursor-pointer group">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="M" class="sr-only peer"
+                            {% if existing.get(t.teacher_id) == 'M' %}checked{% endif %}>
+                        <div class="px-2 py-3 md:px-5 md:py-2 rounded-xl border-2 border-blue-200 text-blue-700 text-center font-bold
+                            peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500
+                            hover:bg-blue-50 transition-all duration-200 shadow-sm">
+                            <span class="block text-lg">M</span>
+                            <span class="text-[10px] md:text-xs hindi opacity-80">Medical</span>
+                        </div>
                     </label>
                 </div>
             </div>

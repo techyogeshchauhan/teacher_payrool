@@ -24,12 +24,32 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 def init_admin():
-    if not admins_col.find_one({'username': 'admin'}):
+    if not admins_col.find_one({'username': 'GVP022026'}):
         admins_col.insert_one({
-            'username': 'admin',
-            'password': hash_password('admin123'),
+            'username': 'GVP022026',
+            'password': hash_password('Yogi@#2025'),
             'name': 'Yogesh'
         })
+
+from functools import wraps
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('admin'):
+            flash('कृपया लॉगिन करें!')
+            return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def teacher_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('teacher_id'):
+            flash('कृपया लॉगिन करें!')
+            return redirect(url_for('teacher_login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def get_working_days(year, month):
     """Count working days (Mon-Sat) in a month"""
@@ -77,6 +97,11 @@ def teacher_login():
         if teacher:
             session['teacher_id'] = teacher_id
             session['teacher_name'] = teacher['name']
+            
+            if teacher.get('must_change_password'):
+                flash('सुरक्षा के लिए कृपया अपना पासवर्ड बदलें।')
+                return redirect(url_for('teacher_change_password'))
+                
             return redirect(url_for('teacher_dashboard'))
         flash('गलत ID या password!')
     return render_template('teacher_login.html')
@@ -89,12 +114,11 @@ def logout():
 # ─── Admin Routes ────────────────────────────────────────────────────────────
 
 @app.route('/admin/dashboard')
+@admin_required
 def admin_dashboard():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
     total_teachers = teachers_col.count_documents({'active': True})
     today_str = date.today().strftime('%Y-%m-%d')
-    today_attendance = attendance_col.count_documents({'date': today_str, 'status': 'present'})
+    today_attendance = attendance_col.count_documents({'date': today_str, 'status': {'$in': ['present', 'P']}})
     teachers = list(teachers_col.find({'active': True}))
     return render_template('admin_dashboard.html', 
                          total=total_teachers,
@@ -104,61 +128,66 @@ def admin_dashboard():
                          admin_name=session.get('admin_name'))
 
 @app.route('/admin/teachers')
+@admin_required
 def manage_teachers():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
     teachers = list(teachers_col.find({'active': True}))
     return render_template('manage_teachers.html', teachers=teachers)
 
 @app.route('/admin/teacher/add', methods=['GET', 'POST'])
+@admin_required
 def add_teacher():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
     if request.method == 'POST':
-        teacher_id = request.form['teacher_id'].upper()
+        name = request.form['name']
+        phone = request.form['phone'].strip()
+        
+        # Format: TCH + Mobile Number ke last 4 digits
+        if len(phone) >= 4:
+            base_id = f"TCH{phone[-4:]}"
+        else:
+            base_id = f"TCH{phone.zfill(4)}"
+            
+        teacher_id = base_id
         if teachers_col.find_one({'teacher_id': teacher_id}):
-            flash('यह Teacher ID पहले से मौजूद है!')
-            return redirect(url_for('add_teacher'))
+            # Collision handle: Add suffix if needed (though unlikely with last 4 digits)
+            count = 1
+            while teachers_col.find_one({'teacher_id': f"{base_id}-{count}"}):
+                count += 1
+            teacher_id = f"{base_id}-{count}"
+            
+        # Default Password: GVP@2026 (Updated as per request)
+        default_password = "GVP@2026"
+        
         teacher = {
             'teacher_id': teacher_id,
-            'name': request.form['name'],
+            'name': name,
             'subject': request.form['subject'],
-            'phone': request.form['phone'],
+            'phone': phone,
             'email': request.form.get('email', ''),
             'basic_salary': float(request.form['basic_salary']),
-            'password': hash_password(request.form['password']),
+            'password': hash_password(default_password),
             'joining_date': request.form['joining_date'],
             'active': True,
-            'created_at': datetime.now()
+            'created_at': datetime.now(),
+            'must_change_password': True
         }
         teachers_col.insert_one(teacher)
-        flash(f'Teacher {teacher["name"]} सफलतापूर्वक जोड़े गए!')
+        flash(f'Teacher {teacher["name"]} सफलतापूर्वक जोड़े गए! ID: {teacher_id}')
         return redirect(url_for('manage_teachers'))
-    # Auto-generate next teacher ID
-    last_teacher = teachers_col.find_one({}, sort=[('teacher_id', -1)])
-    if last_teacher and last_teacher.get('teacher_id', '').startswith('TCH'):
-        try:
-            last_num = int(last_teacher['teacher_id'][3:])
-            next_teacher_id = f"TCH{(last_num + 1):03d}"
-        except ValueError:
-            next_teacher_id = f"TCH{(teachers_col.count_documents({}) + 1):03d}"
-    else:
-        next_teacher_id = f"TCH{(teachers_col.count_documents({}) + 1):03d}"
 
-    return render_template('add_teacher.html', next_teacher_id=next_teacher_id)
+    return render_template('add_teacher.html')
+
+# Migration completed. New logic is in add_teacher.
 
 @app.route('/admin/teacher/delete/<teacher_id>')
+@admin_required
 def delete_teacher(teacher_id):
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
     teachers_col.update_one({'teacher_id': teacher_id}, {'$set': {'active': False}})
     flash('Teacher हटा दिए गए!')
     return redirect(url_for('manage_teachers'))
 
 @app.route('/admin/attendance', methods=['GET', 'POST'])
+@admin_required
 def mark_attendance():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
     
     selected_date = request.args.get('date', date.today().strftime('%Y-%m-%d'))
     teachers = list(teachers_col.find({'active': True}))
@@ -194,10 +223,8 @@ def mark_attendance():
                          existing=existing)
 
 @app.route('/admin/payroll')
+@admin_required
 def payroll():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
-    
     month = int(request.args.get('month', date.today().month))
     year = int(request.args.get('year', date.today().year))
     
@@ -214,15 +241,22 @@ def payroll():
         present_count = attendance_col.count_documents({
             'teacher_id': tid,
             'date': {'$regex': f'^{month_str}'},
-            'status': 'present'
+            'status': {'$in': ['present', 'P']}
         })
         half_day_count = attendance_col.count_documents({
             'teacher_id': tid,
             'date': {'$regex': f'^{month_str}'},
-            'status': 'half_day'
+            'status': {'$in': ['half_day', 'H']}
+        })
+        medical_leave_count = attendance_col.count_documents({
+            'teacher_id': tid,
+            'date': {'$regex': f'^{month_str}'},
+            'status': 'M'
         })
         
-        effective_days = present_count + (half_day_count * 0.5)
+        # Logic: Medical Leave is counted as Present for salary (usually) or as per school rules.
+        # Let's count P and M as full days.
+        effective_days = (present_count + medical_leave_count) + (half_day_count * 0.5)
         per_day_salary = teacher['basic_salary'] / working_days if working_days > 0 else 0
         net_salary = round(per_day_salary * effective_days, 2)
         deduction = round(teacher['basic_salary'] - net_salary, 2)
@@ -237,6 +271,7 @@ def payroll():
             'working_days': working_days,
             'present_days': present_count,
             'half_days': half_day_count,
+            'medical_leaves': medical_leave_count,
             'effective_days': effective_days,
             'per_day': round(per_day_salary, 2),
             'deduction': deduction,
@@ -252,9 +287,8 @@ def payroll():
                          total_payable=round(total_payable, 2))
 
 @app.route('/admin/attendance/report')
+@admin_required
 def attendance_report():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
     month = int(request.args.get('month', date.today().month))
     year = int(request.args.get('year', date.today().year))
     month_str = f"{year}-{month:02d}"
@@ -284,10 +318,8 @@ def attendance_report():
 # ─── Teacher Routes ────────────────────────────────────────────────────────────
 
 @app.route('/teacher/dashboard')
+@teacher_required
 def teacher_dashboard():
-    if not session.get('teacher_id'):
-        return redirect(url_for('teacher_login'))
-    
     tid = session['teacher_id']
     teacher = teachers_col.find_one({'teacher_id': tid})
     
@@ -295,12 +327,13 @@ def teacher_dashboard():
     year = date.today().year
     month_str = f"{year}-{month:02d}"
     
-    present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'present'})
-    half = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'half_day'})
-    absent = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'absent'})
+    present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
+    half = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
+    absent = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
+    medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
     
     working_days = get_working_days(year, month)
-    effective = present + (half * 0.5)
+    effective = (present + medical) + (half * 0.5)
     per_day = teacher['basic_salary'] / working_days if working_days > 0 else 0
     estimated_salary = round(per_day * effective, 2)
     
@@ -317,9 +350,8 @@ def teacher_dashboard():
                          recent=recent)
 
 @app.route('/teacher/salary')
+@teacher_required
 def teacher_salary():
-    if not session.get('teacher_id'):
-        return redirect(url_for('teacher_login'))
     tid = session['teacher_id']
     teacher = teachers_col.find_one({'teacher_id': tid})
     
@@ -328,9 +360,10 @@ def teacher_salary():
     month_str = f"{year}-{month:02d}"
     working_days = get_working_days(year, month)
     
-    present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'present'})
-    half = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'half_day'})
-    effective = present + (half * 0.5)
+    present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
+    half = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
+    medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
+    effective = (present + medical) + (half * 0.5)
     per_day = teacher['basic_salary'] / working_days if working_days > 0 else 0
     net_salary = round(per_day * effective, 2)
     deduction = round(teacher['basic_salary'] - net_salary, 2)
@@ -381,10 +414,8 @@ def teacher_reset_password():
     return render_template('teacher_reset_password.html')
 
 @app.route('/teacher/change_password', methods=['GET', 'POST'])
+@teacher_required
 def teacher_change_password():
-    if not session.get('teacher_id'):
-        return redirect(url_for('teacher_login'))
-    
     if request.method == 'POST':
         old_password = request.form['old_password']
         new_password = request.form['new_password']
@@ -399,7 +430,7 @@ def teacher_change_password():
         else:
             teachers_col.update_one(
                 {'teacher_id': session['teacher_id']},
-                {'$set': {'password': hash_password(new_password)}}
+                {'$set': {'password': hash_password(new_password), 'must_change_password': False}}
             )
             flash('पासवर्ड सफलतापूर्वक बदल दिया गया है!')
             return redirect(url_for('teacher_dashboard'))

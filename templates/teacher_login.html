@@ -75,12 +75,17 @@
                 <input type="text" name="teacher_id" required placeholder="जैसे: TCH001"
                     class="input-field w-full px-5 py-3.5 rounded-xl bg-gray-50 text-gray-800 hindi placeholder-gray-400 uppercase">
             </div>
-            <div>
+            <div class="relative">
                 <label class="block text-sm font-bold text-gray-700 mb-2">
                     <i class="fas fa-lock text-green-500 mr-2"></i> Password
                 </label>
-                <input type="password" name="password" required placeholder="••••••••"
-                    class="input-field w-full px-5 py-3.5 rounded-xl bg-gray-50 text-gray-800">
+                <div class="relative">
+                    <input type="password" name="password" id="password" required placeholder="••••••••"
+                        class="input-field w-full px-5 py-3.5 rounded-xl bg-gray-50 text-gray-800 pr-12 focus:outline-none">
+                    <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-500 transition">
+                        <i id="password-eye" class="fas fa-eye text-xl"></i>
+                    </button>
+                </div>
             </div>
             <button type="submit"
                 class="w-full green-grad btn-hover text-white font-bold text-lg py-4 rounded-xl flex items-center justify-center gap-2 mt-6">
@@ -102,6 +107,23 @@
         </div>
     </div>
 </div>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('password-eye');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        }
+    }
+</script>
 
 </body>
 </html>

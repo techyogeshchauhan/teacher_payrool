@@ -35,9 +35,10 @@
 
 <!-- Legend -->
 <div class="flex gap-3 mb-4 flex-wrap no-print">
-    <span class="status-present px-3 py-1 rounded-lg text-xs font-semibold">P = Present</span>
-    <span class="status-absent px-3 py-1 rounded-lg text-xs font-semibold">A = Absent</span>
-    <span class="status-half_day px-3 py-1 rounded-lg text-xs font-semibold">H = Half Day</span>
+    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-semibold">P = Present</span>
+    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-semibold">A = Absent</span>
+    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-xs font-semibold">H = Half Day</span>
+    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-semibold">M = Medical</span>
     <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg text-xs">– = Not Marked</span>
 </div>
 
@@ -60,14 +61,16 @@
                     {% endfor %}
                     <th class="px-3 py-3 text-center text-green-400 hindi">P</th>
                     <th class="px-3 py-3 text-center text-yellow-400 hindi">H</th>
+                    <th class="px-3 py-3 text-center text-blue-400 hindi">M</th>
                     <th class="px-3 py-3 text-center text-red-400 hindi">A</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 {% for r in report %}
-                {% set p_count = r.att_map.values()|list|select('equalto','present')|list|length %}
-                {% set h_count = r.att_map.values()|list|select('equalto','half_day')|list|length %}
-                {% set a_count = r.att_map.values()|list|select('equalto','absent')|list|length %}
+                {% set p_count = r.att_map.values()|list|select('in', ['present', 'P'])|list|length %}
+                {% set h_count = r.att_map.values()|list|select('in', ['half_day', 'H'])|list|length %}
+                {% set m_count = r.att_map.values()|list|select('equalto','M')|list|length %}
+                {% set a_count = r.att_map.values()|list|select('in', ['absent', 'A'])|list|length %}
                 <tr class="hover:bg-orange-50">
                     <td class="px-3 py-2 font-semibold text-gray-800 sticky left-0 bg-white hindi">{{ r.name }}</td>
                     <td class="px-2 py-2 text-center">
@@ -76,12 +79,14 @@
                     {% for d in range(1, days+1) %}
                     <td class="px-0.5 py-2 text-center">
                         {% set s = r.att_map.get(d) %}
-                        {% if s == 'present' %}
-                        <span class="status-present px-1 py-0.5 rounded font-bold">P</span>
-                        {% elif s == 'half_day' %}
-                        <span class="status-half_day px-1 py-0.5 rounded font-bold">H</span>
-                        {% elif s == 'absent' %}
-                        <span class="status-absent px-1 py-0.5 rounded font-bold">A</span>
+                        {% if s in ['present', 'P'] %}
+                        <span class="text-green-600 font-bold">P</span>
+                        {% elif s in ['half_day', 'H'] %}
+                        <span class="text-yellow-600 font-bold">H</span>
+                        {% elif s in ['absent', 'A'] %}
+                        <span class="text-red-500 font-bold">A</span>
+                        {% elif s == 'M' %}
+                        <span class="text-blue-600 font-bold">M</span>
                         {% else %}
                         <span class="text-gray-300">–</span>
                         {% endif %}
@@ -89,10 +94,11 @@
                     {% endfor %}
                     <td class="px-3 py-2 text-center font-bold text-green-700 bg-green-50">{{ p_count }}</td>
                     <td class="px-3 py-2 text-center font-bold text-yellow-700 bg-yellow-50">{{ h_count }}</td>
+                    <td class="px-3 py-2 text-center font-bold text-blue-700 bg-blue-50">{{ m_count }}</td>
                     <td class="px-3 py-2 text-center font-bold text-red-600 bg-red-50">{{ a_count }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="{{ days + 5 }}" class="text-center py-12 text-gray-400 hindi">कोई data नहीं मिला।</td></tr>
+                <tr><td colspan="{{ days + 6 }}" class="text-center py-12 text-gray-400 hindi">कोई data नहीं मिला।</td></tr>
                 {% endfor %}
             </tbody>
         </table>

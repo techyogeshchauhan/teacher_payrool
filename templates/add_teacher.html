@@ -21,17 +21,16 @@
             <div class="grid md:grid-cols-2 gap-5">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                        <i class="fas fa-id-badge text-orange-500 mr-1"></i> Teacher ID *
+                        <i class="fas fa-user text-orange-500 mr-1"></i> पूरा नाम *
                     </label>
-                    <input type="text" name="teacher_id" required value="{{ next_teacher_id }}" placeholder="जैसे: TCH001"
-                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50 uppercase font-mono font-bold">
-                    <p class="text-xs text-gray-400 mt-1">यह unique होनी चाहिए (Login ID)</p>
+                    <input type="text" name="name" id="name_input" required placeholder="शिक्षक का नाम"
+                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                        <i class="fas fa-user text-orange-500 mr-1"></i> पूरा नाम *
+                        <i class="fas fa-phone text-orange-500 mr-1"></i> फ़ोन नंबर *
                     </label>
-                    <input type="text" name="name" required placeholder="शिक्षक का नाम"
+                    <input type="text" name="phone" id="phone_input" required placeholder="10 अंक का नंबर" maxlength="10" minlength="10"
                         class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
                 </div>
                 <div>
@@ -39,13 +38,6 @@
                         <i class="fas fa-book text-orange-500 mr-1"></i> विषय *
                     </label>
                     <input type="text" name="subject" required placeholder="जैसे: गणित, विज्ञान"
-                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                        <i class="fas fa-phone text-orange-500 mr-1"></i> फ़ोन नंबर *
-                    </label>
-                    <input type="text" name="phone" required placeholder="10 अंक का नंबर"
                         class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
                 </div>
                 <div>
@@ -69,13 +61,19 @@
                     <input type="number" name="basic_salary" required placeholder="जैसे: 15000" min="1000"
                         class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
                 </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                        <i class="fas fa-lock text-orange-500 mr-1"></i> Password *
-                    </label>
-                    <input type="password" name="password" required placeholder="Teacher का password"
-                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
-                    <p class="text-xs text-gray-400 mt-1">Teacher इसी से login करेंगे</p>
+            </div>
+
+            <div class="bg-orange-50 border-l-4 border-orange-500 p-4 mt-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-orange-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-orange-700 hindi">
+                            <b>Login ID:</b> TCH + मोबाइल के आख़िरी 4 अंक<br>
+                            <b>Default Password:</b> शिक्षक का नाम + मोबाइल नंबर
+                        </p>
+                    </div>
                 </div>
             </div>
 
