@@ -1,8 +1,8 @@
-flask==3.0.0
-pymongo==4.6.1
-gunicorn==21.2.0
-python-dotenv==1.0.0
+flask
+pymongo
+gunicorn
+python-dotenv
 pandas
 openpyxl
-io
-flask-mail==0.9.1
+flask-mail
+io=0.0.1
