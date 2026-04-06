@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password - गायत्री विद्यापीठ</title>
+    <title>Verify OTP - गायत्री विद्यापीठ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,6 +21,7 @@
         .input-field:focus { border-color: #10B981; box-shadow: 0 0 0 4px rgba(16,185,129,0.1); outline: none; transform: translateY(-1px); }
         .btn-hover { transition: all 0.3s ease; }
         .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4); }
+        .otp-input { tracking-widest: 0.5em; text-align: center; font-size: 1.5rem; font-weight: bold; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 sm:p-8 relative" style="background-image: url('https://i.etsystatic.com/10949726/r/il/e9d23a/2122553551/il_1588xN.2122553551_kcqd.jpg'); background-size: cover; background-position: center; background-attachment: fixed;">
@@ -40,17 +41,17 @@
                  class="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 object-cover rounded-full border-4 border-yellow-300 shadow-2xl mx-auto ring-4 ring-white/30">
         </a>
         <h1 class="hindi text-3xl sm:text-4xl font-extrabold text-white drop-shadow-md relative z-10 tracking-wide">गायत्री विद्यापीठ</h1>
-        <p class="text-green-50 font-medium tracking-widest mt-2 relative z-10 text-sm uppercase">पासवर्ड रिकवरी</p>
+        <p class="text-green-50 font-medium tracking-widest mt-2 relative z-10 text-sm uppercase">OTP वेरिफिकेशन</p>
     </div>
 
-    <!-- Right Section: Forgot Password Form -->
+    <!-- Right Section: OTP Form -->
     <div class="w-full md:w-7/12 p-8 sm:p-12 bg-white/95">
         <div class="mb-8 flex flex-col items-center text-center">
-            <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-4">
-                <i class="fas fa-key text-3xl text-green-600"></i>
+            <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-shield-alt text-3xl text-blue-600"></i>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800 hindi leading-tight">पासवर्ड भूल गए?</h2>
-            <span class="text-gray-500 text-xs sm:text-sm font-medium mt-1 hindi">ID और Phone Number डालकर OTP प्राप्त करें</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800 hindi leading-tight">OTP सत्यापित करें</h2>
+            <span class="text-gray-500 text-xs sm:text-sm font-medium mt-1 hindi">ईमेल पर भेजे गए 6 अंकों का OTP डालें</span>
         </div>
 
         {% with messages = get_flashed_messages() %}
@@ -63,32 +64,28 @@
         {% endif %}
         {% endwith %}
 
-        <form method="POST" class="space-y-5">
+        <form method="POST" class="space-y-6">
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">
-                    <i class="fas fa-id-badge text-green-500 mr-2"></i> Teacher ID
+                <label class="block text-sm font-bold text-gray-700 mb-3 text-center">
+                    <i class="fas fa-envelope-open-text text-green-500 mr-2"></i> एंटर OTP
                 </label>
-                <input type="text" name="teacher_id" required placeholder="TCHXXXX"
-                    class="input-field w-full px-5 py-3.5 rounded-xl bg-gray-50 text-gray-800 hindi placeholder-gray-400 uppercase">
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">
-                    <i class="fas fa-phone text-green-500 mr-2"></i> Mobile Number
-                </label>
-                <input type="text" name="phone" required placeholder="मोबाइल नंबर डालें"
-                    class="input-field w-full px-5 py-3.5 rounded-xl bg-gray-50 text-gray-800 hindi placeholder-gray-400">
+                <div class="relative">
+                    <input type="text" name="otp" required maxlength="6" placeholder="******"
+                        class="input-field w-full px-5 py-4 rounded-xl bg-gray-50 text-gray-800 text-center text-3xl font-bold tracking-[0.5em] focus:outline-none">
+                </div>
             </div>
             
             <button type="submit"
-                class="w-full green-grad btn-hover text-white font-bold text-lg py-4 rounded-xl flex items-center justify-center gap-2 mt-6">
-                <i class="fas fa-paper-plane"></i>
-                <span class="hindi">OTP भेजें</span>
+                class="w-full green-grad btn-hover text-white font-bold text-lg py-4 rounded-xl flex items-center justify-center gap-2">
+                <i class="fas fa-check-circle"></i>
+                <span class="hindi">Verify OTP</span>
             </button>
         </form>
 
         <div class="mt-8 pt-6 border-t border-gray-100 text-center">
-            <a href="{{ url_for('teacher_login') }}" class="text-sm font-bold text-gray-500 hover:text-green-600 transition flex items-center justify-center gap-2 hindi">
-                <i class="fas fa-arrow-left"></i> Login पर वापस जाएं
+            <p class="text-xs text-gray-400 mb-2 hindi">OTP नहीं मिला?</p>
+            <a href="{{ url_for('teacher_forgot_password') }}" class="text-sm font-bold text-emerald-600 hover:text-emerald-700 transition hindi">
+                ID/Phone फिर से चेक करें
             </a>
         </div>
     </div>

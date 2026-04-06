@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, send_file
+from flask_mail import Mail, Message
+import random
 import pandas as pd
 import io
-from pymongo import MongoClient
-from datetime import datetime, date
 import hashlib
 import calendar
 from bson.objectid import ObjectId
 import os
+from pymongo import MongoClient
 
 app = Flask(__name__)
 app.secret_key = 'gayatri_vidyapith_secret_2024'
@@ -18,7 +19,15 @@ db = client['gayatri_school']
 
 teachers_col = db['teachers']
 attendance_col = db['attendance']
-admins_col = db['admins']
+# Flask-Mail Configuration (Use environment variables or hardcode for now)
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'yc993205@gmail.com')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'kgahkdejlanmoiam')
+app.config['MAIL_DEFAULT_SENDER'] = app.config['MAIL_USERNAME']
+
+mail = Mail(app)
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -387,12 +396,45 @@ def teacher_forgot_password():
         teacher_id = request.form['teacher_id'].upper()
         phone = request.form['phone']
         teacher = teachers_col.find_one({'teacher_id': teacher_id, 'phone': phone})
+        
         if teacher:
+            if not teacher.get('email'):
+                flash('आपका Email रजिस्टर्ड नहीं है! कृपया एडमिन से ईमेल अपडेट करवाएं।')
+                return redirect(url_for('teacher_forgot_password'))
+                
+            # Generate 6-digit OTP
+            otp = str(random.randint(100000, 999999))
+            session['otp'] = otp
             session['reset_teacher_id'] = teacher_id
-            flash('विवरण सही है। कृपया अपना नया पासवर्ड दर्ज करें।')
-            return redirect(url_for('teacher_reset_password'))
-        flash('गलत ID या Phone Number!')
+            
+            # Send Email
+            try:
+                msg = Message("Password Reset OTP - Gayatri Vidyapith",
+                            recipients=[teacher['email']])
+                msg.body = f"Hello {teacher['name']},\n\nYour OTP for password reset is: {otp}\n\nDo not share this with anyone."
+                mail.send(msg)
+                flash(f'एक OTP आपकी ईमेल ({teacher["email"]}) पर भेज दिया गया है।')
+                return redirect(url_for('teacher_verify_otp'))
+            except Exception as e:
+                print(f"Mail Error: {e}")
+                flash('ईमेल भेजने में गड़बड़ हुई! कृपया बाद में प्रयास करें।')
+        else:
+            flash('गलत ID या Phone Number!')
     return render_template('teacher_forgot_password.html')
+
+@app.route('/teacher/verify_otp', methods=['GET', 'POST'])
+def teacher_verify_otp():
+    if not session.get('reset_teacher_id') or not session.get('otp'):
+        return redirect(url_for('teacher_forgot_password'))
+        
+    if request.method == 'POST':
+        entered_otp = request.form['otp']
+        if entered_otp == session['otp']:
+            flash('OTP सत्यापित (Verified) हुआ! अब अपना नया पासवर्ड सेट करें।')
+            return redirect(url_for('teacher_reset_password'))
+        flash('गलत OTP! कृपया फिर से चेक करें।')
+        
+    return render_template('teacher_verify_otp.html')
 
 @app.route('/teacher/reset_password', methods=['GET', 'POST'])
 def teacher_reset_password():
