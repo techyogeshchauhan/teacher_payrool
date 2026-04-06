@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, send_file
+import pandas as pd
+import io
 from pymongo import MongoClient
 from datetime import datetime, date
 import hashlib
@@ -412,6 +414,114 @@ def teacher_reset_password():
         flash('पासवर्ड मेल नहीं खाते!')
     
     return render_template('teacher_reset_password.html')
+
+@app.route('/admin/attendance/export')
+@admin_required
+def export_attendance():
+    month = int(request.args.get('month', date.today().month))
+    year = int(request.args.get('year', date.today().year))
+    month_str = f"{year}-{month:02d}"
+    
+    teachers = list(teachers_col.find({'active': True}))
+    days_in_month = calendar.monthrange(year, month)[1]
+    
+    # Create the report structure
+    data = []
+    for teacher in teachers:
+        tid = teacher['teacher_id']
+        att_map = {}
+        for rec in attendance_col.find({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}}):
+            day = int(rec['date'].split('-')[2])
+            att_map[day] = rec['status']
+            
+        row = {
+            "Teacher Name": teacher['name'],
+            "ID": tid
+        }
+        
+        counts = {'P': 0, 'H': 0, 'M': 0, 'A': 0}
+        for d in range(1, days_in_month + 1):
+            s = att_map.get(d, "-")
+            if s in ['present', 'P']:
+                status = 'P'
+                counts['P'] += 1
+            elif s in ['half_day', 'H']:
+                status = 'H'
+                counts['H'] += 1
+            elif s in ['absent', 'A']:
+                status = 'A'
+                counts['A'] += 1
+            elif s == 'M':
+                status = 'M'
+                counts['M'] += 1
+            else:
+                status = "-"
+            row[str(d)] = status
+            
+        row.update({
+            "P (Present)": counts['P'],
+            "H (Half Day)": counts['H'],
+            "M (Medical)": counts['M'],
+            "A (Absent)": counts['A']
+        })
+        data.append(row)
+        
+    df = pd.DataFrame(data)
+    
+    # Send as Excel file
+    output = io.BytesIO()
+    month_name = calendar.month_name[month]
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        # Write metadata headers manually
+        df.to_excel(writer, index=False, sheet_name=f'Attendance_{month_str}', startrow=4)
+        
+        # Access openpyxl objects for styling
+        workbook  = writer.book
+        worksheet = writer.sheets[f'Attendance_{month_str}']
+        
+        # Add Custom Headings
+        from openpyxl.styles import Font, Alignment, PatternFill
+        
+        header_font = Font(bold=True, size=16, color="FFFFFF")
+        sub_header_font = Font(bold=True, size=12)
+        center_align = Alignment(horizontal='center', vertical='center')
+        header_fill = PatternFill(start_color="FF8C00", end_color="FF8C00", fill_type="solid") # Saffron
+        
+        # A1: School Name
+        worksheet.merge_cells(f'A1:{chr(ord("A") + days_in_month + 5)}1')
+        worksheet['A1'] = "गायत्री विद्यापीठ, दाउदनगर"
+        worksheet['A1'].font = header_font
+        worksheet['A1'].alignment = center_align
+        worksheet['A1'].fill = header_fill
+        
+        # A2: Report Title
+        worksheet.merge_cells(f'A2:{chr(ord("A") + days_in_month + 5)}2')
+        worksheet['A2'] = f"Attendance Report — {month_name} {year}"
+        worksheet['A2'].font = sub_header_font
+        worksheet['A2'].alignment = center_align
+        
+        # A3: Export Date
+        worksheet.merge_cells(f'A3:{chr(ord("A") + days_in_month + 5)}3')
+        worksheet['A3'] = f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        worksheet['A3'].alignment = center_align
+        
+        # Auto-adjust column widths
+        for col in worksheet.columns:
+            max_length = 0
+            column = col[4].column_letter # Get the column letter (headers are in row 5, index 4)
+            for cell in col:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            worksheet.column_dimensions[column].width = max_length + 2
+
+    output.seek(0)
+    filename = f"Attendance_Report_{month_name}_{year}.xlsx"
+    
+    return send_file(output, 
+                     download_name=filename, 
+                     as_attachment=True, 
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
 
 @app.route('/teacher/change_password', methods=['GET', 'POST'])
 @teacher_required
