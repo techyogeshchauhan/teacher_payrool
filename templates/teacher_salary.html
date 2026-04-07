@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Salary - गायत्री विद्यापीठ{% endblock %}
+{% block title %}Salary Slip - गायत्री विद्यापीठ{% endblock %}
 {% block content %}
 
 <div class="max-w-2xl mx-auto">
@@ -13,7 +13,7 @@
     </div>
 
     <!-- Month Selector -->
-    <div class="bg-white rounded-2xl card-shadow p-4 mb-6 flex flex-wrap gap-3 items-center no-print">
+    <div class="bg-white rounded-2xl card-shadow p-4 mb-5 flex flex-wrap gap-3 items-center no-print">
         <form method="GET" class="flex gap-3 items-center flex-wrap">
             <label class="text-sm font-semibold text-gray-600 hindi">महीना:</label>
             <select name="month" class="px-3 py-2 border-2 border-green-300 rounded-xl focus:outline-none focus:border-green-500">
@@ -24,7 +24,7 @@
                 {% endfor %}
             </select>
             <select name="year" class="px-3 py-2 border-2 border-green-300 rounded-xl focus:outline-none">
-                {% for y in range(2023, 2027) %}
+                {% for y in range(2023, 2028) %}
                 <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
                 {% endfor %}
             </select>
@@ -35,15 +35,15 @@
     <!-- Salary Slip Card -->
     <div class="bg-white rounded-2xl card-shadow overflow-hidden salary-slip">
         <!-- Header -->
-        <div class="green-grad p-6 text-center text-white">
+        <div class="green-grad p-5 text-center text-white">
             <div class="text-2xl mb-1">🕉️</div>
             <h2 class="text-xl font-bold hindi">गायत्री विद्यापीठ, दाउदनगर</h2>
             <p class="text-green-200 text-sm hindi">Salary Slip — {{ month_name }} {{ year }}</p>
         </div>
 
         <!-- Teacher Info -->
-        <div class="p-6 border-b border-gray-100">
-            <div class="grid grid-cols-2 gap-4">
+        <div class="p-5 border-b border-gray-100">
+            <div class="grid grid-cols-2 gap-3">
                 <div>
                     <p class="text-xs text-gray-400 hindi">शिक्षक नाम</p>
                     <p class="font-bold text-gray-800 hindi">{{ teacher.name }}</p>
@@ -63,64 +63,112 @@
             </div>
         </div>
 
+        <!-- Month Breakdown -->
+        <div class="p-5 border-b border-gray-100">
+            <h3 class="font-bold text-gray-700 hindi mb-3 flex items-center gap-2">
+                <i class="fas fa-calendar text-green-500"></i> {{ month_name }} {{ year }} — Day Breakdown
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-gray-50 rounded-xl p-3 text-center">
+                    <p class="text-xl font-bold text-gray-700">{{ summary.days_in_month }}</p>
+                    <p class="text-xs text-gray-500 hindi">कुल दिन</p>
+                </div>
+                <div class="bg-purple-50 rounded-xl p-3 text-center">
+                    <p class="text-xl font-bold text-purple-600">{{ summary.sundays }}</p>
+                    <p class="text-xs text-purple-500 hindi">Sundays</p>
+                    <p class="text-[10px] text-purple-400">Paid ✓</p>
+                </div>
+                <div class="bg-orange-50 rounded-xl p-3 text-center">
+                    <p class="text-xl font-bold text-orange-600">{{ summary.holidays }}</p>
+                    <p class="text-xs text-orange-500 hindi">Govt Holiday</p>
+                    <p class="text-[10px] text-orange-400">Paid ✓</p>
+                </div>
+                <div class="bg-blue-50 rounded-xl p-3 text-center">
+                    <p class="text-xl font-bold text-blue-700">{{ working_days }}</p>
+                    <p class="text-xs text-blue-500 hindi">Working Days</p>
+                </div>
+            </div>
+            {% if summary.holidays_list %}
+            <div class="mt-3 flex flex-wrap gap-2">
+                {% for h in summary.holidays_list %}
+                <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-xs">{{ h.date.split('-')[2] }} {{ month_name[:3] }} — {{ h.name }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
         <!-- Attendance Summary -->
-        <div class="p-6 border-b border-gray-100">
-            <h3 class="font-bold text-gray-700 hindi mb-4 flex items-center gap-2">
+        <div class="p-5 border-b border-gray-100">
+            <h3 class="font-bold text-gray-700 hindi mb-3 flex items-center gap-2">
                 <i class="fas fa-calendar-check text-green-500"></i> Attendance Summary
             </h3>
-            <div class="grid grid-cols-3 gap-3">
-                <div class="bg-green-50 rounded-xl p-4 text-center">
+            <div class="grid grid-cols-4 gap-2">
+                <div class="bg-green-50 rounded-xl p-3 text-center">
                     <p class="text-2xl font-bold text-green-700">{{ present }}</p>
-                    <p class="text-xs text-gray-500 hindi">Present</p>
+                    <p class="text-xs text-gray-500 hindi">Present (P)</p>
                 </div>
-                <div class="bg-yellow-50 rounded-xl p-4 text-center">
+                <div class="bg-yellow-50 rounded-xl p-3 text-center">
                     <p class="text-2xl font-bold text-yellow-600">{{ half }}</p>
-                    <p class="text-xs text-gray-500 hindi">Half Day</p>
+                    <p class="text-xs text-gray-500 hindi">Half Day (H)</p>
                 </div>
-                <div class="bg-blue-50 rounded-xl p-4 text-center">
-                    <p class="text-2xl font-bold text-blue-700">{{ effective }}</p>
-                    <p class="text-xs text-gray-500 hindi">Effective Days</p>
+                <div class="bg-blue-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-blue-600">{{ medical }}</p>
+                    <p class="text-xs text-gray-500 hindi">Medical (M)</p>
+                </div>
+                <div class="bg-red-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-red-500">{{ absent }}</p>
+                    <p class="text-xs text-gray-500 hindi">Absent (A)</p>
                 </div>
             </div>
         </div>
 
-        <!-- Calculation -->
-        <div class="p-6">
+        <!-- Salary Calculation -->
+        <div class="p-5">
             <h3 class="font-bold text-gray-700 hindi mb-4 flex items-center gap-2">
                 <i class="fas fa-calculator text-green-500"></i> Salary Calculation
             </h3>
-            <div class="space-y-3">
+            <div class="space-y-2.5">
                 <div class="flex justify-between py-2 border-b border-gray-100">
                     <span class="text-gray-600 hindi">Basic Salary</span>
                     <span class="font-semibold">₹{{ "{:,.0f}".format(teacher.basic_salary) }}</span>
                 </div>
                 <div class="flex justify-between py-2 border-b border-gray-100">
                     <span class="text-gray-600 hindi">Working Days ({{ month_name }})</span>
-                    <span class="font-semibold">{{ working_days }} दिन</span>
+                    <span class="font-semibold text-blue-600">{{ working_days }} दिन</span>
                 </div>
                 <div class="flex justify-between py-2 border-b border-gray-100">
                     <span class="text-gray-600 hindi">Per Day Rate</span>
                     <span class="font-semibold">₹{{ per_day }}</span>
                 </div>
                 <div class="flex justify-between py-2 border-b border-gray-100">
-                    <span class="text-gray-600 hindi">Effective Days (P + H×½)</span>
-                    <span class="font-semibold text-blue-600">{{ effective }} दिन</span>
+                    <span class="text-gray-600 hindi">Effective Days (P + M + H×½)</span>
+                    <span class="font-semibold text-green-600">{{ effective }} दिन</span>
                 </div>
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-purple-600 hindi">Sundays Paid ({{ summary.sundays }} days)</span>
+                    <span class="text-purple-600 font-semibold">Basic Salary में शामिल ✓</span>
+                </div>
+                {% if summary.holidays > 0 %}
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-orange-600 hindi">Govt Holidays Paid ({{ summary.holidays }} days)</span>
+                    <span class="text-orange-600 font-semibold">Basic Salary में शामिल ✓</span>
+                </div>
+                {% endif %}
                 {% if deduction > 0 %}
                 <div class="flex justify-between py-2 border-b border-red-100 bg-red-50 px-3 rounded-lg">
-                    <span class="text-red-600 hindi">Deduction ({{ working_days - effective|int }} दिन absent)</span>
+                    <span class="text-red-600 hindi">Deduction ({{ absent }} दिन absent)</span>
                     <span class="font-semibold text-red-600">-₹{{ "{:,.0f}".format(deduction) }}</span>
                 </div>
                 {% endif %}
-                <div class="flex justify-between py-3 bg-green-50 px-4 rounded-xl border-2 border-green-200 mt-2">
+                <div class="flex justify-between py-3 bg-green-50 px-4 rounded-xl border-2 border-green-200">
                     <span class="font-bold text-gray-800 hindi text-lg">Net Salary</span>
                     <span class="font-bold text-green-700 text-2xl">₹{{ "{:,.0f}".format(net_salary) }}</span>
                 </div>
             </div>
         </div>
 
-        <div class="px-6 pb-6 text-center text-xs text-gray-400 hindi print:block">
-            यह computer generated salary slip है।
+        <div class="px-5 pb-4 text-center text-xs text-gray-400 hindi print:block">
+            यह computer generated salary slip है। Sundays और Govt Holidays — सभी Paid हैं।
         </div>
     </div>
 </div>

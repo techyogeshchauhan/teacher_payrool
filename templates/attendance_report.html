@@ -46,6 +46,7 @@
     <span class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-semibold">A = Absent</span>
     <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-xs font-semibold">H = Half Day</span>
     <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-semibold">M = Medical</span>
+    <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-lg text-xs font-semibold">SUN = Sunday (Holiday)</span>
     <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg text-xs">– = Not Marked</span>
 </div>
 
@@ -64,8 +65,12 @@
                     <th class="text-left px-3 py-3 sticky left-0 bg-gray-800 min-w-[160px] hindi">शिक्षक नाम</th>
                     <th class="px-2 py-3 text-center text-gray-400">ID</th>
                     {% for d in range(1, days+1) %}
+                    {% if d in sundays %}
+                    <th class="px-1.5 py-3 text-center min-w-[32px] bg-purple-800 text-purple-200">{{ d }}<br><span class="text-[8px] font-normal">SUN</span></th>
+                    {% else %}
                     <th class="px-1.5 py-3 text-center min-w-[28px]">{{ d }}</th>
-                    {% endfor %}
+                    {% endif %}
+                    {% endfor %}  
                     <th class="px-3 py-3 text-center text-green-400 hindi">P</th>
                     <th class="px-3 py-3 text-center text-yellow-400 hindi">H</th>
                     <th class="px-3 py-3 text-center text-blue-400 hindi">M</th>
@@ -84,6 +89,11 @@
                         <span class="bg-orange-100 text-orange-600 px-1 py-0.5 rounded font-mono">{{ r.teacher_id }}</span>
                     </td>
                     {% for d in range(1, days+1) %}
+                    {% if d in sundays %}
+                    <td class="px-0.5 py-2 text-center bg-purple-50">
+                        <span class="text-purple-400 font-bold text-[10px]">SUN</span>
+                    </td>
+                    {% else %}
                     <td class="px-0.5 py-2 text-center">
                         {% set s = r.att_map.get(d) %}
                         {% if s in ['present', 'P'] %}
@@ -98,6 +108,7 @@
                         <span class="text-gray-300">–</span>
                         {% endif %}
                     </td>
+                    {% endif %}
                     {% endfor %}
                     <td class="px-3 py-2 text-center font-bold text-green-700 bg-green-50">{{ p_count }}</td>
                     <td class="px-3 py-2 text-center font-bold text-yellow-700 bg-yellow-50">{{ h_count }}</td>

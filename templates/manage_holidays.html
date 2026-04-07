@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Govt Holidays - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2 mb-6">
+    <i class="fas fa-calendar-times text-orange-500"></i> Government Holidays
+</h1>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Add Holiday Form -->
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+        <div class="saffron-grad px-6 py-4">
+            <h2 class="text-white font-bold hindi flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i> नई Government Holiday जोड़ें
+            </h2>
+        </div>
+        <form method="POST" class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
+                    <i class="fas fa-calendar text-orange-500 mr-1"></i> Date *
+                </label>
+                <input type="date" name="date" required
+                    class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
+                    <i class="fas fa-flag text-orange-500 mr-1"></i> Holiday का नाम *
+                </label>
+                <input type="text" name="name" required placeholder="जैसे: Republic Day, Holi, Diwali"
+                    class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+            </div>
+            <button type="submit"
+                class="w-full saffron-grad text-white py-3 rounded-xl font-bold hover:opacity-90 transition flex items-center justify-center gap-2">
+                <i class="fas fa-plus"></i>
+                <span class="hindi">Holiday Add करें</span>
+            </button>
+        </form>
+
+        <!-- Common Holidays Quick Add Note -->
+        <div class="px-6 pb-5">
+            <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                <p class="text-xs font-bold text-orange-700 hindi mb-2">📋 Common Govt Holidays (India):</p>
+                <div class="grid grid-cols-2 gap-1 text-xs text-orange-600 hindi">
+                    <span>• 26 Jan — Republic Day</span>
+                    <span>• 15 Aug — Independence Day</span>
+                    <span>• 2 Oct — Gandhi Jayanti</span>
+                    <span>• 25 Dec — Christmas</span>
+                    <span>• Holi, Diwali, Eid आदि</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Holiday List + Year Filter -->
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+        <div class="px-6 py-4 border-b bg-gray-50 flex items-center justify-between">
+            <h2 class="font-bold text-gray-800 hindi">
+                <i class="fas fa-list text-orange-500 mr-2"></i>{{ year }} की Holidays
+            </h2>
+            <form method="GET" class="flex items-center gap-2">
+                <select name="year" class="px-3 py-1.5 border-2 border-orange-300 rounded-xl text-sm focus:outline-none"
+                        onchange="this.form.submit()">
+                    {% for y in range(2024, 2029) %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        {% if holidays %}
+        <div class="divide-y divide-gray-100">
+            {% for h in holidays %}
+            <div class="px-5 py-3.5 flex items-center justify-between hover:bg-orange-50 transition">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-umbrella-beach text-orange-500"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-800 hindi text-sm">{{ h.name }}</p>
+                        <p class="text-xs text-gray-500">{{ h.date }}</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('delete_holiday', holiday_id=h['_id']) }}"
+                   onclick="return confirm('{{ h.name }} holiday हटाएं?')"
+                   class="w-9 h-9 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition">
+                    <i class="fas fa-trash-alt text-sm"></i>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="px-5 py-3 bg-orange-50 border-t border-orange-100">
+            <p class="text-sm font-bold text-orange-700 hindi">कुल {{ holidays|length }} holidays — ये Salary Calculation में automatically exclude होंगी (Paid Holidays)</p>
+        </div>
+        {% else %}
+        <div class="p-12 text-center text-gray-400">
+            <i class="fas fa-calendar-times text-5xl mb-4 opacity-30"></i>
+            <p class="hindi">{{ year }} में कोई holiday नहीं जोड़ी गई।</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-5">
+    <h3 class="font-bold text-blue-800 hindi flex items-center gap-2 mb-3">
+        <i class="fas fa-info-circle"></i> Salary Calculation कैसे काम करती है?
+    </h3>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+        <div class="bg-white rounded-xl p-4 border border-blue-100">
+            <p class="font-bold text-blue-700 hindi">📅 Total Days</p>
+            <p class="text-gray-600 text-xs hindi mt-1">महीने के सभी दिन (30/31)</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-blue-100">
+            <p class="font-bold text-purple-700 hindi">🌅 Sundays + Holidays</p>
+            <p class="text-gray-600 text-xs hindi mt-1">Paid छुट्टियाँ — salary में already शामिल</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-blue-100">
+            <p class="font-bold text-orange-700 hindi">💼 Working Days</p>
+            <p class="text-gray-600 text-xs hindi mt-1">Total - Sundays - Holidays = Per Day Rate base</p>
+        </div>
+    </div>
+    <p class="text-xs text-blue-600 hindi mt-3">
+        <b>Formula:</b> Per Day = Basic Salary ÷ Working Days &nbsp;|&nbsp;
+        Net Salary = Per Day × (Present + Medical + Half×½) &nbsp;|&nbsp;
+        Sunday + Holiday की salary automatically include है Basic Salary में।
+    </p>
+</div>
+
+{% endblock %}

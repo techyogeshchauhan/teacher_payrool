@@ -66,6 +66,12 @@
                 <a href="{{ url_for('payroll') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-rupee-sign text-xs"></i> Payroll
                 </a>
+                <a href="{{ url_for('salary_increment') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-arrow-trend-up text-xs"></i> Increment
+                </a>
+                <a href="{{ url_for('manage_holidays') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-calendar-times text-xs"></i> Holidays
+                </a>
                 <a href="{{ url_for('attendance_report') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-chart-bar text-xs"></i> Report
                 </a>
@@ -73,8 +79,14 @@
                 <a href="{{ url_for('teacher_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-home text-xs"></i> Dashboard
                 </a>
+                <a href="{{ url_for('teacher_attendance_report') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-calendar-alt text-xs"></i> Attendance
+                </a>
                 <a href="{{ url_for('teacher_salary') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-file-invoice-dollar text-xs"></i> Salary
+                </a>
+                <a href="{{ url_for('teacher_profile') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-user-circle text-xs"></i> Profile
                 </a>
                 <a href="{{ url_for('teacher_change_password') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-key text-xs"></i> Password
@@ -110,6 +122,12 @@
             <a href="{{ url_for('payroll') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-rupee-sign w-6 text-center text-orange-500"></i> Payroll
             </a>
+            <a href="{{ url_for('salary_increment') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-arrow-trend-up w-6 text-center text-orange-500"></i> Increment
+            </a>
+            <a href="{{ url_for('manage_holidays') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-calendar-times w-6 text-center text-orange-500"></i> Holidays
+            </a>
             <a href="{{ url_for('attendance_report') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-chart-bar w-6 text-center text-orange-500"></i> Report
             </a>
@@ -117,8 +135,14 @@
             <a href="{{ url_for('teacher_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
                 <i class="fas fa-home w-6 text-center text-green-600"></i> Dashboard
             </a>
+            <a href="{{ url_for('teacher_attendance_report') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
+                <i class="fas fa-calendar-alt w-6 text-center text-green-600"></i> Attendance
+            </a>
             <a href="{{ url_for('teacher_salary') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
                 <i class="fas fa-file-invoice-dollar w-6 text-center text-green-600"></i> Salary
+            </a>
+            <a href="{{ url_for('teacher_profile') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
+                <i class="fas fa-user-circle w-6 text-center text-green-600"></i> Profile
             </a>
             <a href="{{ url_for('teacher_change_password') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
                 <i class="fas fa-key w-6 text-center text-green-600"></i> Password

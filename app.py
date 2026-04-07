@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, send_file
 from flask_mail import Mail, Message
 from datetime import date, datetime
+from werkzeug.utils import secure_filename
 import random
 import pandas as pd
 import io
@@ -21,6 +22,8 @@ db = client['gayatri_school']
 teachers_col = db['teachers']
 attendance_col = db['attendance']
 admins_col = db['admins']
+increment_col = db['increments']
+holidays_col = db['govt_holidays']
 # Flask-Mail Configuration (Use environment variables or hardcode for now)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -31,7 +34,16 @@ app.config['MAIL_DEFAULT_SENDER'] = app.config['MAIL_USERNAME']
 
 mail = Mail(app)
 
+# ─── Upload Config ──────────────────────────────────────────────────────────
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
 # ─── Helpers ────────────────────────────────────────────────────────────────
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -64,15 +76,44 @@ def teacher_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def get_month_summary(year, month):
+    """Returns complete month summary: total days, sundays, govt holidays, working days."""
+    days_in_month = calendar.monthrange(year, month)[1]
+    month_str = f"{year}-{month:02d}"
+
+    # Count Sundays
+    sundays = 0
+    sunday_days = set()
+    for d in range(1, days_in_month + 1):
+        if calendar.weekday(year, month, d) == 6:
+            sundays += 1
+            sunday_days.add(d)
+
+    # Get govt holidays from DB
+    govt_holidays = list(holidays_col.find({'date': {'$regex': f'^{month_str}'}}).sort('date', 1))
+    holiday_days = set()
+    for h in govt_holidays:
+        d = int(h['date'].split('-')[2])
+        if d not in sunday_days:  # don't double count Sunday holidays
+            holiday_days.add(d)
+
+    # Actual working days = Total - Sundays - Govt Holidays (on Mon-Sat)
+    actual_working_days = days_in_month - sundays - len(holiday_days)
+
+    return {
+        'days_in_month': days_in_month,
+        'sundays': sundays,
+        'sunday_days': sunday_days,
+        'holidays': len(holiday_days),
+        'holiday_days': holiday_days,
+        'holidays_list': govt_holidays,
+        'working_days': actual_working_days
+    }
+
+# Keep old function for backward compatibility
 def get_working_days(year, month):
-    """Count working days (Mon-Sat) in a month"""
-    cal = calendar.monthcalendar(year, month)
-    working = 0
-    for week in cal:
-        for i, day in enumerate(week):
-            if day != 0 and i != 6:  # exclude Sunday
-                working += 1
-    return working
+    return get_month_summary(year, month)['working_days']
+
 
 # ─── Auth Routes ────────────────────────────────────────────────────────────
 
@@ -282,64 +323,70 @@ def mark_attendance():
 def payroll():
     month = int(request.args.get('month', date.today().month))
     year = int(request.args.get('year', date.today().year))
-    
+
     teachers = list(teachers_col.find({'active': True}))
-    working_days = get_working_days(year, month)
-    
+    summary = get_month_summary(year, month)
+    working_days = summary['working_days']
+
     payroll_data = []
     total_payable = 0
-    
+
     for teacher in teachers:
         tid = teacher['teacher_id']
         month_str = f"{year}-{month:02d}"
-        
+
         present_count = attendance_col.count_documents({
-            'teacher_id': tid,
-            'date': {'$regex': f'^{month_str}'},
+            'teacher_id': tid, 'date': {'$regex': f'^{month_str}'},
             'status': {'$in': ['present', 'P']}
         })
         half_day_count = attendance_col.count_documents({
-            'teacher_id': tid,
-            'date': {'$regex': f'^{month_str}'},
+            'teacher_id': tid, 'date': {'$regex': f'^{month_str}'},
             'status': {'$in': ['half_day', 'H']}
         })
         medical_leave_count = attendance_col.count_documents({
-            'teacher_id': tid,
-            'date': {'$regex': f'^{month_str}'},
+            'teacher_id': tid, 'date': {'$regex': f'^{month_str}'},
             'status': 'M'
         })
-        
-        # Logic: Medical Leave is counted as Present for salary (usually) or as per school rules.
-        # Let's count P and M as full days.
+        absent_count = attendance_col.count_documents({
+            'teacher_id': tid, 'date': {'$regex': f'^{month_str}'},
+            'status': {'$in': ['absent', 'A']}
+        })
+
+        # Effective days: P + Medical = full, Half = 0.5 days
         effective_days = (present_count + medical_leave_count) + (half_day_count * 0.5)
         per_day_salary = teacher['basic_salary'] / working_days if working_days > 0 else 0
         net_salary = round(per_day_salary * effective_days, 2)
         deduction = round(teacher['basic_salary'] - net_salary, 2)
-        
+
         total_payable += net_salary
-        
+
         payroll_data.append({
             'teacher_id': tid,
             'name': teacher['name'],
             'subject': teacher['subject'],
             'basic_salary': teacher['basic_salary'],
+            'days_in_month': summary['days_in_month'],
+            'sundays': summary['sundays'],
+            'holidays': summary['holidays'],
             'working_days': working_days,
             'present_days': present_count,
             'half_days': half_day_count,
             'medical_leaves': medical_leave_count,
+            'absent_days': absent_count,
             'effective_days': effective_days,
             'per_day': round(per_day_salary, 2),
             'deduction': deduction,
             'net_salary': net_salary
         })
-    
-    month_name = calendar.month_name[month]
-    return render_template('payroll.html', 
+
+    return render_template('payroll.html',
                          payroll=payroll_data,
                          month=month, year=year,
-                         month_name=month_name,
+                         month_name=calendar.month_name[month],
                          working_days=working_days,
-                         total_payable=round(total_payable, 2))
+                         total_payable=round(total_payable, 2),
+                         summary=summary)
+
 
 @app.route('/admin/attendance/report')
 @admin_required
@@ -350,6 +397,12 @@ def attendance_report():
     
     teachers = list(teachers_col.find({'active': True}))
     days_in_month = calendar.monthrange(year, month)[1]
+    
+    # Find all Sundays in the month
+    sundays = set()
+    for d in range(1, days_in_month + 1):
+        if calendar.weekday(year, month, d) == 6:  # 6 = Sunday
+            sundays.add(d)
     
     report = []
     for teacher in teachers:
@@ -368,7 +421,83 @@ def attendance_report():
                          report=report,
                          month=month, year=year,
                          month_name=calendar.month_name[month],
-                         days=days_in_month)
+                         days=days_in_month,
+                         sundays=sundays)
+
+# ─── Admin Govt Holidays ────────────────────────────────────────────────────
+
+@app.route('/admin/holidays', methods=['GET', 'POST'])
+@admin_required
+def manage_holidays():
+    if request.method == 'POST':
+        hdate = request.form['date']
+        hname = request.form['name'].strip()
+        if not holidays_col.find_one({'date': hdate}):
+            holidays_col.insert_one({
+                'date': hdate,
+                'name': hname,
+                'added_by': session.get('admin_name'),
+                'added_at': datetime.now()
+            })
+            flash(f'✅ {hdate} — "{hname}" छुट्टी add हो गई!')
+        else:
+            flash('⚠️ यह date पहले से registered है!')
+        return redirect(url_for('manage_holidays'))
+
+    year = int(request.args.get('year', date.today().year))
+    all_holidays = list(holidays_col.find({'date': {'$regex': f'^{year}'}}).sort('date', 1))
+    return render_template('manage_holidays.html', holidays=all_holidays, year=year)
+
+@app.route('/admin/holidays/delete/<holiday_id>')
+@admin_required
+def delete_holiday(holiday_id):
+    holidays_col.delete_one({'_id': ObjectId(holiday_id)})
+    flash('छुट्टी हटा दी गई!')
+    return redirect(url_for('manage_holidays'))
+
+# ─── Admin Salary Increment ─────────────────────────────────────────────────
+
+@app.route('/admin/salary/increment', methods=['GET', 'POST'])
+@admin_required
+def salary_increment():
+    teachers = list(teachers_col.find({'active': True}))
+
+    if request.method == 'POST':
+        teacher_id = request.form['teacher_id']
+        increment_type = request.form['increment_type']  # 'fixed' or 'percent'
+        increment_value = float(request.form['increment_value'])
+        remarks = request.form.get('remarks', '')
+
+        teacher = teachers_col.find_one({'teacher_id': teacher_id})
+        if not teacher:
+            flash('Teacher नहीं मिले!')
+            return redirect(url_for('salary_increment'))
+
+        old_salary = teacher['basic_salary']
+        if increment_type == 'percent':
+            new_salary = round(old_salary * (1 + increment_value / 100), 2)
+        else:
+            new_salary = round(old_salary + increment_value, 2)
+
+        teachers_col.update_one({'teacher_id': teacher_id}, {'$set': {'basic_salary': new_salary}})
+        increment_col.insert_one({
+            'teacher_id': teacher_id,
+            'teacher_name': teacher['name'],
+            'old_salary': old_salary,
+            'new_salary': new_salary,
+            'increment_type': increment_type,
+            'increment_value': increment_value,
+            'remarks': remarks,
+            'date': datetime.now().strftime('%Y-%m-%d'),
+            'done_by': session.get('admin_name'),
+            'year': datetime.now().year
+        })
+        diff = new_salary - old_salary
+        flash(f'✅ {teacher["name"]} की Salary ₹{old_salary:,.0f} → ₹{new_salary:,.0f} (+₹{diff:,.0f})')
+        return redirect(url_for('salary_increment'))
+
+    history = list(increment_col.find().sort('date', -1).limit(30))
+    return render_template('salary_increment.html', teachers=teachers, history=history)
 
 # ─── Teacher Routes ────────────────────────────────────────────────────────────
 
@@ -377,24 +506,25 @@ def attendance_report():
 def teacher_dashboard():
     tid = session['teacher_id']
     teacher = teachers_col.find_one({'teacher_id': tid})
-    
+
     month = date.today().month
     year = date.today().year
     month_str = f"{year}-{month:02d}"
-    
+
+    summary = get_month_summary(year, month)
+    working_days = summary['working_days']
+
     present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
     half = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
     absent = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
     medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
-    
-    working_days = get_working_days(year, month)
+
     effective = (present + medical) + (half * 0.5)
     per_day = teacher['basic_salary'] / working_days if working_days > 0 else 0
     estimated_salary = round(per_day * effective, 2)
-    
-    # Recent attendance
+
     recent = list(attendance_col.find({'teacher_id': tid}).sort('date', -1).limit(10))
-    
+
     return render_template('teacher_dashboard.html',
                          teacher=teacher,
                          present=present, half=half, absent=absent,
@@ -404,35 +534,102 @@ def teacher_dashboard():
                          year=year,
                          recent=recent)
 
+
 @app.route('/teacher/salary')
 @teacher_required
 def teacher_salary():
     tid = session['teacher_id']
     teacher = teachers_col.find_one({'teacher_id': tid})
-    
+
     month = int(request.args.get('month', date.today().month))
     year = int(request.args.get('year', date.today().year))
     month_str = f"{year}-{month:02d}"
-    working_days = get_working_days(year, month)
-    
+
+    summary = get_month_summary(year, month)
+    working_days = summary['working_days']
+
     present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
     half = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
     medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
+    absent = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
     effective = (present + medical) + (half * 0.5)
     per_day = teacher['basic_salary'] / working_days if working_days > 0 else 0
     net_salary = round(per_day * effective, 2)
     deduction = round(teacher['basic_salary'] - net_salary, 2)
-    
+
     return render_template('teacher_salary.html',
                          teacher=teacher,
                          month=month, year=year,
                          month_name=calendar.month_name[month],
+                         summary=summary,
                          working_days=working_days,
-                         present=present, half=half,
+                         present=present, half=half, medical=medical, absent=absent,
                          effective=effective,
                          per_day=round(per_day, 2),
                          deduction=deduction,
                          net_salary=net_salary)
+
+
+@app.route('/teacher/attendance/report')
+@teacher_required
+def teacher_attendance_report():
+    tid = session['teacher_id']
+    teacher = teachers_col.find_one({'teacher_id': tid})
+    month = int(request.args.get('month', date.today().month))
+    year = int(request.args.get('year', date.today().year))
+    month_str = f"{year}-{month:02d}"
+    days_in_month = calendar.monthrange(year, month)[1]
+
+    att_map = {}
+    for rec in attendance_col.find({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}}):
+        day = int(rec['date'].split('-')[2])
+        att_map[day] = rec['status']
+
+    sundays = set()
+    for d in range(1, days_in_month + 1):
+        if calendar.weekday(year, month, d) == 6:
+            sundays.add(d)
+
+    # Count totals
+    p = sum(1 for v in att_map.values() if v in ['present', 'P'])
+    h = sum(1 for v in att_map.values() if v in ['half_day', 'H'])
+    m = sum(1 for v in att_map.values() if v == 'M')
+    a = sum(1 for v in att_map.values() if v in ['absent', 'A'])
+
+    return render_template('teacher_attendance_report.html',
+                         teacher=teacher,
+                         att_map=att_map,
+                         month=month, year=year,
+                         month_name=calendar.month_name[month],
+                         days=days_in_month,
+                         sundays=sundays,
+                         p_count=p, h_count=h, m_count=m, a_count=a)
+
+@app.route('/teacher/profile', methods=['GET', 'POST'])
+@teacher_required
+def teacher_profile():
+    tid = session['teacher_id']
+    teacher = teachers_col.find_one({'teacher_id': tid})
+
+    if request.method == 'POST':
+        if 'photo' not in request.files:
+            flash('कोई फ़ाइल नहीं चुनी!')
+            return redirect(url_for('teacher_profile'))
+        file = request.files['photo']
+        if file.filename == '':
+            flash('कोई फ़ाइल नहीं चुनी!')
+            return redirect(url_for('teacher_profile'))
+        if file and allowed_file(file.filename):
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            filename = secure_filename(f"teacher_{tid}.{ext}")
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+            teachers_col.update_one({'teacher_id': tid}, {'$set': {'photo': filename}})
+            flash('✅ Profile photo सफलतापूर्वक update हो गई!')
+        else:
+            flash('❌ सिर्फ JPG, PNG, WEBP files allowed हैं (max 2MB)!')
+        return redirect(url_for('teacher_profile'))
+
+    return render_template('teacher_profile.html', teacher=teacher)
 
 @app.route('/teacher/forgot_password', methods=['GET', 'POST'])
 def teacher_forgot_password():
