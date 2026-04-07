@@ -19,6 +19,7 @@ db = client['gayatri_school']
 
 teachers_col = db['teachers']
 attendance_col = db['attendance']
+admins_col = db['admins']
 # Flask-Mail Configuration (Use environment variables or hardcode for now)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
