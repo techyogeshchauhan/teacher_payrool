@@ -78,12 +78,16 @@
         {% for r in recent %}
         <div class="px-6 py-3 flex items-center justify-between">
             <span class="text-gray-700 text-sm">{{ r.date }}</span>
-            {% if r.status == 'present' %}
-            <span class="status-present px-3 py-1 rounded-lg text-xs font-semibold hindi">✓ उपस्थित</span>
-            {% elif r.status == 'half_day' %}
-            <span class="status-half_day px-3 py-1 rounded-lg text-xs font-semibold hindi">½ Half Day</span>
+            {% if r.status in ['present', 'P'] %}
+            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-semibold hindi">✓ उपस्थित</span>
+            {% elif r.status in ['half_day', 'H'] %}
+            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-xs font-semibold hindi">½ Half Day</span>
+            {% elif r.status == 'M' %}
+            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-semibold hindi">🏥 Medical</span>
+            {% elif r.status in ['absent', 'A'] %}
+            <span class="bg-red-100 text-red-600 px-3 py-1 rounded-lg text-xs font-semibold hindi">✗ अनुपस्थित</span>
             {% else %}
-            <span class="status-absent px-3 py-1 rounded-lg text-xs font-semibold hindi">✗ अनुपस्थित</span>
+            <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg text-xs font-semibold">-</span>
             {% endif %}
         </div>
         {% else %}

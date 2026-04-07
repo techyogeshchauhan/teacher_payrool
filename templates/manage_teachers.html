@@ -30,7 +30,7 @@
                     <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider">Email</th>
                     <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">Joining</th>
                     <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">Basic Salary</th>
-                    <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider hindi text-center">Action</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider hindi text-center">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -46,11 +46,22 @@
                     <td class="px-4 py-4 text-gray-600 text-sm">{{ t.joining_date }}</td>
                     <td class="px-4 py-4 font-bold text-green-700">₹{{ "{:,.0f}".format(t.basic_salary) }}</td>
                     <td class="px-4 py-4 text-center">
-                        <a href="{{ url_for('delete_teacher', teacher_id=t.teacher_id) }}"
-                           onclick="return confirm('क्या आप सच में इस teacher को हटाना चाहते हैं?')"
-                           class="bg-red-100 text-red-600 px-4 py-2 rounded-xl text-xs hover:bg-red-600 hover:text-white transition font-bold">
-                            <i class="fas fa-trash-alt"></i>
-                        </a>
+                        <div class="flex items-center justify-center gap-2">
+                            <a href="{{ url_for('edit_teacher', teacher_id=t.teacher_id) }}"
+                               class="bg-blue-100 text-blue-600 px-3 py-2 rounded-xl text-xs hover:bg-blue-600 hover:text-white transition font-bold" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('admin_reset_teacher_password', teacher_id=t.teacher_id) }}"
+                               onclick="return confirm('{{ t.name }} का password GVP@2026 पर reset करें?')"
+                               class="bg-yellow-100 text-yellow-600 px-3 py-2 rounded-xl text-xs hover:bg-yellow-500 hover:text-white transition font-bold" title="Reset Password">
+                                <i class="fas fa-key"></i>
+                            </a>
+                            <a href="{{ url_for('delete_teacher', teacher_id=t.teacher_id) }}"
+                               onclick="return confirm('क्या आप सच में इस teacher को हटाना चाहते हैं?')"
+                               class="bg-red-100 text-red-600 px-3 py-2 rounded-xl text-xs hover:bg-red-600 hover:text-white transition font-bold" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -73,11 +84,22 @@
                     <p class="text-sm font-mono text-orange-600 font-bold">{{ t.teacher_id }}</p>
                 </div>
             </div>
-            <a href="{{ url_for('delete_teacher', teacher_id=t.teacher_id) }}" 
-               onclick="return confirm('हटाना चाहते हैं?')"
-               class="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition">
-                <i class="fas fa-trash-alt"></i>
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="{{ url_for('edit_teacher', teacher_id=t.teacher_id) }}"
+                   class="w-9 h-9 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center hover:bg-blue-500 hover:text-white transition" title="Edit">
+                    <i class="fas fa-edit text-sm"></i>
+                </a>
+                <a href="{{ url_for('admin_reset_teacher_password', teacher_id=t.teacher_id) }}"
+                   onclick="return confirm('Password GVP@2026 पर reset करें?')"
+                   class="w-9 h-9 bg-yellow-50 text-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-500 hover:text-white transition" title="Reset Password">
+                    <i class="fas fa-key text-sm"></i>
+                </a>
+                <a href="{{ url_for('delete_teacher', teacher_id=t.teacher_id) }}" 
+                   onclick="return confirm('हटाना चाहते हैं?')"
+                   class="w-9 h-9 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition" title="Delete">
+                    <i class="fas fa-trash-alt text-sm"></i>
+                </a>
+            </div>
         </div>
         
         <div class="grid grid-cols-2 gap-y-3 mt-4 text-sm border-t border-gray-100 pt-4">

@@ -198,6 +198,48 @@ def delete_teacher(teacher_id):
     flash('Teacher हटा दिए गए!')
     return redirect(url_for('manage_teachers'))
 
+@app.route('/admin/teacher/edit/<teacher_id>', methods=['GET', 'POST'])
+@admin_required
+def edit_teacher(teacher_id):
+    teacher = teachers_col.find_one({'teacher_id': teacher_id})
+    if not teacher:
+        flash('Teacher नहीं मिले!')
+        return redirect(url_for('manage_teachers'))
+
+    if request.method == 'POST':
+        updates = {
+            'name': request.form['name'],
+            'subject': request.form['subject'],
+            'phone': request.form['phone'].strip(),
+            'email': request.form.get('email', ''),
+            'basic_salary': float(request.form['basic_salary']),
+            'joining_date': request.form['joining_date'],
+        }
+        teachers_col.update_one({'teacher_id': teacher_id}, {'$set': updates})
+        flash(f'✅ {updates["name"]} की जानकारी सफलतापूर्वक अपडेट हो गई!')
+        return redirect(url_for('manage_teachers'))
+
+    return render_template('edit_teacher.html', teacher=teacher)
+
+@app.route('/admin/teacher/reset_password/<teacher_id>')
+@admin_required
+def admin_reset_teacher_password(teacher_id):
+    teacher = teachers_col.find_one({'teacher_id': teacher_id})
+    if not teacher:
+        flash('Teacher नहीं मिले!')
+        return redirect(url_for('manage_teachers'))
+
+    default_password = "GVP@2026"
+    teachers_col.update_one(
+        {'teacher_id': teacher_id},
+        {'$set': {
+            'password': hash_password(default_password),
+            'must_change_password': True
+        }}
+    )
+    flash(f'🔑 {teacher["name"]} का Password Reset हो गया! Default Password: {default_password}')
+    return redirect(url_for('manage_teachers'))
+
 @app.route('/admin/attendance', methods=['GET', 'POST'])
 @admin_required
 def mark_attendance():
