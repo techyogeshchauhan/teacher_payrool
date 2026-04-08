@@ -44,9 +44,14 @@
             {% for t in teachers %}
             <div class="px-4 py-5 flex flex-col md:flex-row md:items-center justify-between hover:bg-orange-50 transition gap-4">
                 <div class="flex items-center gap-4">
+                    {% if t.photo %}
+                    <img src="{{ url_for('static', filename='uploads/' + t.photo) }}"
+                         class="w-12 h-12 rounded-full object-cover shadow-sm shrink-0 border-2 border-orange-200">
+                    {% else %}
                     <div class="w-12 h-12 saffron-grad rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
                         {{ t.name[0] }}
                     </div>
+                    {% endif %}
                     <div>
                         <p class="font-bold text-gray-800 hindi text-lg">{{ t.name }}</p>
                         <p class="text-xs text-gray-500 hindi">{{ t.subject }} &bull; 

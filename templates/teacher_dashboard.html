@@ -5,9 +5,15 @@
 <!-- Welcome Header -->
 <div class="green-grad rounded-2xl p-6 mb-6 text-white card-shadow">
     <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+        {% if teacher.photo %}
+        <img src="{{ url_for('static', filename='uploads/' + teacher.photo) }}"
+             class="w-16 h-16 rounded-full object-cover border-3 border-white shadow-lg shrink-0"
+             style="border: 3px solid white;">
+        {% else %}
         <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center text-green-700 font-bold text-2xl shrink-0">
             {{ teacher.name[0] }}
         </div>
+        {% endif %}
         <div>
             <p class="text-green-200 text-sm hindi">नमस्ते 🙏</p>
             <h1 class="text-2xl font-bold hindi">{{ teacher.name }}</h1>

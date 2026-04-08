@@ -24,6 +24,7 @@ attendance_col = db['attendance']
 admins_col = db['admins']
 increment_col = db['increments']
 holidays_col = db['govt_holidays']
+logs_col = db['activity_logs']
 # Flask-Mail Configuration (Use environment variables or hardcode for now)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -44,6 +45,23 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def log_activity(teacher_id, teacher_name, action, details=''):
+    """Log teacher activity to MongoDB"""
+    try:
+        logs_col.insert_one({
+            'teacher_id': teacher_id,
+            'teacher_name': teacher_name,
+            'action': action,
+            'details': details,
+            'ip': request.remote_addr,
+            'user_agent': request.headers.get('User-Agent', ''),
+            'timestamp': datetime.now(),
+            'date': date.today().strftime('%Y-%m-%d'),
+            'time': datetime.now().strftime('%H:%M:%S')
+        })
+    except Exception:
+        pass  # never let logging crash the app
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -151,11 +169,10 @@ def teacher_login():
         if teacher:
             session['teacher_id'] = teacher_id
             session['teacher_name'] = teacher['name']
-            
+            log_activity(teacher_id, teacher['name'], 'LOGIN', 'Teacher logged in')
             if teacher.get('must_change_password'):
                 flash('सुरक्षा के लिए कृपया अपना पासवर्ड बदलें।')
                 return redirect(url_for('teacher_change_password'))
-                
             return redirect(url_for('teacher_dashboard'))
         flash('गलत ID या password!')
     return render_template('teacher_login.html')
@@ -524,6 +541,7 @@ def teacher_dashboard():
     estimated_salary = round(per_day * effective, 2)
 
     recent = list(attendance_col.find({'teacher_id': tid}).sort('date', -1).limit(10))
+    log_activity(tid, teacher['name'], 'VISIT_DASHBOARD', 'Visited teacher dashboard')
 
     return render_template('teacher_dashboard.html',
                          teacher=teacher,
@@ -556,6 +574,7 @@ def teacher_salary():
     per_day = teacher['basic_salary'] / working_days if working_days > 0 else 0
     net_salary = round(per_day * effective, 2)
     deduction = round(teacher['basic_salary'] - net_salary, 2)
+    log_activity(tid, teacher['name'], 'VISIT_SALARY', f'Viewed salary slip for {calendar.month_name[month]} {year}')
 
     return render_template('teacher_salary.html',
                          teacher=teacher,
@@ -590,11 +609,11 @@ def teacher_attendance_report():
         if calendar.weekday(year, month, d) == 6:
             sundays.add(d)
 
-    # Count totals
     p = sum(1 for v in att_map.values() if v in ['present', 'P'])
     h = sum(1 for v in att_map.values() if v in ['half_day', 'H'])
     m = sum(1 for v in att_map.values() if v == 'M')
     a = sum(1 for v in att_map.values() if v in ['absent', 'A'])
+    log_activity(tid, teacher['name'], 'VISIT_ATTENDANCE', f'Viewed attendance for {calendar.month_name[month]} {year}')
 
     return render_template('teacher_attendance_report.html',
                          teacher=teacher,
@@ -624,11 +643,13 @@ def teacher_profile():
             filename = secure_filename(f"teacher_{tid}.{ext}")
             file.save(os.path.join(UPLOAD_FOLDER, filename))
             teachers_col.update_one({'teacher_id': tid}, {'$set': {'photo': filename}})
+            log_activity(tid, teacher['name'], 'PHOTO_UPLOAD', 'Uploaded/updated profile photo')
             flash('✅ Profile photo सफलतापूर्वक update हो गई!')
         else:
             flash('❌ सिर्फ JPG, PNG, WEBP files allowed हैं (max 2MB)!')
         return redirect(url_for('teacher_profile'))
 
+    log_activity(tid, teacher['name'], 'VISIT_PROFILE', 'Visited profile page')
     return render_template('teacher_profile.html', teacher=teacher)
 
 @app.route('/teacher/forgot_password', methods=['GET', 'POST'])
@@ -697,6 +718,48 @@ def teacher_reset_password():
         flash('पासवर्ड मेल नहीं खाते!')
     
     return render_template('teacher_reset_password.html')
+
+@app.route('/admin/teacher/logs')
+@admin_required
+def teacher_logs():
+    filter_id = request.args.get('teacher_id', '')
+    filter_action = request.args.get('action', '')
+    filter_date = request.args.get('date', '')
+
+    query = {}
+    if filter_id:
+        query['teacher_id'] = filter_id
+    if filter_action:
+        query['action'] = filter_action
+    if filter_date:
+        query['date'] = filter_date
+
+    logs = list(logs_col.find(query).sort('timestamp', -1).limit(200))
+    all_teachers = list(teachers_col.find({'active': True}, {'teacher_id': 1, 'name': 1}))
+
+    # Summary stats
+    today_logins = logs_col.count_documents({'action': 'LOGIN', 'date': date.today().strftime('%Y-%m-%d')})
+    total_logins = logs_col.count_documents({'action': 'LOGIN'})
+    total_visits = logs_col.count_documents({})
+
+    return render_template('teacher_logs.html',
+                         logs=logs,
+                         all_teachers=all_teachers,
+                         filter_id=filter_id,
+                         filter_action=filter_action,
+                         filter_date=filter_date,
+                         today_logins=today_logins,
+                         total_logins=total_logins,
+                         total_visits=total_visits)
+
+@app.route('/admin/teacher/logs/clear', methods=['POST'])
+@admin_required
+def clear_logs():
+    before_date = request.form.get('before_date')
+    if before_date:
+        logs_col.delete_many({'date': {'$lt': before_date}})
+        flash(f'✅ {before_date} से पहले के सभी logs delete हो गए!')
+    return redirect(url_for('teacher_logs'))
 
 @app.route('/admin/attendance/export')
 @admin_required
