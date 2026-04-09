@@ -68,11 +68,17 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 def init_admin():
+    # Update existing admin name if it's currently 'Yogesh' or set it to 'Ravindra kumar'
+    admins_col.update_one(
+        {'username': 'GVP022026'},
+        {'$set': {'name': 'Ravindra kumar'}}
+    )
+    # Original logic to create if not exists
     if not admins_col.find_one({'username': 'GVP022026'}):
         admins_col.insert_one({
             'username': 'GVP022026',
-            'password': hash_password('Yogi@#7983124911'),
-            'name': 'Yogesh'
+            'password': hash_password('Yogi@#2025'),
+            'name': 'Ravindra kumar'
         })
     else:
         # Update existing admin password as requested
@@ -82,11 +88,15 @@ def init_admin():
         )
 
     # Initialize Principal if not exists
+    principals_col.update_one(
+        {'username': 'principal'},
+        {'$set': {'name': 'Ravindra kumar'}}
+    )
     if not principals_col.find_one({'username': 'principal'}):
         principals_col.insert_one({
             'username': 'principal',
             'password': hash_password('Principal@2026'),
-            'name': 'Principal'
+            'name': 'Ravindra kumar'
         })
 
 from functools import wraps

@@ -42,12 +42,21 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between py-2 min-h-[4.5rem]">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-0.5 shadow-md overflow-hidden border border-orange-300 shrink-0">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center p-0.5 shadow-md overflow-hidden border border-orange-300 shrink-0">
                     <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="w-full h-full object-cover">
                 </div>
-                <div>
-                    <div class="text-white font-extrabold text-lg sm:text-xl hindi leading-tight">गायत्री विद्यापीठ</div>
-                    <div class="text-orange-100 text-xs sm:text-sm font-medium tracking-wide">दाउदनगर</div>
+                <div class="flex flex-col">
+                    <div class="text-white font-extrabold text-base sm:text-xl hindi leading-tight">गायत्री विद्यापीठ</div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-orange-100 text-[10px] sm:text-xs font-medium tracking-wide">दाउदनगर</span>
+                        {% if session.get('admin') %}
+                        <span class="bg-red-600 text-white text-[9px] px-1.5 rounded-full font-bold uppercase tracking-tighter border border-white/20">Admin</span>
+                        {% elif session.get('principal') %}
+                        <span class="bg-blue-600 text-white text-[9px] px-1.5 rounded-full font-bold uppercase tracking-tighter border border-white/20">Principal</span>
+                        {% elif session.get('teacher_id') %}
+                        <span class="bg-green-600 text-white text-[9px] px-1.5 rounded-full font-bold uppercase tracking-tighter border border-white/20">Teacher</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -120,8 +129,21 @@
     </div>
 
     <!-- Mobile Menu Dropdown -->
-    <div id="mobile-menu" class="hidden lg:hidden bg-white shadow-2xl absolute w-full left-0 top-full flex-col border-t border-orange-100">
-        <div class="px-4 py-3 space-y-1">
+    <div id="mobile-menu" class="hidden lg:hidden bg-white shadow-2xl absolute w-full left-0 top-full flex-col border-t border-orange-100 divide-y divide-gray-100">
+        <div class="px-6 py-4 bg-orange-50/50 flex items-center gap-3">
+            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
+                <i class="fas {% if session.get('admin') %}fa-user-shield{% elif session.get('principal') %}fa-user-tie{% else %}fa-chalkboard-teacher{% endif %}"></i>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">
+                    {% if session.get('admin') %}ADMIN PORTAL{% elif session.get('principal') %}PRINCIPAL PORTAL{% else %}TEACHER PORTAL{% endif %}
+                </p>
+                <p class="text-gray-800 font-bold hindi">
+                    {{ session.get('admin_name') or session.get('principal_name') or session.get('teacher_name') }}
+                </p>
+            </div>
+        </div>
+        <div class="px-4 py-2 space-y-1">
             {% if session.get('admin') %}
             <a href="{{ url_for('admin_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-home w-6 text-center text-orange-500"></i> Dashboard
@@ -174,8 +196,8 @@
                 <i class="fas fa-key w-6 text-center text-green-600"></i> Password
             </a>
             {% endif %}
-            <div class="border-t border-gray-100 my-2 pt-2">
-                <a href="{{ url_for('logout') }}" class="block px-4 py-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold transition text-center shadow-sm">
+            <div class="border-t border-gray-100 my-2 pt-2 pb-4">
+                <a href="{{ url_for('logout') }}" class="block px-4 py-3 bg-red-600 text-white hover:bg-red-700 rounded-xl font-bold transition text-center shadow-lg">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
