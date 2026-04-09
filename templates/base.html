@@ -36,7 +36,7 @@
 </head>
 <body class="min-h-screen">
 
-{% if session.get('admin') or session.get('teacher_id') %}
+{% if session.get('admin') or session.get('teacher_id') or session.get('principal') %}
 <!-- Navbar -->
 <nav class="saffron-grad shadow-lg relative z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,6 +77,16 @@
                 </a>
                 <a href="{{ url_for('teacher_logs') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-clipboard-list text-xs"></i> Logs
+                </a>
+                {% elif session.get('principal') %}
+                <a href="{{ url_for('principal_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-home text-xs"></i> Dashboard
+                </a>
+                <a href="{{ url_for('mark_attendance') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-calendar-check text-xs"></i> Attendance
+                </a>
+                <a href="{{ url_for('attendance_report') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-chart-bar text-xs"></i> Report
                 </a>
                 {% else %}
                 <a href="{{ url_for('teacher_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
@@ -136,6 +146,16 @@
             </a>
             <a href="{{ url_for('teacher_logs') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-clipboard-list w-6 text-center text-orange-500"></i> Logs
+            </a>
+            {% elif session.get('principal') %}
+            <a href="{{ url_for('principal_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-home w-6 text-center text-orange-500"></i> Dashboard
+            </a>
+            <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-calendar-check w-6 text-center text-orange-500"></i> Attendance
+            </a>
+            <a href="{{ url_for('attendance_report') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-chart-bar w-6 text-center text-orange-500"></i> Report
             </a>
             {% else %}
             <a href="{{ url_for('teacher_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">

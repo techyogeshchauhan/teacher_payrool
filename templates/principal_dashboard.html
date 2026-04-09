@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Principal Dashboard - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<!-- Header -->
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
+        <i class="fas fa-user-tie text-orange-500"></i>
+        Principal Dashboard
+    </h1>
+    <p class="text-gray-500 text-sm hindi">स्वागत है, {{ principal_name }} जी | आज: {{ today }}</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-orange-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-xs hindi">कुल शिक्षक</p>
+                <p class="text-3xl font-bold text-orange-600">{{ total }}</p>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-users text-orange-500 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-xs hindi">आज उपस्थित</p>
+                <p class="text-3xl font-bold text-green-600">{{ present_today }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-user-check text-green-500 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-red-400">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-xs hindi">आज अनुपस्थित</p>
+                <p class="text-3xl font-bold text-red-500">{{ total - present_today }}</p>
+            </div>
+            <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-user-times text-red-400 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="grid md:grid-cols-2 gap-4 mb-8">
+    <a href="{{ url_for('mark_attendance') }}" class="saffron-grad rounded-2xl p-6 text-white hover:opacity-90 transition card-shadow group">
+        <i class="fas fa-calendar-check text-3xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-bold text-lg hindi">Attendance लगाएं</h3>
+        <p class="text-orange-100 text-sm hindi">सभी शिक्षकों की आज की उपस्थिति दर्ज करें</p>
+    </a>
+    <a href="{{ url_for('attendance_report') }}" class="green-grad rounded-2xl p-6 text-white hover:opacity-90 transition card-shadow group">
+        <i class="fas fa-chart-bar text-3xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
+        <h3 class="font-bold text-lg hindi">Attendance Report</h3>
+        <p class="text-green-100 text-sm hindi">शिक्षकों की महीने की रिपोर्ट देखें</p>
+    </a>
+</div>
+
+<div class="bg-orange-50 p-6 rounded-2xl border-2 border-dashed border-orange-200 text-center">
+    <i class="fas fa-info-circle text-orange-400 text-2xl mb-2"></i>
+    <p class="text-gray-600 hindi">प्रधानाचार्य के रूप में आपके पास केवल उपस्थिति (Attendance) प्रबंधन के अधिकार हैं। <br> अन्य कार्यों के लिए कृपया व्यवस्थापक (Admin) से संपर्क करें।</p>
+</div>
+
+{% endblock %}

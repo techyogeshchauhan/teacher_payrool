@@ -38,6 +38,8 @@
         .floating {
             animation: floating 3s ease-in-out infinite;
         }
+        .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .maroon-grad { background: linear-gradient(135deg, #991B1B 0%, #7F1D1D 100%); }
         @keyframes floating {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-10px); }
@@ -62,6 +64,7 @@
                     <a href="{{ url_for('about') }}" class="text-gray-600 hover:text-orange-600 font-semibold transition">हमारे बारे में</a>
                     <a href="{{ url_for('contact') }}" class="text-gray-600 hover:text-orange-600 font-semibold transition">संपर्क करें</a>
                     <a href="{{ url_for('teacher_login') }}" class="text-gray-600 hover:text-green-600 font-semibold transition">शिक्षक कॉर्नर</a>
+                    <a href="{{ url_for('principal_login') }}" class="text-orange-600 font-semibold transition">प्रधानाचार्य कॉर्नर</a>
                     <a href="{{ url_for('admin_login') }}" class="saffron-grad text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition"><i class="fas fa-user-shield mr-2"></i>Admin Login</a>
                 </div>
                 <div class="md:hidden flex items-center">
@@ -78,6 +81,7 @@
             <a href="{{ url_for('about') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-info-circle w-6 text-center text-orange-500 mr-2"></i> हमारे बारे में</a>
             <a href="{{ url_for('contact') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-phone-alt w-6 text-center text-orange-500 mr-2"></i> संपर्क करें</a>
             <a href="{{ url_for('teacher_login') }}" class="block font-bold text-gray-700 hover:text-green-600 hindi"><i class="fas fa-chalkboard-teacher w-6 text-center text-green-500 mr-2"></i> शिक्षक कॉर्नर</a>
+            <a href="{{ url_for('principal_login') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-user-tie w-6 text-center text-orange-500 mr-2"></i> प्रधानाचार्य कॉर्नर</a>
             <div class="border-t border-gray-100 pt-4 mt-2">
                 <a href="{{ url_for('admin_login') }}" class="block font-bold text-white bg-orange-500 px-4 py-3 rounded-xl text-center shadow-md hindi hover:bg-orange-600"><i class="fas fa-user-shield mr-2"></i> एडमिन लॉगिन</a>
             </div>
@@ -102,13 +106,17 @@
             </p>
             
             <div class="flex flex-col sm:flex-row gap-5 justify-center mt-6 w-full max-w-lg mx-auto">
-                <a href="{{ url_for('teacher_login') }}" class="flex-1 green-grad hover:from-green-600 hover:to-teal-800 text-white font-bold py-4 px-8 rounded-2xl shadow-xl transform hover:-translate-y-1 transition duration-300 flex items-center justify-center gap-3 text-lg border border-white/10">
+                <a href="{{ url_for('teacher_login') }}" class="flex-1 green-grad hover:scale-105 text-white font-bold py-5 px-8 rounded-2xl shadow-2xl transform transition duration-300 flex items-center justify-center gap-3 text-xl border border-white/20">
                     <i class="fas fa-chalkboard-teacher text-2xl"></i>
-                    <span class="hindi">शिक्षक पोर्टल</span>
+                    <span class="hindi text-shadow">शिक्षक पोर्टल</span>
                 </a>
-                <a href="{{ url_for('admin_login') }}" class="flex-1 saffron-grad hover:from-orange-600 hover:to-orange-800 text-white font-bold py-4 px-8 rounded-2xl shadow-xl transform hover:-translate-y-1 transition duration-300 flex items-center justify-center gap-3 text-lg border border-white/10">
+                <a href="{{ url_for('principal_login') }}" class="flex-1 saffron-grad hover:scale-105 text-white font-bold py-5 px-8 rounded-2xl shadow-2xl transform transition duration-300 flex items-center justify-center gap-3 text-xl border border-white/20">
+                    <i class="fas fa-user-tie text-2xl"></i>
+                    <span class="hindi text-shadow">Principal</span>
+                </a>
+                <a href="{{ url_for('admin_login') }}" class="flex-1 maroon-grad hover:scale-105 text-white font-bold py-5 px-8 rounded-2xl shadow-2xl transform transition duration-300 flex items-center justify-center gap-3 text-xl border border-white/20">
                     <i class="fas fa-user-shield text-2xl"></i>
-                    <span class="hindi">एडमिन पोर्टल</span>
+                    <span class="hindi text-shadow">Admin पोर्टल</span>
                 </a>
             </div>
         </div>
@@ -186,6 +194,7 @@
                         <li><a href="{{ url_for('about') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> हमारे बारे में</a></li>
                         <li><a href="{{ url_for('contact') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> संपर्क करें</a></li>
                         <li><a href="{{ url_for('teacher_login') }}" class="text-gray-400 hover:text-green-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> शिक्षक पोर्टल</a></li>
+                        <li><a href="{{ url_for('principal_login') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> प्रधानाचार्य पोर्टल</a></li>
                         <li><a href="{{ url_for('admin_login') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> एडमिन लॉगिन</a></li>
                     </ul>
                 </div>

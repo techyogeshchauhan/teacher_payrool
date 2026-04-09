@@ -22,6 +22,7 @@ db = client['gayatri_school']
 teachers_col = db['teachers']
 attendance_col = db['attendance']
 admins_col = db['admins']
+principals_col = db['principals']
 increment_col = db['increments']
 holidays_col = db['govt_holidays']
 logs_col = db['activity_logs']
@@ -70,8 +71,22 @@ def init_admin():
     if not admins_col.find_one({'username': 'GVP022026'}):
         admins_col.insert_one({
             'username': 'GVP022026',
-            'password': hash_password('Yogi@#2025'),
+            'password': hash_password('Yogi@#7983124911'),
             'name': 'Yogesh'
+        })
+    else:
+        # Update existing admin password as requested
+        admins_col.update_one(
+            {'username': 'GVP022026'},
+            {'$set': {'password': hash_password('Yogi@#7983124911')}}
+        )
+
+    # Initialize Principal if not exists
+    if not principals_col.find_one({'username': 'principal'}):
+        principals_col.insert_one({
+            'username': 'principal',
+            'password': hash_password('Principal@2026'),
+            'name': 'Principal'
         })
 
 from functools import wraps
@@ -82,6 +97,15 @@ def admin_required(f):
         if not session.get('admin'):
             flash('कृपया लॉगिन करें!')
             return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def principal_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('principal') and not session.get('admin'):
+            flash('कृपया लॉगिन करें!')
+            return redirect(url_for('principal_login'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -160,6 +184,19 @@ def admin_login():
         flash('गलत username या password!')
     return render_template('admin_login.html')
 
+@app.route('/principal/login', methods=['GET', 'POST'])
+def principal_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = hash_password(request.form['password'])
+        principal = principals_col.find_one({'username': username, 'password': password})
+        if principal:
+            session['principal'] = True
+            session['principal_name'] = principal['name']
+            return redirect(url_for('principal_dashboard'))
+        flash('गलत username या password!')
+    return render_template('principal_login.html')
+
 @app.route('/teacher/login', methods=['GET', 'POST'])
 def teacher_login():
     if request.method == 'POST':
@@ -197,6 +234,18 @@ def admin_dashboard():
                          teachers=teachers,
                          today=today_str,
                          admin_name=session.get('admin_name'))
+
+@app.route('/principal/dashboard')
+@principal_required
+def principal_dashboard():
+    total_teachers = teachers_col.count_documents({'active': True})
+    today_str = date.today().strftime('%Y-%m-%d')
+    today_attendance = attendance_col.count_documents({'date': today_str, 'status': {'$in': ['present', 'P']}})
+    return render_template('principal_dashboard.html', 
+                         total=total_teachers,
+                         present_today=today_attendance,
+                         today=today_str,
+                         principal_name=session.get('principal_name'))
 
 @app.route('/admin/teachers')
 @admin_required
@@ -299,7 +348,7 @@ def admin_reset_teacher_password(teacher_id):
     return redirect(url_for('manage_teachers'))
 
 @app.route('/admin/attendance', methods=['GET', 'POST'])
-@admin_required
+@principal_required
 def mark_attendance():
     
     selected_date = request.args.get('date', date.today().strftime('%Y-%m-%d'))
@@ -322,7 +371,7 @@ def mark_attendance():
                     'teacher_name': teacher['name'],
                     'date': att_date,
                     'status': status,
-                    'marked_by': session.get('admin_name'),
+                    'marked_by': session.get('admin_name') or session.get('principal_name'),
                     'marked_at': datetime.now()
                 }},
                 upsert=True
@@ -405,8 +454,9 @@ def payroll():
                          summary=summary)
 
 
+
 @app.route('/admin/attendance/report')
-@admin_required
+@principal_required
 def attendance_report():
     month = int(request.args.get('month', date.today().month))
     year = int(request.args.get('year', date.today().year))
@@ -433,15 +483,17 @@ def attendance_report():
             'teacher_id': tid,
             'att_map': att_map
         })
+
+    # Submissions info
+    submission_logs = list(attendance_col.find({'date': {'$regex': f'^{month_str}'}}).sort('marked_at', -1).limit(30))
     
     return render_template('attendance_report.html',
                          report=report,
                          month=month, year=year,
                          month_name=calendar.month_name[month],
                          days=days_in_month,
-                         sundays=sundays)
-
-# ─── Admin Govt Holidays ────────────────────────────────────────────────────
+                         sundays=sundays,
+                         submission_logs=submission_logs)
 
 @app.route('/admin/holidays', methods=['GET', 'POST'])
 @admin_required
@@ -762,7 +814,7 @@ def clear_logs():
     return redirect(url_for('teacher_logs'))
 
 @app.route('/admin/attendance/export')
-@admin_required
+@principal_required
 def export_attendance():
     month = int(request.args.get('month', date.today().month))
     year = int(request.args.get('year', date.today().year))
