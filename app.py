@@ -298,7 +298,12 @@ def add_teacher():
             'joining_date': request.form['joining_date'],
             'active': True,
             'created_at': datetime.now(),
-            'must_change_password': True
+            'must_change_password': True,
+            # Bank Details
+            'bank_name': request.form.get('bank_name', ''),
+            'bank_account': request.form.get('bank_account', ''),
+            'ifsc': request.form.get('ifsc', ''),
+            'holder_name': request.form.get('holder_name', '')
         }
         teachers_col.insert_one(teacher)
         flash(f'Teacher {teacher["name"]} सफलतापूर्वक जोड़े गए! ID: {teacher_id}')
@@ -331,6 +336,11 @@ def edit_teacher(teacher_id):
             'email': request.form.get('email', ''),
             'basic_salary': float(request.form['basic_salary']),
             'joining_date': request.form['joining_date'],
+            # Bank Details
+            'bank_name': request.form.get('bank_name', ''),
+            'bank_account': request.form.get('bank_account', ''),
+            'ifsc': request.form.get('ifsc', ''),
+            'holder_name': request.form.get('holder_name', '')
         }
         teachers_col.update_one({'teacher_id': teacher_id}, {'$set': updates})
         flash(f'✅ {updates["name"]} की जानकारी सफलतापूर्वक अपडेट हो गई!')

@@ -30,6 +30,7 @@
                     <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider">Email</th>
                     <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">Joining</th>
                     <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">Basic Salary</th>
+                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">Bank Details</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider hindi text-center">Actions</th>
                 </tr>
             </thead>
@@ -44,7 +45,18 @@
                     <td class="px-4 py-4 text-gray-600 text-sm font-medium">{{ t.phone }}</td>
                     <td class="px-4 py-4 text-gray-500 text-sm">{{ t.email or '-' }}</td>
                     <td class="px-4 py-4 text-gray-600 text-sm">{{ t.joining_date }}</td>
-                    <td class="px-4 py-4 font-bold text-green-700">₹{{ "{:,.0f}".format(t.basic_salary) }}</td>
+                    <td class="px-4 py-4 font-bold text-green-700">₹{{ "{:,.2f}".format(t.basic_salary) }}</td>
+                    <td class="px-4 py-4">
+                        {% if t.bank_account %}
+                        <div class="text-[10px] space-y-0.5">
+                            <p class="font-bold text-gray-800">{{ t.bank_name }}</p>
+                            <p class="text-gray-500 font-mono">{{ t.bank_account }}</p>
+                            <p class="text-gray-400 font-mono">{{ t.ifsc }}</p>
+                        </div>
+                        {% else %}
+                        <span class="text-gray-400 text-xs">-</span>
+                        {% endif %}
+                    </td>
                     <td class="px-4 py-4 text-center">
                         <div class="flex items-center justify-center gap-2">
                             <a href="{{ url_for('edit_teacher', teacher_id=t.teacher_id) }}"
@@ -113,7 +125,7 @@
             </div>
             <div>
                 <p class="text-gray-400 text-xs hindi">Basic Salary</p>
-                <p class="font-bold text-green-600">₹{{ "{:,.0f}".format(t.basic_salary) }}</p>
+                <p class="font-bold text-green-600">₹{{ "{:,.2f}".format(t.basic_salary) }}</p>
             </div>
             <div>
                 <p class="text-gray-400 text-xs hindi">Joining</p>
