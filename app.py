@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, send_file
 from flask_mail import Mail, Message
-from datetime import date, datetime
+from datetime import date, datetime, timezone, timedelta
 from werkzeug.utils import secure_filename
 import random
 import pandas as pd
@@ -50,6 +50,7 @@ def allowed_file(filename):
 def log_activity(teacher_id, teacher_name, action, details=''):
     """Log teacher activity to MongoDB"""
     try:
+        ist_now = datetime.now(timezone(timedelta(hours=5, minutes=30)))
         logs_col.insert_one({
             'teacher_id': teacher_id,
             'teacher_name': teacher_name,
@@ -57,9 +58,9 @@ def log_activity(teacher_id, teacher_name, action, details=''):
             'details': details,
             'ip': request.remote_addr,
             'user_agent': request.headers.get('User-Agent', ''),
-            'timestamp': datetime.now(),
-            'date': date.today().strftime('%Y-%m-%d'),
-            'time': datetime.now().strftime('%H:%M:%S')
+            'timestamp': ist_now,
+            'date': ist_now.strftime('%Y-%m-%d'),
+            'time': ist_now.strftime('%I:%M:%S %p')
         })
     except Exception:
         pass  # never let logging crash the app
@@ -852,7 +853,9 @@ def teacher_logs():
     all_teachers = list(teachers_col.find({'active': True}, {'teacher_id': 1, 'name': 1}))
 
     # Summary stats
-    today_logins = logs_col.count_documents({'action': 'LOGIN', 'date': date.today().strftime('%Y-%m-%d')})
+    ist_now = datetime.now(timezone(timedelta(hours=5, minutes=30)))
+    today_ist = ist_now.strftime('%Y-%m-%d')
+    today_logins = logs_col.count_documents({'action': 'LOGIN', 'date': today_ist})
     total_logins = logs_col.count_documents({'action': 'LOGIN'})
     total_visits = logs_col.count_documents({})
 
@@ -864,15 +867,19 @@ def teacher_logs():
                          filter_date=filter_date,
                          today_logins=today_logins,
                          total_logins=total_logins,
-                         total_visits=total_visits)
+                         total_visits=total_visits,
+                         today=today_ist)
 
 @app.route('/admin/teacher/logs/clear', methods=['POST'])
 @admin_required
 def clear_logs():
-    before_date = request.form.get('before_date')
-    if before_date:
-        logs_col.delete_many({'date': {'$lt': before_date}})
-        flash(f'✅ {before_date} से पहले के सभी logs delete हो गए!')
+    ist_now = datetime.now(timezone(timedelta(hours=5, minutes=30)))
+    before_date = (ist_now - timedelta(days=2)).strftime('%Y-%m-%d')
+    deleted_info = logs_col.delete_many({'date': {'$lt': before_date}})
+    if deleted_info.deleted_count > 0:
+        flash(f'✅ {before_date} से पहले के {deleted_info.deleted_count} logs सफलतापूर्वक delete हो गए!')
+    else:
+        flash(f'ℹ️ {before_date} से पहले के कोई logs मौजूद नहीं हैं।')
     return redirect(url_for('teacher_logs'))
 
 @app.route('/admin/attendance/export')
