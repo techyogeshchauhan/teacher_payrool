@@ -428,10 +428,24 @@ def payroll():
             'status': {'$in': ['absent', 'A']}
         })
 
-        # Effective days: P + Medical = full, Half = 0.5 days
-        effective_days = (present_count + medical_leave_count) + (half_day_count * 0.5)
-        per_day_salary = teacher['basic_salary'] / working_days if working_days > 0 else 0
-        net_salary = round(per_day_salary * effective_days, 2)
+        # New Logic: Calculate 'Earned So Far' if current month
+        today = date.today()
+        if year < today.year or (year == today.year and month < today.month):
+            calculation_days = summary['days_in_month']
+        elif year == today.year and month == today.month:
+            calculation_days = today.day
+        else:
+            calculation_days = 0
+
+        days_in_month = summary['days_in_month']
+        unpaid_days = absent_count + (half_day_count * 0.5)
+        # Paid days so far = days passed so far - unpaid days
+        paid_days = max(0, calculation_days - unpaid_days)
+        
+        per_day_salary = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
+        net_salary = round(per_day_salary * paid_days, 2)
+        # Deduction is calculated based on the whole month's absents
+        full_month_deduction = round(per_day_salary * unpaid_days, 2)
         deduction = round(teacher['basic_salary'] - net_salary, 2)
 
         total_payable += net_salary
@@ -441,7 +455,7 @@ def payroll():
             'name': teacher['name'],
             'subject': teacher['subject'],
             'basic_salary': teacher['basic_salary'],
-            'days_in_month': summary['days_in_month'],
+            'days_in_month': days_in_month,
             'sundays': summary['sundays'],
             'holidays': summary['holidays'],
             'working_days': working_days,
@@ -449,10 +463,11 @@ def payroll():
             'half_days': half_day_count,
             'medical_leaves': medical_leave_count,
             'absent_days': absent_count,
-            'effective_days': effective_days,
+            'paid_days': paid_days,
             'per_day': round(per_day_salary, 2),
-            'deduction': deduction,
-            'net_salary': net_salary
+            'deduction': full_month_deduction,
+            'net_salary': net_salary,
+            'calculation_days': calculation_days
         })
 
     return render_template('payroll.html',
@@ -598,9 +613,21 @@ def teacher_dashboard():
     absent = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
     medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
 
-    effective = (present + medical) + (half * 0.5)
-    per_day = teacher['basic_salary'] / working_days if working_days > 0 else 0
-    estimated_salary = round(per_day * effective, 2)
+    # New Logic: Earned So Far
+    today = date.today()
+    if year < today.year or (year == today.year and month < today.month):
+        calculation_days = summary['days_in_month']
+    elif year == today.year and month == today.month:
+        calculation_days = today.day
+    else:
+        calculation_days = 0
+
+    days_in_month = summary['days_in_month']
+    unpaid = absent + (half * 0.5)
+    paid_days = max(0, calculation_days - unpaid)
+    
+    per_day = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
+    estimated_salary = round(per_day * paid_days, 2)
 
     recent = list(attendance_col.find({'teacher_id': tid}).sort('date', -1).limit(10))
     log_activity(tid, teacher['name'], 'VISIT_DASHBOARD', 'Visited teacher dashboard')
@@ -608,7 +635,9 @@ def teacher_dashboard():
     return render_template('teacher_dashboard.html',
                          teacher=teacher,
                          present=present, half=half, absent=absent,
-                         working_days=working_days,
+                         total_days=summary['days_in_month'],
+                         calculation_days=calculation_days,
+                         paid_days=paid_days,
                          estimated_salary=estimated_salary,
                          month_name=calendar.month_name[month],
                          year=year,
@@ -632,10 +661,22 @@ def teacher_salary():
     half = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
     medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
     absent = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
-    effective = (present + medical) + (half * 0.5)
-    per_day = teacher['basic_salary'] / working_days if working_days > 0 else 0
-    net_salary = round(per_day * effective, 2)
-    deduction = round(teacher['basic_salary'] - net_salary, 2)
+    # New Logic: Earned So Far
+    today = date.today()
+    if year < today.year or (year == today.year and month < today.month):
+        calculation_days = summary['days_in_month']
+    elif year == today.year and month == today.month:
+        calculation_days = today.day
+    else:
+        calculation_days = 0
+
+    days_in_month = summary['days_in_month']
+    unpaid = absent + (half * 0.5)
+    paid_days = max(0, calculation_days - unpaid)
+    
+    per_day = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
+    net_salary = round(per_day * paid_days, 2)
+    full_month_deduction = round(per_day * unpaid, 2)
     log_activity(tid, teacher['name'], 'VISIT_SALARY', f'Viewed salary slip for {calendar.month_name[month]} {year}')
 
     return render_template('teacher_salary.html',
@@ -643,11 +684,12 @@ def teacher_salary():
                          month=month, year=year,
                          month_name=calendar.month_name[month],
                          summary=summary,
-                         working_days=working_days,
+                         total_days=summary['days_in_month'],
+                         calculation_days=calculation_days,
                          present=present, half=half, medical=medical, absent=absent,
-                         effective=effective,
+                         paid_days=paid_days,
                          per_day=round(per_day, 2),
-                         deduction=deduction,
+                         deduction=full_month_deduction,
                          net_salary=net_salary)
 
 

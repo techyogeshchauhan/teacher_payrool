@@ -106,7 +106,7 @@
                     <td class="px-4 py-3 font-medium text-gray-800 hindi">{{ t.name }}</td>
                     <td class="px-4 py-3 text-gray-600 hindi text-sm">{{ t.subject }}</td>
                     <td class="px-4 py-3 text-gray-600 text-sm">{{ t.phone }}</td>
-                    <td class="px-4 py-3 font-semibold text-green-700">₹{{ "{:,.0f}".format(t.basic_salary) }}</td>
+                    <td class="px-4 py-3 font-semibold text-green-700">₹{{ "{:,.2f}".format(t.basic_salary) }}</td>
                 </tr>
                 {% else %}
                 <tr><td colspan="5" class="text-center py-8 text-gray-400 hindi">कोई शिक्षक नहीं मिले। पहले teacher जोड़ें।</td></tr>

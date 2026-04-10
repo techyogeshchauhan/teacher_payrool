@@ -83,9 +83,9 @@
                     <p class="text-xs text-orange-500 hindi">Govt Holiday</p>
                     <p class="text-[10px] text-orange-400">Paid ✓</p>
                 </div>
-                <div class="bg-blue-50 rounded-xl p-3 text-center">
-                    <p class="text-xl font-bold text-blue-700">{{ working_days }}</p>
-                    <p class="text-xs text-blue-500 hindi">Working Days</p>
+                <div class="bg-gray-50 rounded-xl p-3 text-center">
+                    <p class="text-xl font-bold text-gray-700">{{ calculation_days }}</p>
+                    <p class="text-xs text-gray-500 hindi">Calculated Upto</p>
                 </div>
             </div>
             {% if summary.holidays_list %}
@@ -130,39 +130,33 @@
             <div class="space-y-2.5">
                 <div class="flex justify-between py-2 border-b border-gray-100">
                     <span class="text-gray-600 hindi">Basic Salary</span>
-                    <span class="font-semibold">₹{{ "{:,.0f}".format(teacher.basic_salary) }}</span>
+                    <span class="font-semibold">₹{{ "{:,.2f}".format(teacher.basic_salary) }}</span>
                 </div>
                 <div class="flex justify-between py-2 border-b border-gray-100">
-                    <span class="text-gray-600 hindi">Working Days ({{ month_name }})</span>
-                    <span class="font-semibold text-blue-600">{{ working_days }} दिन</span>
+                    <span class="text-gray-600 hindi">सैलरी आज तक (Upto Day: {{ calculation_days }})</span>
+                    <span class="font-semibold text-blue-600">{{ calculation_days }} दिन</span>
                 </div>
                 <div class="flex justify-between py-2 border-b border-gray-100">
                     <span class="text-gray-600 hindi">Per Day Rate</span>
-                    <span class="font-semibold">₹{{ per_day }}</span>
+                    <span class="font-semibold">₹{{ "{:,.2f}".format(per_day) }}</span>
                 </div>
                 <div class="flex justify-between py-2 border-b border-gray-100">
-                    <span class="text-gray-600 hindi">Effective Days (P + M + H×½)</span>
-                    <span class="font-semibold text-green-600">{{ effective }} दिन</span>
+                    <span class="text-gray-600 hindi">Paid Days (Total - Absents)</span>
+                    <span class="font-semibold text-green-600">{{ paid_days }} दिन</span>
                 </div>
                 <div class="flex justify-between py-2 border-b border-gray-100">
-                    <span class="text-purple-600 hindi">Sundays Paid ({{ summary.sundays }} days)</span>
+                    <span class="text-purple-600 hindi">Sundays & Holidays Paid</span>
                     <span class="text-purple-600 font-semibold">Basic Salary में शामिल ✓</span>
                 </div>
-                {% if summary.holidays > 0 %}
-                <div class="flex justify-between py-2 border-b border-gray-100">
-                    <span class="text-orange-600 hindi">Govt Holidays Paid ({{ summary.holidays }} days)</span>
-                    <span class="text-orange-600 font-semibold">Basic Salary में शामिल ✓</span>
-                </div>
-                {% endif %}
                 {% if deduction > 0 %}
                 <div class="flex justify-between py-2 border-b border-red-100 bg-red-50 px-3 rounded-lg">
                     <span class="text-red-600 hindi">Deduction ({{ absent }} दिन absent)</span>
-                    <span class="font-semibold text-red-600">-₹{{ "{:,.0f}".format(deduction) }}</span>
+                    <span class="font-semibold text-red-600">-₹{{ "{:,.2f}".format(deduction) }}</span>
                 </div>
                 {% endif %}
                 <div class="flex justify-between py-3 bg-green-50 px-4 rounded-xl border-2 border-green-200">
                     <span class="font-bold text-gray-800 hindi text-lg">Net Salary</span>
-                    <span class="font-bold text-green-700 text-2xl">₹{{ "{:,.0f}".format(net_salary) }}</span>
+                    <span class="font-bold text-green-700 text-2xl">₹{{ "{:,.2f}".format(net_salary) }}</span>
                 </div>
             </div>
         </div>
