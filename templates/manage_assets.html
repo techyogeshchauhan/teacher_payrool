@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Manage Materials/Assets - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="mb-6">
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-800 hindi flex flex-wrap items-center gap-2 sm:gap-3">
+        <i class="fas fa-boxes text-orange-500"></i> Stationaries & Assets Management
+    </h1>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+    <!-- Assignment Form -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl card-shadow p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 hindi border-b pb-2 flex items-center gap-2">
+                <i class="fas fa-plus-circle text-orange-500"></i> नई सामग्री असाइन करें
+            </h2>
+            <form method="POST" action="{{ url_for('manage_assets') }}" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1 hindi">टीचर चुनें <span class="text-red-500">*</span></label>
+                    <select name="teacher_id" required class="w-full px-4 py-2 border-2 border-orange-100 rounded-xl focus:border-orange-500 focus:outline-none transition text-sm">
+                        <option value="">-- शिक्षक का चयन करें --</option>
+                        {% for t in teachers %}
+                        <option value="{{ t.teacher_id }}">{{ t.name }} ({{ t.subject }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1 hindi">सामग्री का नाम <span class="text-red-500">*</span></label>
+                    <input type="text" name="item_name" required placeholder="उदा: Whiteboard Marker, डस्टर, रजिस्टर" class="w-full px-4 py-2 border-2 border-orange-100 rounded-xl focus:border-orange-500 focus:outline-none transition text-sm hindi">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1 hindi">मात्रा (Quantity)</label>
+                    <input type="number" name="quantity" value="1" min="1" required class="w-full px-4 py-2 border-2 border-orange-100 rounded-xl focus:border-orange-500 focus:outline-none transition text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1 hindi">रिमार्क्स / नोट</label>
+                    <input type="text" name="remarks" placeholder="कोई अन्य विवरण..." class="w-full px-4 py-2 border-2 border-orange-100 rounded-xl focus:border-orange-500 focus:outline-none transition text-sm hindi">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full saffron-grad text-white px-4 py-3 rounded-xl font-bold shadow-md hover:shadow-lg transition">
+                        <i class="fas fa-check-circle mr-1"></i> असाइन करें
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assignments List -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+            <div class="px-4 py-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <h2 class="font-bold text-gray-800 hindi flex items-center gap-2 text-sm sm:text-base">
+                    <i class="fas fa-list-ul text-orange-600 shrink-0"></i> असाइन की गई सामग्री का विवरण
+                </h2>
+                <span class="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-bold self-start sm:self-auto">
+                    Total: {{ assets|length }}
+                </span>
+            </div>
+            
+            {% if assets %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-800 text-white text-xs">
+                        <tr>
+                            <th class="text-left px-4 py-3 hindi">टीचर का नाम</th>
+                            <th class="text-left px-4 py-3 hindi">सामग्री (Assets)</th>
+                            <th class="text-center px-4 py-3 hindi">मात्रा</th>
+                            <th class="text-left px-4 py-3 hindi">दिनांक</th>
+                            <th class="text-left px-4 py-3 hindi">रिमार्क</th>
+                            <th class="text-center px-4 py-3 text-xs">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for a in assets %}
+                        <tr class="hover:bg-orange-50 transition">
+                            <td class="px-4 py-3">
+                                <p class="font-bold text-gray-800 hindi text-sm">{{ a.teacher_name }}</p>
+                                <p class="text-xs text-gray-400 font-mono mt-0.5">{{ a.teacher_id }}</p>
+                            </td>
+                            <td class="px-4 py-3 font-semibold text-gray-700 hindi">{{ a.item_name }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">{{ a.quantity }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-500 text-xs hindi">
+                                {{ a.date }}<br>
+                                <span class="text-[10px] text-gray-400">By: {{ a.assigned_by }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-500 text-xs hindi max-w-[150px] truncate" title="{{ a.remarks }}">
+                                {{ a.remarks or '-' }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <a href="{{ url_for('delete_asset', asset_id=a._id) }}" 
+                                   onclick="return confirm('क्या आप सच में इस असाइनमेंट एंट्री को हटाना चाहते हैं?')" 
+                                   class="text-red-500 hover:text-white hover:bg-red-500 p-2 rounded-lg transition" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-12 text-center text-gray-400">
+                <i class="fas fa-box-open text-5xl mb-4 opacity-30"></i>
+                <p class="hindi font-medium">अभी तक किसी को कोई सामग्री (मार्कर आदि) असाइन नहीं की गई है।</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

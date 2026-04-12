@@ -73,6 +73,38 @@
     </div>
 </div>
 
+<!-- Assigned Stationaries / Assets -->
+{% if assets %}
+<div class="bg-white rounded-2xl card-shadow overflow-hidden mb-6">
+    <div class="px-4 sm:px-6 py-4 border-b border-gray-100 bg-orange-50">
+        <h2 class="font-bold text-gray-800 hindi flex items-center gap-2 text-sm sm:text-base">
+            <i class="fas fa-boxes text-orange-600 shrink-0"></i> आपको असाइन की गई सामग्री
+        </h2>
+    </div>
+    <div class="divide-y divide-gray-50">
+        {% for a in assets %}
+        <div class="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shrink-0">
+                    <i class="fas fa-pen-fancy"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-800 text-sm hindi">{{ a.item_name }} <span class="bg-gray-100 px-2 rounded-full text-xs ml-1">x{{ a.quantity }}</span></p>
+                    <p class="text-xs text-gray-500 mt-1 hindi">असाइनमेंट डेट: {{ a.date }}</p>
+                    {% if a.remarks %}
+                    <p class="text-xs text-gray-600 mt-1 italic hindi">नोट: {{ a.remarks }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-lg self-start sm:self-center shrink-0">
+                असाइन किया: {{ a.assigned_by }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <!-- Recent Attendance -->
 <div class="bg-white rounded-2xl card-shadow overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-100">

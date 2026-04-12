@@ -26,6 +26,7 @@ principals_col = db['principals']
 increment_col = db['increments']
 holidays_col = db['govt_holidays']
 logs_col = db['activity_logs']
+assets_col = db['assets']
 # Flask-Mail Configuration (Use environment variables or hardcode for now)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -604,6 +605,47 @@ def salary_increment():
     history = list(increment_col.find().sort('date', -1).limit(30))
     return render_template('salary_increment.html', teachers=teachers, history=history)
 
+# ─── Admin Assets / Stationaries Route ───────────────────────────────────────
+
+@app.route('/admin/assets', methods=['GET', 'POST'])
+@principal_required
+def manage_assets():
+    teachers = list(teachers_col.find({'active': True}))
+    
+    if request.method == 'POST':
+        teacher_id = request.form['teacher_id']
+        item_name = request.form['item_name'].strip()
+        quantity = int(request.form.get('quantity', 1))
+        remarks = request.form.get('remarks', '').strip()
+        
+        teacher = teachers_col.find_one({'teacher_id': teacher_id})
+        if teacher:
+            ist_now = datetime.now(timezone(timedelta(hours=5, minutes=30)))
+            assets_col.insert_one({
+                'teacher_id': teacher_id,
+                'teacher_name': teacher['name'],
+                'item_name': item_name,
+                'quantity': quantity,
+                'remarks': remarks,
+                'assigned_by': session.get('admin_name') or session.get('principal_name'),
+                'date': ist_now.strftime('%Y-%m-%d'),
+                'timestamp': ist_now
+            })
+            flash(f'✅ {teacher["name"]} को {quantity}x {item_name} असाइन किया गया!')
+        else:
+            flash('⚠️ Teacher नहीं मिला!')
+        return redirect(url_for('manage_assets'))
+        
+    all_assets = list(assets_col.find().sort('timestamp', -1))
+    return render_template('manage_assets.html', teachers=teachers, assets=all_assets)
+
+@app.route('/admin/assets/delete/<asset_id>')
+@principal_required
+def delete_asset(asset_id):
+    assets_col.delete_one({'_id': ObjectId(asset_id)})
+    flash('असाइनमेंट सफलतापूर्वक हटा दिया गया!')
+    return redirect(url_for('manage_assets'))
+
 # ─── Teacher Routes ────────────────────────────────────────────────────────────
 
 @app.route('/teacher/dashboard')
@@ -641,6 +683,8 @@ def teacher_dashboard():
     estimated_salary = round(per_day * paid_days, 2)
 
     recent = list(attendance_col.find({'teacher_id': tid}).sort('date', -1).limit(10))
+    assigned_assets = list(assets_col.find({'teacher_id': tid}).sort('timestamp', -1))
+    
     log_activity(tid, teacher['name'], 'VISIT_DASHBOARD', 'Visited teacher dashboard')
 
     return render_template('teacher_dashboard.html',
@@ -652,7 +696,8 @@ def teacher_dashboard():
                          estimated_salary=estimated_salary,
                          month_name=calendar.month_name[month],
                          year=year,
-                         recent=recent)
+                         recent=recent,
+                         assets=assigned_assets)
 
 
 @app.route('/teacher/salary')
