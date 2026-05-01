@@ -1,0 +1,573 @@
+{% extends "base.html" %}
+{% block title %}Salary Slip — {{ teacher.name }} — गायत्री विद्यापीठ{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── Screen Styles ── */
+.slip-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.slip-card {
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+/* School letterhead header */
+.slip-header {
+    background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);
+    color: #fff;
+    padding: 20px 30px 16px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+.slip-header img {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: #fff;
+    object-fit: cover;
+    border: 3px solid rgba(255,255,255,0.5);
+    flex-shrink: 0;
+}
+.slip-header-text h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin: 0 0 2px;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+}
+.slip-header-text p {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.85);
+    margin: 0;
+}
+
+/* Bill meta bar */
+.bill-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f4ee;
+    border-bottom: 2px solid #e0d5c5;
+    padding: 10px 30px;
+    font-size: 0.82rem;
+    color: #555;
+}
+.bill-meta span { font-weight: 700; color: #333; }
+
+/* Body sections */
+.slip-body { padding: 0 30px 30px; }
+
+.bank-box {
+    border: 1.5px solid #d4b896;
+    border-radius: 10px;
+    background: #fffaf4;
+    padding: 14px 18px;
+    margin: 20px 0 16px;
+}
+.bank-box h3 {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7B1C1C;
+    margin: 0 0 10px;
+    border-bottom: 1px solid #e0c8a8;
+    padding-bottom: 6px;
+}
+.bank-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 20px;
+}
+.bank-grid .bank-row { display: flex; gap: 6px; font-size: 0.8rem; }
+.bank-grid .bank-label { color: #888; min-width: 80px; flex-shrink: 0; }
+.bank-grid .bank-val { font-weight: 700; color: #222; }
+
+/* To address */
+.to-block {
+    margin: 0 0 16px;
+    font-size: 0.82rem;
+    line-height: 1.7;
+}
+.to-block .to-label {
+    font-weight: 800;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7B1C1C;
+    margin-bottom: 4px;
+}
+.to-block address {
+    font-style: normal;
+    color: #444;
+    padding-left: 14px;
+    border-left: 3px solid #B22222;
+}
+
+/* Subject */
+.sub-line {
+    font-size: 0.83rem;
+    margin: 0 0 8px;
+    color: #333;
+}
+.sub-line strong { color: #000; }
+
+.body-text {
+    font-size: 0.8rem;
+    color: #555;
+    margin: 0 0 20px;
+    line-height: 1.6;
+}
+
+/* Salary Details Table */
+.sal-table { width: 100%; border-collapse: collapse; margin: 0 0 4px; font-size: 0.83rem; }
+.sal-table thead tr th {
+    background: #7B1C1C;
+    color: #fff;
+    padding: 9px 12px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.sal-table thead tr th:last-child { text-align: right; }
+.sal-table tbody tr td { padding: 9px 12px; border-bottom: 1px solid #e8e0d5; color: #333; }
+.sal-table tbody tr td:last-child { text-align: right; font-weight: 700; }
+.sal-table tbody tr:hover { background: #fff8f0; }
+
+.sal-table tfoot tr td {
+    padding: 8px 12px;
+    font-weight: 700;
+    background: #f5f0ea;
+    border-top: 2px solid #d4b896;
+    font-size: 0.82rem;
+}
+.sal-table tfoot tr td:first-child { text-align: right; color: #555; }
+.sal-table tfoot tr td:last-child { text-align: right; color: #333; }
+
+.tfoot-net td {
+    background: #7B1C1C !important;
+    color: #fff !important;
+    font-size: 0.9rem;
+    border-top: 2px solid #5a1010 !important;
+}
+
+/* Working days info */
+.days-info {
+    display: flex;
+    gap: 30px;
+    background: #f0f7ff;
+    border: 1.5px solid #c8dff0;
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin: 20px 0;
+    font-size: 0.83rem;
+}
+.days-info .di { display: flex; flex-direction: column; align-items: center; }
+.days-info .di-val { font-size: 1.5rem; font-weight: 800; color: #1A5C2E; }
+.days-info .di-lbl { font-size: 0.68rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Attendance breakdown */
+.att-row {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0 20px;
+    flex-wrap: wrap;
+}
+.att-badge {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 8px 14px; border-radius: 10px; min-width: 70px;
+    font-size: 0.75rem;
+}
+.att-badge .av { font-size: 1.3rem; font-weight: 800; }
+.att-badge .al { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.att-p  { background: #d1fae5; color: #065f46; }
+.att-h  { background: #fef3c7; color: #92400e; }
+.att-m  { background: #dbeafe; color: #1e40af; }
+.att-a  { background: #fee2e2; color: #991b1b; }
+
+/* Signature row */
+.sig-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1.5px dashed #ccc;
+}
+.sig-box { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.sig-line { width: 160px; border-bottom: 1.5px solid #333; margin-bottom: 6px; }
+.sig-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #444; letter-spacing: 0.5px; }
+.sig-sub { font-size: 0.68rem; color: #888; }
+
+/* Disclaimer footer */
+.slip-footer {
+    background: #f9f4ee;
+    border-top: 1.5px solid #e0d5c5;
+    padding: 10px 30px;
+    font-size: 0.7rem;
+    color: #888;
+    text-align: center;
+}
+
+/* ── Print Styles ── */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 8mm 10mm 8mm 10mm;
+    }
+
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+    body { background: white !important; margin: 0; padding: 0; font-size: 10px !important; }
+    nav, .no-print, footer { display: none !important; }
+    main { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
+    .slip-wrapper { max-width: 100%; margin: 0; }
+
+    .slip-card {
+        box-shadow: none !important;
+        border: 1px solid #aaa !important;
+        border-radius: 4px !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    /* Header — compact */
+    .slip-header {
+        padding: 8px 14px !important;
+        gap: 10px !important;
+    }
+    .slip-header img { width: 44px !important; height: 44px !important; }
+    .slip-header-text h1 { font-size: 0.95rem !important; margin-bottom: 1px !important; }
+    .slip-header-text p { font-size: 0.6rem !important; }
+
+    /* Bill meta */
+    .bill-meta { padding: 5px 14px !important; font-size: 0.68rem !important; }
+
+    /* Body */
+    .slip-body { padding: 0 14px 10px !important; }
+
+    /* Bank box */
+    .bank-box { padding: 7px 10px !important; margin: 8px 0 8px !important; }
+    .bank-box h3 { font-size: 0.6rem !important; margin-bottom: 6px !important; padding-bottom: 4px !important; }
+    .bank-grid { gap: 3px 14px !important; }
+    .bank-grid .bank-row { font-size: 0.65rem !important; }
+    .bank-grid .bank-label { min-width: 68px !important; }
+
+    /* To / Subject / Body text */
+    .to-block { margin: 0 0 6px !important; font-size: 0.65rem !important; line-height: 1.4 !important; }
+    .to-block .to-label { font-size: 0.6rem !important; margin-bottom: 2px !important; }
+    .sub-line { font-size: 0.67rem !important; margin: 0 0 4px !important; }
+    .body-text { font-size: 0.63rem !important; margin: 0 0 8px !important; line-height: 1.4 !important; }
+
+    /* Salary table */
+    .sal-table { font-size: 0.67rem !important; margin-bottom: 2px !important; }
+    .sal-table thead tr th { padding: 5px 8px !important; font-size: 0.6rem !important; }
+    .sal-table tbody tr td { padding: 5px 8px !important; }
+    .sal-table tfoot tr td { padding: 4px 8px !important; font-size: 0.65rem !important; }
+    .tfoot-net td { font-size: 0.72rem !important; }
+
+    /* Attendance + Days info — merged into a compact single row */
+    .att-row {
+        display: flex !important;
+        gap: 5px !important;
+        margin: 6px 0 5px !important;
+        flex-wrap: nowrap !important;
+    }
+    .att-badge {
+        padding: 4px 8px !important;
+        min-width: auto !important;
+        border-radius: 5px !important;
+        flex: 1 !important;
+    }
+    .att-badge .av { font-size: 0.8rem !important; }
+    .att-badge .al { font-size: 0.5rem !important; margin-top: 1px !important; }
+
+    .days-info {
+        gap: 0 !important;
+        padding: 5px 8px !important;
+        margin: 5px 0 6px !important;
+        justify-content: space-between !important;
+        border-radius: 5px !important;
+    }
+    .days-info .di { flex: 1 !important; }
+    .days-info .di-val { font-size: 0.85rem !important; }
+    .days-info .di-lbl { font-size: 0.48rem !important; }
+
+    /* Signature */
+    .sig-row { margin-top: 10px !important; padding-top: 8px !important; }
+    .sig-line { width: 120px !important; margin-bottom: 4px !important; }
+    .sig-title { font-size: 0.58rem !important; }
+    .sig-sub { font-size: 0.55rem !important; }
+
+    /* Attendance label */
+    div[style*="Attendance Breakdown"] { font-size: 0.58rem !important; margin: 5px 0 0 !important; }
+
+    /* Footer */
+    .slip-footer { padding: 5px 14px !important; font-size: 0.55rem !important; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="slip-wrapper">
+
+    <!-- Controls (no-print) -->
+    <div class="flex items-center justify-between mb-5 no-print">
+        <div>
+            <h1 class="text-xl font-bold text-gray-800 hindi flex items-center gap-2">
+                <i class="fas fa-file-invoice-dollar text-red-700"></i> Salary Slip
+            </h1>
+            <p class="text-sm text-gray-500 hindi mt-0.5">{{ teacher.name }} — {{ month_name }} {{ year }}</p>
+        </div>
+        <div class="flex gap-2">
+            <form method="GET" class="flex gap-2 items-center">
+                <select name="month" class="px-2 py-1.5 border-2 border-red-200 rounded-lg text-sm focus:outline-none focus:border-red-500">
+                    {% for m in range(1, 13) %}
+                    <option value="{{ m }}" {% if m == month %}selected{% endif %}>
+                        {{ ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m] }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <select name="year" class="px-2 py-1.5 border-2 border-red-200 rounded-lg text-sm focus:outline-none">
+                    {% for y in range(2023, 2028) %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="maroon-grad text-white px-4 py-1.5 rounded-lg text-sm font-semibold">देखें</button>
+            </form>
+            <button onclick="window.print()" class="bg-gray-700 text-white px-4 py-1.5 rounded-lg flex items-center gap-2 text-sm hover:bg-gray-900 transition">
+                <i class="fas fa-print"></i> Print / PDF
+            </button>
+            {% if is_admin %}
+            <a href="{{ url_for('payroll', month=month, year=year) }}" class="bg-orange-100 text-orange-700 px-4 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold hover:bg-orange-200 transition">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if no_att_data %}
+    <!-- No Attendance Warning Banner -->
+    <div class="no-print mb-4 bg-amber-50 border-2 border-amber-400 rounded-xl px-5 py-4 flex items-start gap-3">
+        <i class="fas fa-exclamation-triangle text-amber-500 text-lg mt-0.5 flex-shrink-0"></i>
+        <div>
+            <p class="font-bold text-amber-800 hindi text-sm">
+                ⚠️ {{ month_name }} {{ year }} में कोई Attendance Record नहीं मिला!
+            </p>
+            <p class="text-amber-700 text-xs mt-1 hindi">
+                इस महीने की attendance अभी mark नहीं हुई है। पिछले महीनों का record देखें:
+            </p>
+            <div class="flex gap-2 mt-2 flex-wrap">
+                {% set months_short = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] %}
+                {% for back in [1, 2, 3] %}
+                    {% set pm = month - back %}
+                    {% set py = year %}
+                    {% if pm < 1 %}{% set pm = pm + 12 %}{% set py = year - 1 %}{% endif %}
+                    {% if is_admin %}
+                    <a href="{{ url_for('admin_salary_slip', teacher_id=teacher.teacher_id, month=pm, year=py) }}"
+                       class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg text-xs font-bold transition">
+                        {{ months_short[pm] }} {{ py }}
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('teacher_salary', month=pm, year=py) }}"
+                       class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg text-xs font-bold transition">
+                        {{ months_short[pm] }} {{ py }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SALARY SLIP (BILL FORMAT)
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="slip-card">
+
+        <!-- School Letterhead Header -->
+        <div class="slip-header">
+            <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="GVP Logo">
+            <div class="slip-header-text">
+                <h1>🕉️ Gayatri Vidyapeeth, Daudnagar</h1>
+                <p>Kunti Utsav Bhawan, NH-139, Akorha, Daudnagar, Aurangabad, Bihar — 824113</p>
+                <p style="margin-top:4px; font-size:0.7rem; color:rgba(255,255,255,0.7);">Teacher Staff Salary Bill</p>
+            </div>
+        </div>
+
+        <!-- Bill Meta -->
+        <div class="bill-meta">
+            <div>Ref. No.: &nbsp;<span>Bill No. {{ bill_no }}</span></div>
+            <div>Month: &nbsp;<span>{{ month_name }} {{ year }}</span></div>
+            <div>Date: &nbsp;<span>{{ slip_date }}</span></div>
+        </div>
+
+        <div class="slip-body">
+
+            <!-- Bank Details Box -->
+            <div class="bank-box">
+                <h3><i class="fas fa-university" style="margin-right:5px;"></i>Bank Details of Teacher</h3>
+                <div class="bank-grid">
+                    <div class="bank-row">
+                        <span class="bank-label">Name:</span>
+                        <span class="bank-val hindi">{{ teacher.name }}</span>
+                    </div>
+                    <div class="bank-row">
+                        <span class="bank-label">Account No.:</span>
+                        <span class="bank-val">{{ teacher.bank_account or '—' }}</span>
+                    </div>
+                    <div class="bank-row">
+                        <span class="bank-label">PAN No.:</span>
+                        <span class="bank-val">{{ teacher.pan_no or 'NA' }}</span>
+                    </div>
+                    <div class="bank-row">
+                        <span class="bank-label">IFSC Code:</span>
+                        <span class="bank-val">{{ teacher.ifsc or '—' }}</span>
+                    </div>
+                    <div class="bank-row" style="grid-column: span 2;">
+                        <span class="bank-label">Bank Name:</span>
+                        <span class="bank-val">{{ teacher.bank_name or '—' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- To Block -->
+            <div class="to-block">
+                <div class="to-label">To,</div>
+                <address>
+                    <strong>Gayatri Vidyapeeth Trust</strong><br>
+                    Kunti Utsav Bhawan, NH-139, Akorha<br>
+                    Daudnagar, Aurangabad, Bihar — 824113
+                </address>
+            </div>
+
+            <!-- Subject -->
+            <p class="sub-line">
+                <strong>Sub:</strong> Payment for Teacher Staff Salary — <strong>{{ month_name }} {{ year }}</strong>
+            </p>
+            <p class="body-text">
+                Respected Sir/Madam,<br>
+                Please pay bill payment for Teacher Staff Salary for the month of <strong>{{ month_name }} {{ year }}</strong>
+                at <strong>Gayatri Vidyapeeth, Daudnagar, Aurangabad, Bihar</strong>.
+            </p>
+
+            <!-- Salary Details Table -->
+            <table class="sal-table">
+                <thead>
+                    <tr>
+                        <th style="width:40%;">Name</th>
+                        <th style="width:30%;">Designation</th>
+                        <th style="width:30%; text-align:right;">Amount (Rs.)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="hindi">{{ teacher.name }}</td>
+                        <td>Teacher</td>
+                        <td>{{ "{:,.2f}".format(net_salary) }}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2">Sub Total (in Rs.)</td>
+                        <td>{{ "{:,.2f}".format(net_salary) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">CGST (in Rs.)</td>
+                        <td>00.0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">SGST (in Rs.)</td>
+                        <td>00.0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Total (in Rs.)</td>
+                        <td>{{ "{:,.2f}".format(net_salary) }}</td>
+                    </tr>
+                    <tr class="tfoot-net">
+                        <td colspan="2">Net Total (in Rs.)</td>
+                        <td style="font-size:1rem;">{{ "{:,.2f}".format(net_salary) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- Attendance Breakdown -->
+            <div style="margin: 18px 0 0; font-size:0.75rem; color:#777; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">
+                Attendance Breakdown
+            </div>
+            <div class="att-row">
+                <div class="att-badge att-p">
+                    <span class="av">{{ present }}</span>
+                    <span class="al">Present (P)</span>
+                </div>
+                <div class="att-badge att-h">
+                    <span class="av">{{ half }}</span>
+                    <span class="al">Half Day (H)</span>
+                </div>
+                <div class="att-badge att-m">
+                    <span class="av">{{ medical }}</span>
+                    <span class="al">Medical (M)</span>
+                </div>
+                <div class="att-badge att-a">
+                    <span class="av">{{ absent }}</span>
+                    <span class="al">Absent (A)</span>
+                </div>
+            </div>
+
+            <!-- Working Days & Leave Info -->
+            <div class="days-info">
+                <div class="di">
+                    <span class="di-val">{{ total_working_days }}</span>
+                    <span class="di-lbl">Total Working Days</span>
+                </div>
+                <div class="di" style="color:#B22222;">
+                    <span class="di-val" style="color:#B22222;">{{ absent }}</span>
+                    <span class="di-lbl">Total Leave</span>
+                </div>
+                <div class="di" style="color:#1A5C2E;">
+                    <span class="di-val" style="color:#1A5C2E;">{{ paid_days }}</span>
+                    <span class="di-lbl">Paid Days</span>
+                </div>
+                <div class="di" style="color:#92400e;">
+                    <span class="di-val" style="color:#92400e;">₹{{ "{:,.0f}".format(per_day) }}</span>
+                    <span class="di-lbl">Per Day Rate</span>
+                </div>
+                <div class="di" style="color:#1e40af;">
+                    <span class="di-val" style="color:#1e40af;">{{ summary.days_in_month }}</span>
+                    <span class="di-lbl">Days in Month</span>
+                </div>
+            </div>
+
+            <!-- Signature Row -->
+            <div class="sig-row">
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <span class="sig-title">Teacher Signature</span>
+                    <span class="sig-sub hindi">{{ teacher.name }}</span>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <span class="sig-title">Authorized Signatory</span>
+                    <span class="sig-sub">Principal / Director</span>
+                    <span class="sig-sub">Gayatri Vidyapeeth, Daudnagar</span>
+                </div>
+            </div>
+
+        </div><!-- /slip-body -->
+
+        <!-- Footer Disclaimer -->
+        <div class="slip-footer hindi">
+            यह computer-generated salary slip है। Sundays और Govt Holidays — सभी Paid हैं। &nbsp;|&nbsp;
+            Generated on: {{ slip_date }}
+        </div>
+    </div><!-- /slip-card -->
+
+</div>
+{% endblock %}

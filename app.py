@@ -304,8 +304,9 @@ def add_teacher():
             # Bank Details
             'bank_name': request.form.get('bank_name', ''),
             'bank_account': request.form.get('bank_account', ''),
-            'ifsc': request.form.get('ifsc', ''),
-            'holder_name': request.form.get('holder_name', '')
+            'ifsc': request.form.get('ifsc', '').upper(),
+            'holder_name': request.form.get('holder_name', ''),
+            'pan_no': request.form.get('pan_no', '').upper()
         }
         teachers_col.insert_one(teacher)
         flash(f'Teacher {teacher["name"]} सफलतापूर्वक जोड़े गए! ID: {teacher_id}')
@@ -341,8 +342,9 @@ def edit_teacher(teacher_id):
             # Bank Details
             'bank_name': request.form.get('bank_name', ''),
             'bank_account': request.form.get('bank_account', ''),
-            'ifsc': request.form.get('ifsc', ''),
-            'holder_name': request.form.get('holder_name', '')
+            'ifsc': request.form.get('ifsc', '').upper(),
+            'holder_name': request.form.get('holder_name', ''),
+            'pan_no': request.form.get('pan_no', '').upper()
         }
         teachers_col.update_one({'teacher_id': teacher_id}, {'$set': updates})
         flash(f'✅ {updates["name"]} की जानकारी सफलतापूर्वक अपडेट हो गई!')
@@ -711,14 +713,22 @@ def teacher_salary():
     month_str = f"{year}-{month:02d}"
 
     summary = get_month_summary(year, month)
-    working_days = summary['working_days']
 
     present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
     half = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
     medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
     absent = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
-    # New Logic: Earned So Far
+
+    # Auto-redirect to previous month if current month has no attendance
     today = date.today()
+    no_att_data = (present + half + medical + absent) == 0
+    is_current_month = (year == today.year and month == today.month)
+    if no_att_data and is_current_month and not request.args.get('force'):
+        # Go to previous month
+        prev_month = month - 1 if month > 1 else 12
+        prev_year = year if month > 1 else year - 1
+        return redirect(url_for('teacher_salary', month=prev_month, year=prev_year))
+
     if year < today.year or (year == today.year and month < today.month):
         calculation_days = summary['days_in_month']
     elif year == today.year and month == today.month:
@@ -729,24 +739,99 @@ def teacher_salary():
     days_in_month = summary['days_in_month']
     unpaid = absent + (half * 0.5)
     paid_days = max(0, calculation_days - unpaid)
-    
+
     per_day = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
     net_salary = round(per_day * paid_days, 2)
     full_month_deduction = round(per_day * unpaid, 2)
+
+    all_teachers = list(teachers_col.find({'active': True}, {'teacher_id': 1}).sort('_id', 1))
+    bill_no = next((i + 1 for i, t in enumerate(all_teachers) if t['teacher_id'] == tid), 1)
+
+    slip_date = today.strftime('%d/%m/%Y')
     log_activity(tid, teacher['name'], 'VISIT_SALARY', f'Viewed salary slip for {calendar.month_name[month]} {year}')
 
-    return render_template('teacher_salary.html',
+    return render_template('salary_slip.html',
                          teacher=teacher,
                          month=month, year=year,
                          month_name=calendar.month_name[month],
                          summary=summary,
-                         total_days=summary['days_in_month'],
+                         total_working_days=summary['working_days'],
                          calculation_days=calculation_days,
                          present=present, half=half, medical=medical, absent=absent,
                          paid_days=paid_days,
                          per_day=round(per_day, 2),
                          deduction=full_month_deduction,
-                         net_salary=net_salary)
+                         net_salary=net_salary,
+                         bill_no=f"{bill_no:02d}",
+                         slip_date=slip_date,
+                         no_att_data=no_att_data,
+                         is_admin=False)
+
+
+@app.route('/admin/salary/slip/<teacher_id>')
+@admin_required
+def admin_salary_slip(teacher_id):
+    teacher = teachers_col.find_one({'teacher_id': teacher_id})
+    if not teacher:
+        flash('Teacher नहीं मिले!')
+        return redirect(url_for('payroll'))
+
+    month = int(request.args.get('month', date.today().month))
+    year = int(request.args.get('year', date.today().year))
+    month_str = f"{year}-{month:02d}"
+
+    summary = get_month_summary(year, month)
+
+    present = attendance_col.count_documents({'teacher_id': teacher_id, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
+    half = attendance_col.count_documents({'teacher_id': teacher_id, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
+    medical = attendance_col.count_documents({'teacher_id': teacher_id, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
+    absent = attendance_col.count_documents({'teacher_id': teacher_id, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
+
+    # Auto-redirect to previous month if current month has no attendance
+    today = date.today()
+    no_att_data = (present + half + medical + absent) == 0
+    is_current_month = (year == today.year and month == today.month)
+    if no_att_data and is_current_month and not request.args.get('force'):
+        prev_month = month - 1 if month > 1 else 12
+        prev_year = year if month > 1 else year - 1
+        return redirect(url_for('admin_salary_slip', teacher_id=teacher_id, month=prev_month, year=prev_year))
+
+    if year < today.year or (year == today.year and month < today.month):
+        calculation_days = summary['days_in_month']
+    elif year == today.year and month == today.month:
+        calculation_days = today.day
+    else:
+        calculation_days = 0
+
+    days_in_month = summary['days_in_month']
+    unpaid = absent + (half * 0.5)
+    paid_days = max(0, calculation_days - unpaid)
+
+    per_day = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
+    net_salary = round(per_day * paid_days, 2)
+    full_month_deduction = round(per_day * unpaid, 2)
+
+    all_teachers = list(teachers_col.find({'active': True}, {'teacher_id': 1}).sort('_id', 1))
+    bill_no = next((i + 1 for i, t in enumerate(all_teachers) if t['teacher_id'] == teacher_id), 1)
+
+    slip_date = today.strftime('%d/%m/%Y')
+
+    return render_template('salary_slip.html',
+                         teacher=teacher,
+                         month=month, year=year,
+                         month_name=calendar.month_name[month],
+                         summary=summary,
+                         total_working_days=summary['working_days'],
+                         calculation_days=calculation_days,
+                         present=present, half=half, medical=medical, absent=absent,
+                         paid_days=paid_days,
+                         per_day=round(per_day, 2),
+                         deduction=full_month_deduction,
+                         net_salary=net_salary,
+                         bill_no=f"{bill_no:02d}",
+                         slip_date=slip_date,
+                         no_att_data=no_att_data,
+                         is_admin=True)
 
 
 @app.route('/teacher/attendance/report')

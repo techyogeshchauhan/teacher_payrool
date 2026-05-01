@@ -107,6 +107,7 @@
                     <th class="text-center px-3 py-3 hindi">Per Day</th>
                     <th class="text-center px-3 py-3 text-red-300 hindi">Deduction</th>
                     <th class="text-center px-3 py-3 text-yellow-300 font-bold hindi">Net Salary</th>
+                    <th class="text-center px-3 py-3 text-green-300 hindi">Salary Slip</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -142,9 +143,16 @@
                             ₹{{ "{:,.2f}".format(p.net_salary) }}
                         </span>
                     </td>
+                    <td class="px-3 py-3 text-center">
+                        <a href="{{ url_for('admin_salary_slip', teacher_id=p.teacher_id, month=month, year=year) }}"
+                           target="_blank"
+                           class="inline-flex items-center gap-1 bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-xl font-bold transition text-xs no-print">
+                            <i class="fas fa-file-invoice"></i> Slip
+                        </a>
+                    </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="14" class="text-center py-12 text-gray-400 hindi">कोई data नहीं मिला।</td></tr>
+                <tr><td colspan="15" class="text-center py-12 text-gray-400 hindi">कोई data नहीं मिला।</td></tr>
                 {% endfor %}
             </tbody>
             <tfoot class="bg-gray-100 font-bold">
@@ -155,6 +163,7 @@
                             ₹{{ "{:,.2f}".format(total_payable) }}
                         </span>
                     </td>
+                    <td></td>
                 </tr>
             </tfoot>
         </table>
