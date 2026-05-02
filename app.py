@@ -92,13 +92,13 @@ def init_admin():
     # Initialize Principal if not exists
     principals_col.update_one(
         {'username': 'principal'},
-        {'$set': {'name': 'Ravindra kumar'}}
+        {'$set': {'name': 'Shivani singh'}}
     )
     if not principals_col.find_one({'username': 'principal'}):
         principals_col.insert_one({
             'username': 'principal',
             'password': hash_password('Principal@2026'),
-            'name': 'Ravindra kumar'
+            'name': 'Shivani singh'
         })
 
 from functools import wraps
