@@ -234,7 +234,13 @@ def calculate_paid_days(tid, year, month, summary):
     }
 
 
-# ─── Auth Routes ────────────────────────────────────────────────────────────
+@app.after_request
+def add_header(response):
+    """Prevent back button from showing cached pages after logout"""
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
 
 @app.route('/')
 def index():
@@ -250,6 +256,8 @@ def contact():
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
+    if session.get('admin'):
+        return redirect(url_for('admin_dashboard'))
     if request.method == 'POST':
         username = request.form['username']
         password = hash_password(request.form['password'])
@@ -263,6 +271,8 @@ def admin_login():
 
 @app.route('/principal/login', methods=['GET', 'POST'])
 def principal_login():
+    if session.get('principal'):
+        return redirect(url_for('principal_dashboard'))
     if request.method == 'POST':
         username = request.form['username']
         password = hash_password(request.form['password'])
@@ -276,6 +286,8 @@ def principal_login():
 
 @app.route('/teacher/login', methods=['GET', 'POST'])
 def teacher_login():
+    if session.get('teacher_id'):
+        return redirect(url_for('teacher_dashboard'))
     if request.method == 'POST':
         teacher_id = request.form['teacher_id']
         password = hash_password(request.form['password'])
@@ -694,26 +706,28 @@ def teacher_dashboard():
     year = date.today().year
     month_str = f"{year}-{month:02d}"
 
+    # Previous Month calculation
+    prev_month = month - 1 if month > 1 else 12
+    prev_year = year if month > 1 else year - 1
+    prev_summary = get_month_summary(prev_year, prev_month)
+    prev_att = calculate_paid_days(tid, prev_year, prev_month, prev_summary)
+    prev_days_in_month = prev_summary['days_in_month']
+    prev_paid_days = prev_att['paid_days']
+    prev_per_day = teacher['basic_salary'] / prev_days_in_month if prev_days_in_month > 0 else 0
+    prev_estimated_salary = round(prev_per_day * prev_paid_days, 2)
+
     summary = get_month_summary(year, month)
     working_days = summary['working_days']
 
-    present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
-    half = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
-    absent = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
-    medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
+    att = calculate_paid_days(tid, year, month, summary)
 
-    # New Logic: Earned So Far
-    today = date.today()
-    if year < today.year or (year == today.year and month < today.month):
-        calculation_days = summary['days_in_month']
-    elif year == today.year and month == today.month:
-        calculation_days = today.day
-    else:
-        calculation_days = 0
+    present = att['present']
+    half = att['half']
+    absent = att['absent']
+    medical = att['medical']
 
     days_in_month = summary['days_in_month']
-    unpaid = absent + (half * 0.5)
-    paid_days = max(0, calculation_days - unpaid)
+    paid_days = att['paid_days']
     
     per_day = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
     estimated_salary = round(per_day * paid_days, 2)
@@ -727,11 +741,18 @@ def teacher_dashboard():
                          teacher=teacher,
                          present=present, half=half, absent=absent,
                          total_days=summary['days_in_month'],
-                         calculation_days=calculation_days,
+                         calculation_days=days_in_month,
                          paid_days=paid_days,
+                         per_day=per_day,
                          estimated_salary=estimated_salary,
                          month_name=calendar.month_name[month],
                          year=year,
+                         prev_month=prev_month,
+                         prev_month_name=calendar.month_name[prev_month],
+                         prev_year=prev_year,
+                         prev_estimated_salary=prev_estimated_salary,
+                         prev_paid_days=prev_paid_days,
+                         prev_per_day=prev_per_day,
                          recent=recent,
                          assets=assigned_assets)
 
