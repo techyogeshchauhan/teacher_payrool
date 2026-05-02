@@ -523,25 +523,33 @@
 
             <!-- Working Days & Leave Info -->
             <div class="days-info">
-                <div class="di">
-                    <span class="di-val">{{ total_working_days }}</span>
-                    <span class="di-lbl">Total Working Days</span>
-                </div>
-                <div class="di" style="color:#B22222;">
-                    <span class="di-val" style="color:#B22222;">{{ absent }}</span>
-                    <span class="di-lbl">Total Leave</span>
-                </div>
                 <div class="di" style="color:#1A5C2E;">
-                    <span class="di-val" style="color:#1A5C2E;">{{ paid_days }}</span>
-                    <span class="di-lbl">Paid Days</span>
+                    <span class="di-val" style="color:#1A5C2E;">{{ present }}</span>
+                    <span class="di-lbl">Present (P)</span>
                 </div>
-                <div class="di" style="color:#92400e;">
-                    <span class="di-val" style="color:#92400e;">₹{{ "{:,.0f}".format(per_day) }}</span>
-                    <span class="di-lbl">Per Day Rate</span>
+                <div class="di" style="color:#6d28d9;">
+                    <span class="di-val" style="color:#6d28d9;">{{ sundays_paid if sundays_paid is defined else 0 }}</span>
+                    <span class="di-lbl">Sunday (Paid)</span>
+                </div>
+                <div class="di" style="color:#0369a1;">
+                    <span class="di-val" style="color:#0369a1;">{{ holidays_paid if holidays_paid is defined else 0 }}</span>
+                    <span class="di-lbl">Govt Holiday</span>
                 </div>
                 <div class="di" style="color:#1e40af;">
-                    <span class="di-val" style="color:#1e40af;">{{ summary.days_in_month }}</span>
-                    <span class="di-lbl">Days in Month</span>
+                    <span class="di-val" style="color:#1e40af;">{{ medical }}</span>
+                    <span class="di-lbl">Medical (M)</span>
+                </div>
+                <div class="di" style="color:#b45309;">
+                    <span class="di-val" style="color:#b45309;">{{ half }}</span>
+                    <span class="di-lbl">Half Day (H)</span>
+                </div>
+                <div class="di" style="color:#B22222;">
+                    <span class="di-val" style="color:#B22222;">{{ leave_taken if leave_taken is defined else absent }}</span>
+                    <span class="di-lbl">Leave (A)</span>
+                </div>
+                <div class="di" style="background:#064e3b;color:#fff;border-radius:8px;padding:4px 6px;">
+                    <span class="di-val" style="color:#fff;">{{ paid_days }}</span>
+                    <span class="di-lbl" style="color:#d1fae5;">Paid Days</span>
                 </div>
             </div>
 

@@ -169,6 +169,71 @@ def get_working_days(year, month):
     return get_month_summary(year, month)['working_days']
 
 
+def calculate_paid_days(tid, year, month, summary):
+    """
+    Attendance-based salary calculation.
+
+    Formula:
+      paid_days = Present(P) + Medical(M) + Half(H)×0.5
+                  + Sundays within work period
+                  + Govt Holidays within work period
+
+    Work period = first paid-attendance day → last paid-attendance day of month.
+    (Sundays/Holidays ONLY count if they fall within the days teacher was working.)
+
+    Example: Basic=4500, April(30 days), Present=12, last present=Apr 16
+      → Sundays in Apr 1–16 = Apr 5, 12 = 2
+      → paid_days = 12 + 2 = 14  →  net = 4500/30 × 14 = ₹2100
+    """
+    month_str = f"{year}-{month:02d}"
+
+    present  = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
+    half     = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
+    medical  = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
+    absent   = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
+
+    # Find work period: first → last PAID attendance day (P/M/H only, not A)
+    paid_records = list(attendance_col.find(
+        {'teacher_id': tid,
+         'date': {'$regex': f'^{month_str}'},
+         'status': {'$in': ['present', 'P', 'M', 'half_day', 'H']}},
+        {'date': 1}
+    ).sort('date', 1))
+
+    if paid_records:
+        first_d = date.fromisoformat(paid_records[0]['date'])
+        last_d  = date.fromisoformat(paid_records[-1]['date'])
+
+        # Sundays falling within work period
+        sundays_paid = sum(
+            1 for i in range((last_d - first_d).days + 1)
+            if (first_d + timedelta(days=i)).weekday() == 6   # 6 = Sunday
+        )
+
+        # Govt holidays (non-Sunday) falling within work period
+        holidays_paid = sum(
+            1 for h in summary.get('holidays_list', [])
+            if first_d <= date.fromisoformat(h['date']) <= last_d
+            and date.fromisoformat(h['date']).weekday() != 6
+        )
+    else:
+        sundays_paid   = 0
+        holidays_paid  = 0
+
+    paid_days = present + medical + (half * 0.5) + sundays_paid + holidays_paid
+
+    return {
+        'present':       present,
+        'half':          half,
+        'medical':       medical,
+        'absent':        absent,
+        'sundays_paid':  sundays_paid,
+        'holidays_paid': holidays_paid,
+        'paid_days':     round(paid_days, 1),
+        'leave_taken':   absent,
+    }
+
+
 # ─── Auth Routes ────────────────────────────────────────────────────────────
 
 @app.route('/')
@@ -402,9 +467,9 @@ def mark_attendance():
             )
         flash(f'{att_date} की attendance सफलतापूर्वक save हो गई!')
         return redirect(url_for('mark_attendance', date=att_date))
-    
-    return render_template('mark_attendance.html', 
-                         teachers=teachers, 
+
+    return render_template('mark_attendance.html',
+                         teachers=teachers,
                          selected_date=selected_date,
                          existing=existing)
 
@@ -412,76 +477,45 @@ def mark_attendance():
 @admin_required
 def payroll():
     month = int(request.args.get('month', date.today().month))
-    year = int(request.args.get('year', date.today().year))
+    year  = int(request.args.get('year',  date.today().year))
 
-    teachers = list(teachers_col.find({'active': True}))
-    summary = get_month_summary(year, month)
+    teachers     = list(teachers_col.find({'active': True}))
+    summary      = get_month_summary(year, month)
     working_days = summary['working_days']
 
-    payroll_data = []
+    payroll_data  = []
     total_payable = 0
 
     for teacher in teachers:
         tid = teacher['teacher_id']
-        month_str = f"{year}-{month:02d}"
 
-        present_count = attendance_col.count_documents({
-            'teacher_id': tid, 'date': {'$regex': f'^{month_str}'},
-            'status': {'$in': ['present', 'P']}
-        })
-        half_day_count = attendance_col.count_documents({
-            'teacher_id': tid, 'date': {'$regex': f'^{month_str}'},
-            'status': {'$in': ['half_day', 'H']}
-        })
-        medical_leave_count = attendance_col.count_documents({
-            'teacher_id': tid, 'date': {'$regex': f'^{month_str}'},
-            'status': 'M'
-        })
-        absent_count = attendance_col.count_documents({
-            'teacher_id': tid, 'date': {'$regex': f'^{month_str}'},
-            'status': {'$in': ['absent', 'A']}
-        })
+        att = calculate_paid_days(tid, year, month, summary)
 
-        # New Logic: Calculate 'Earned So Far' if current month
-        today = date.today()
-        if year < today.year or (year == today.year and month < today.month):
-            calculation_days = summary['days_in_month']
-        elif year == today.year and month == today.month:
-            calculation_days = today.day
-        else:
-            calculation_days = 0
-
-        days_in_month = summary['days_in_month']
-        unpaid_days = absent_count + (half_day_count * 0.5)
-        # Paid days so far = days passed so far - unpaid days
-        paid_days = max(0, calculation_days - unpaid_days)
-        
+        days_in_month  = summary['days_in_month']
         per_day_salary = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
-        net_salary = round(per_day_salary * paid_days, 2)
-        # Deduction is calculated based on the whole month's absents
-        full_month_deduction = round(per_day_salary * unpaid_days, 2)
-        deduction = round(teacher['basic_salary'] - net_salary, 2)
+        net_salary     = round(per_day_salary * att['paid_days'], 2)
+        deduction      = round(per_day_salary * (att['absent'] + att['half'] * 0.5), 2)
 
         total_payable += net_salary
 
         payroll_data.append({
-            'teacher_id': tid,
-            'name': teacher['name'],
-            'subject': teacher['subject'],
-            'basic_salary': teacher['basic_salary'],
-            'days_in_month': days_in_month,
-            'sundays': summary['sundays'],
-            'holidays': summary['holidays'],
-            'working_days': working_days,
-            'present_days': present_count,
-            'half_days': half_day_count,
-            'medical_leaves': medical_leave_count,
-            'absent_days': absent_count,
-            'paid_days': paid_days,
-            'per_day': round(per_day_salary, 2),
-            'deduction': full_month_deduction,
-            'net_salary': net_salary,
-            'calculation_days': calculation_days
+            'teacher_id':     tid,
+            'name':           teacher['name'],
+            'subject':        teacher['subject'],
+            'basic_salary':   teacher['basic_salary'],
+            'days_in_month':  days_in_month,
+            'sundays':        att['sundays_paid'],
+            'holidays':       att['holidays_paid'],
+            'working_days':   working_days,
+            'present_days':   att['present'],
+            'half_days':      att['half'],
+            'medical_leaves': att['medical'],
+            'absent_days':    att['absent'],
+            'paid_days':      att['paid_days'],
+            'per_day':        round(per_day_salary, 2),
+            'deduction':      deduction,
+            'net_salary':     net_salary,
+            'calculation_days': days_in_month
         })
 
     return render_template('payroll.html',
@@ -714,35 +748,22 @@ def teacher_salary():
 
     summary = get_month_summary(year, month)
 
-    present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
-    half = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
-    medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
-    absent = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
-
     # Auto-redirect to previous month if current month has no attendance
     today = date.today()
-    no_att_data = (present + half + medical + absent) == 0
+    month_str = f"{year}-{month:02d}"
+    total_any = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}})
+    no_att_data = total_any == 0
     is_current_month = (year == today.year and month == today.month)
     if no_att_data and is_current_month and not request.args.get('force'):
-        # Go to previous month
         prev_month = month - 1 if month > 1 else 12
-        prev_year = year if month > 1 else year - 1
+        prev_year  = year if month > 1 else year - 1
         return redirect(url_for('teacher_salary', month=prev_month, year=prev_year))
 
-    if year < today.year or (year == today.year and month < today.month):
-        calculation_days = summary['days_in_month']
-    elif year == today.year and month == today.month:
-        calculation_days = today.day
-    else:
-        calculation_days = 0
-
+    att  = calculate_paid_days(tid, year, month, summary)
     days_in_month = summary['days_in_month']
-    unpaid = absent + (half * 0.5)
-    paid_days = max(0, calculation_days - unpaid)
-
-    per_day = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
-    net_salary = round(per_day * paid_days, 2)
-    full_month_deduction = round(per_day * unpaid, 2)
+    per_day       = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
+    net_salary    = round(per_day * att['paid_days'], 2)
+    deduction     = round(per_day * (att['absent'] + att['half'] * 0.5), 2)
 
     all_teachers = list(teachers_col.find({'active': True}, {'teacher_id': 1}).sort('_id', 1))
     bill_no = next((i + 1 for i, t in enumerate(all_teachers) if t['teacher_id'] == tid), 1)
@@ -755,12 +776,16 @@ def teacher_salary():
                          month=month, year=year,
                          month_name=calendar.month_name[month],
                          summary=summary,
-                         total_working_days=summary['working_days'],
-                         calculation_days=calculation_days,
-                         present=present, half=half, medical=medical, absent=absent,
-                         paid_days=paid_days,
+                         total_working_days=att['paid_days'],
+                         calculation_days=days_in_month,
+                         present=att['present'], half=att['half'],
+                         medical=att['medical'], absent=att['absent'],
+                         sundays_paid=att['sundays_paid'],
+                         holidays_paid=att['holidays_paid'],
+                         paid_days=att['paid_days'],
+                         leave_taken=att['leave_taken'],
                          per_day=round(per_day, 2),
-                         deduction=full_month_deduction,
+                         deduction=deduction,
                          net_salary=net_salary,
                          bill_no=f"{bill_no:02d}",
                          slip_date=slip_date,
@@ -777,43 +802,29 @@ def admin_salary_slip(teacher_id):
         return redirect(url_for('payroll'))
 
     month = int(request.args.get('month', date.today().month))
-    year = int(request.args.get('year', date.today().year))
+    year  = int(request.args.get('year',  date.today().year))
     month_str = f"{year}-{month:02d}"
 
     summary = get_month_summary(year, month)
 
-    present = attendance_col.count_documents({'teacher_id': teacher_id, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
-    half = attendance_col.count_documents({'teacher_id': teacher_id, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
-    medical = attendance_col.count_documents({'teacher_id': teacher_id, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
-    absent = attendance_col.count_documents({'teacher_id': teacher_id, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
-
     # Auto-redirect to previous month if current month has no attendance
     today = date.today()
-    no_att_data = (present + half + medical + absent) == 0
+    total_any = attendance_col.count_documents({'teacher_id': teacher_id, 'date': {'$regex': f'^{month_str}'}})
+    no_att_data = total_any == 0
     is_current_month = (year == today.year and month == today.month)
     if no_att_data and is_current_month and not request.args.get('force'):
         prev_month = month - 1 if month > 1 else 12
-        prev_year = year if month > 1 else year - 1
+        prev_year  = year if month > 1 else year - 1
         return redirect(url_for('admin_salary_slip', teacher_id=teacher_id, month=prev_month, year=prev_year))
 
-    if year < today.year or (year == today.year and month < today.month):
-        calculation_days = summary['days_in_month']
-    elif year == today.year and month == today.month:
-        calculation_days = today.day
-    else:
-        calculation_days = 0
-
+    att  = calculate_paid_days(teacher_id, year, month, summary)
     days_in_month = summary['days_in_month']
-    unpaid = absent + (half * 0.5)
-    paid_days = max(0, calculation_days - unpaid)
-
-    per_day = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
-    net_salary = round(per_day * paid_days, 2)
-    full_month_deduction = round(per_day * unpaid, 2)
+    per_day       = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
+    net_salary    = round(per_day * att['paid_days'], 2)
+    deduction     = round(per_day * (att['absent'] + att['half'] * 0.5), 2)
 
     all_teachers = list(teachers_col.find({'active': True}, {'teacher_id': 1}).sort('_id', 1))
     bill_no = next((i + 1 for i, t in enumerate(all_teachers) if t['teacher_id'] == teacher_id), 1)
-
     slip_date = today.strftime('%d/%m/%Y')
 
     return render_template('salary_slip.html',
@@ -821,12 +832,16 @@ def admin_salary_slip(teacher_id):
                          month=month, year=year,
                          month_name=calendar.month_name[month],
                          summary=summary,
-                         total_working_days=summary['working_days'],
-                         calculation_days=calculation_days,
-                         present=present, half=half, medical=medical, absent=absent,
-                         paid_days=paid_days,
+                         total_working_days=att['paid_days'],
+                         calculation_days=days_in_month,
+                         present=att['present'], half=att['half'],
+                         medical=att['medical'], absent=att['absent'],
+                         sundays_paid=att['sundays_paid'],
+                         holidays_paid=att['holidays_paid'],
+                         paid_days=att['paid_days'],
+                         leave_taken=att['leave_taken'],
                          per_day=round(per_day, 2),
-                         deduction=full_month_deduction,
+                         deduction=deduction,
                          net_salary=net_salary,
                          bill_no=f"{bill_no:02d}",
                          slip_date=slip_date,
