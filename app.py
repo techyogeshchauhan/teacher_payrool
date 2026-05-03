@@ -464,19 +464,24 @@ def mark_attendance():
         att_date = request.form['att_date']
         for teacher in teachers:
             tid = teacher['teacher_id']
-            status = request.form.get(f'status_{tid}', 'absent')
-            attendance_col.update_one(
-                {'teacher_id': tid, 'date': att_date},
-                {'$set': {
-                    'teacher_id': tid,
-                    'teacher_name': teacher['name'],
-                    'date': att_date,
-                    'status': status,
-                    'marked_by': session.get('admin_name') or session.get('principal_name'),
-                    'marked_at': datetime.now()
-                }},
-                upsert=True
-            )
+            status = request.form.get(f'status_{tid}', 'none')
+            
+            if status == 'none':
+                # Delete existing record if 'none/blank' is selected
+                attendance_col.delete_one({'teacher_id': tid, 'date': att_date})
+            else:
+                attendance_col.update_one(
+                    {'teacher_id': tid, 'date': att_date},
+                    {'$set': {
+                        'teacher_id': tid,
+                        'teacher_name': teacher['name'],
+                        'date': att_date,
+                        'status': status,
+                        'marked_by': session.get('admin_name') or session.get('principal_name'),
+                        'marked_at': datetime.now()
+                    }},
+                    upsert=True
+                )
         flash(f'{att_date} की attendance सफलतापूर्वक save हो गई!')
         return redirect(url_for('mark_attendance', date=att_date))
 

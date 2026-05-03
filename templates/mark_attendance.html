@@ -37,6 +37,10 @@
                     class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-semibold hover:bg-red-200 transition hindi">
                     ✗ सभी Absent
                 </button>
+                <button type="button" onclick="markAll('none')" 
+                    class="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg font-semibold hover:bg-gray-200 transition hindi">
+                    <i class="fas fa-times"></i> सभी Blank
+                </button>
             </div>
         </div>
 
@@ -61,6 +65,16 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2 md:gap-3 att-group" data-id="{{ t.teacher_id }}">
+                    <label class="flex-1 min-w-[70px] md:flex-none cursor-pointer group">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="none" class="sr-only peer"
+                            {% if not existing.get(t.teacher_id) %}checked{% endif %}>
+                        <div class="px-2 py-3 md:px-5 md:py-2 rounded-xl border-2 border-gray-200 text-gray-500 text-center font-bold
+                            peer-checked:bg-gray-500 peer-checked:text-white peer-checked:border-gray-500
+                            hover:bg-gray-50 transition-all duration-200 shadow-sm">
+                            <span class="block text-lg"><i class="fas fa-times"></i></span>
+                            <span class="text-[10px] md:text-xs hindi opacity-80">Blank</span>
+                        </div>
+                    </label>
                     <label class="flex-1 min-w-[70px] md:flex-none cursor-pointer group">
                         <input type="radio" name="status_{{ t.teacher_id }}" value="P" class="sr-only peer" 
                             {% if existing.get(t.teacher_id) in ['present', 'P'] %}checked{% endif %}>
