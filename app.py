@@ -386,7 +386,7 @@ def add_teacher():
             'pan_no': request.form.get('pan_no', '').upper()
         }
         teachers_col.insert_one(teacher)
-        flash(f'Teacher {teacher["name"]} सफलतापूर्वक जोड़े गए! ID: {teacher_id}')
+        flash(f'Teacher {teacher["name"]} ापूर्वक जोड़े गए! ID: {teacher_id}')
         return redirect(url_for('manage_teachers'))
 
     return render_template('add_teacher.html')

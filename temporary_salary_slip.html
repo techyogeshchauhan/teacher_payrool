@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant Salary Slip Generator</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        /* Base styles */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        
+        /* Form Styles (No Print) */
+        .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .form-container h2 { text-align: center; color: #333; margin-top: 0; }
+        .form-group { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
+        .form-group > div { flex: 1; min-width: 200px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; font-size: 0.9rem; }
+        input[type="text"], input[type="number"], input[type="month"], input[type="date"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn-gen { background: #B22222; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; margin-top: 10px; }
+        .btn-gen:hover { background: #7B1C1C; }
+        
+        /* ── Screen Styles (from salary_slip.html) ── */
+        .slip-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            display: none; /* hidden until generated */
+        }
+
+        .slip-card {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+
+        /* School letterhead header */
+        .slip-header {
+            background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);
+            color: #fff;
+            padding: 20px 30px 16px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .slip-header img {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: #fff;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.5);
+            flex-shrink: 0;
+        }
+        .slip-header-text h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin: 0 0 2px;
+        }
+        .slip-header-text p {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.85);
+            margin: 0;
+        }
+
+        /* Bill meta bar */
+        .bill-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9f4ee;
+            border-bottom: 2px solid #e0d5c5;
+            padding: 10px 30px;
+            font-size: 0.82rem;
+            color: #555;
+        }
+        .bill-meta span { font-weight: 700; color: #333; }
+
+        /* Body sections */
+        .slip-body { padding: 0 30px 30px; }
+
+        .bank-box {
+            border: 1.5px solid #d4b896;
+            border-radius: 10px;
+            background: #fffaf4;
+            padding: 14px 18px;
+            margin: 20px 0 16px;
+        }
+        .bank-box h3 {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7B1C1C;
+            margin: 0 0 10px;
+            border-bottom: 1px solid #e0c8a8;
+            padding-bottom: 6px;
+        }
+        .bank-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 20px;
+        }
+        .bank-grid .bank-row { display: flex; gap: 6px; font-size: 0.8rem; }
+        .bank-grid .bank-label { color: #888; min-width: 80px; flex-shrink: 0; }
+        .bank-grid .bank-val { font-weight: 700; color: #222; }
+
+        /* To address */
+        .to-block {
+            margin: 0 0 16px;
+            font-size: 0.82rem;
+            line-height: 1.7;
+        }
+        .to-block .to-label {
+            font-weight: 800;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #7B1C1C;
+            margin-bottom: 4px;
+        }
+        .to-block address {
+            font-style: normal;
+            color: #444;
+            padding-left: 14px;
+            border-left: 3px solid #B22222;
+        }
+
+        /* Subject */
+        .sub-line {
+            font-size: 0.83rem;
+            margin: 0 0 8px;
+            color: #333;
+        }
+        .sub-line strong { color: #000; }
+
+        .body-text {
+            font-size: 0.8rem;
+            color: #555;
+            margin: 0 0 20px;
+            line-height: 1.6;
+        }
+
+        /* Salary Details Table */
+        .sal-table { width: 100%; border-collapse: collapse; margin: 0 0 4px; font-size: 0.83rem; }
+        .sal-table thead tr th {
+            background: #7B1C1C;
+            color: #fff;
+            padding: 9px 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sal-table thead tr th:last-child { text-align: right; }
+        .sal-table tbody tr td { padding: 9px 12px; border-bottom: 1px solid #e8e0d5; color: #333; }
+        .sal-table tbody tr td:last-child { text-align: right; font-weight: 700; }
+        .sal-table tbody tr:hover { background: #fff8f0; }
+
+        .sal-table tfoot tr td {
+            padding: 8px 12px;
+            font-weight: 700;
+            background: #f5f0ea;
+            border-top: 2px solid #d4b896;
+            font-size: 0.82rem;
+        }
+        .sal-table tfoot tr td:first-child { text-align: right; color: #555; }
+        .sal-table tfoot tr td:last-child { text-align: right; color: #333; }
+
+        .tfoot-net td {
+            background: #7B1C1C !important;
+            color: #fff !important;
+            font-size: 0.9rem;
+            border-top: 2px solid #5a1010 !important;
+        }
+
+        /* Working days info */
+        .days-info {
+            display: flex;
+            gap: 30px;
+            background: #f0f7ff;
+            border: 1.5px solid #c8dff0;
+            border-radius: 10px;
+            padding: 12px 20px;
+            margin: 20px 0;
+            font-size: 0.83rem;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .days-info .di { display: flex; flex-direction: column; align-items: center; }
+        .days-info .di-val { font-size: 1.5rem; font-weight: 800; color: #1A5C2E; }
+        .days-info .di-lbl { font-size: 0.68rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Attendance breakdown */
+        .att-row {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0 20px;
+            flex-wrap: wrap;
+        }
+        .att-badge {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 8px 14px; border-radius: 10px; min-width: 70px;
+            font-size: 0.75rem;
+            flex: 1;
+        }
+        .att-badge .av { font-size: 1.3rem; font-weight: 800; }
+        .att-badge .al { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+        .att-p  { background: #d1fae5; color: #065f46; }
+        .att-h  { background: #fef3c7; color: #92400e; }
+        .att-m  { background: #dbeafe; color: #1e40af; }
+        .att-a  { background: #fee2e2; color: #991b1b; }
+
+        /* Signature row */
+        .sig-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1.5px dashed #ccc;
+        }
+        .sig-box { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .sig-line { width: 160px; border-bottom: 1.5px solid #333; margin-bottom: 6px; }
+        .sig-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #444; letter-spacing: 0.5px; }
+        .sig-sub { font-size: 0.68rem; color: #888; }
+
+        /* Disclaimer footer */
+        .slip-footer {
+            background: #f9f4ee;
+            border-top: 1.5px solid #e0d5c5;
+            padding: 10px 30px;
+            font-size: 0.7rem;
+            color: #888;
+            text-align: center;
+        }
+
+        .controls { display: flex; gap: 10px; margin-top: 20px; justify-content: center; }
+        .print-btn { background: #1f2937; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; font-weight:bold; }
+        .print-btn:hover { background: #111827; }
+        .edit-btn { background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight:bold; }
+
+        /* ── Print Styles ── */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 8mm 10mm 8mm 10mm;
+            }
+
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+            body { background: white !important; margin: 0; padding: 0; font-size: 10px !important; }
+            .form-container, .controls, .no-print { display: none !important; }
+            .slip-wrapper { max-width: 100%; margin: 0; display: block !important; }
+
+            .slip-card {
+                box-shadow: none !important;
+                border: 1px solid #aaa !important;
+                border-radius: 4px !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            /* Header — compact */
+            .slip-header {
+                padding: 8px 14px !important;
+                gap: 10px !important;
+            }
+            .slip-header img { width: 44px !important; height: 44px !important; }
+            .slip-header-text h1 { font-size: 0.95rem !important; margin-bottom: 1px !important; }
+            .slip-header-text p { font-size: 0.6rem !important; }
+
+            /* Bill meta */
+            .bill-meta { padding: 5px 14px !important; font-size: 0.68rem !important; }
+
+            /* Body */
+            .slip-body { padding: 0 14px 10px !important; }
+
+            /* Bank box */
+            .bank-box { padding: 7px 10px !important; margin: 8px 0 8px !important; }
+            .bank-box h3 { font-size: 0.6rem !important; margin-bottom: 6px !important; padding-bottom: 4px !important; }
+            .bank-grid { gap: 3px 14px !important; }
+            .bank-grid .bank-row { font-size: 0.65rem !important; }
+            .bank-grid .bank-label { min-width: 68px !important; }
+
+            /* To / Subject / Body text */
+            .to-block { margin: 0 0 6px !important; font-size: 0.65rem !important; line-height: 1.4 !important; }
+            .to-block .to-label { font-size: 0.6rem !important; margin-bottom: 2px !important; }
+            .sub-line { font-size: 0.67rem !important; margin: 0 0 4px !important; }
+            .body-text { font-size: 0.63rem !important; margin: 0 0 8px !important; line-height: 1.4 !important; }
+
+            /* Salary table */
+            .sal-table { font-size: 0.67rem !important; margin-bottom: 2px !important; }
+            .sal-table thead tr th { padding: 5px 8px !important; font-size: 0.6rem !important; }
+            .sal-table tbody tr td { padding: 5px 8px !important; }
+            .sal-table tfoot tr td { padding: 4px 8px !important; font-size: 0.65rem !important; }
+            .tfoot-net td { font-size: 0.72rem !important; }
+
+            /* Attendance + Days info — merged into a compact single row */
+            .att-row {
+                display: flex !important;
+                gap: 5px !important;
+                margin: 6px 0 5px !important;
+                flex-wrap: nowrap !important;
+            }
+            .att-badge {
+                padding: 4px 8px !important;
+                min-width: auto !important;
+                border-radius: 5px !important;
+                flex: 1 !important;
+            }
+            .att-badge .av { font-size: 0.8rem !important; }
+            .att-badge .al { font-size: 0.5rem !important; margin-top: 1px !important; }
+
+            .days-info {
+                gap: 0 !important;
+                padding: 5px 8px !important;
+                margin: 5px 0 6px !important;
+                justify-content: space-between !important;
+                border-radius: 5px !important;
+            }
+            .days-info .di { flex: 1 !important; }
+            .days-info .di-val { font-size: 0.85rem !important; }
+            .days-info .di-lbl { font-size: 0.48rem !important; }
+
+            /* Signature */
+            .sig-row { margin-top: 10px !important; padding-top: 8px !important; }
+            .sig-line { width: 120px !important; margin-bottom: 4px !important; }
+            .sig-title { font-size: 0.58rem !important; }
+            .sig-sub { font-size: 0.55rem !important; }
+
+            /* Attendance label */
+            .att-title { font-size: 0.58rem !important; margin: 5px 0 0 !important; }
+
+            /* Footer */
+            .slip-footer { padding: 5px 14px !important; font-size: 0.55rem !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- Form Section -->
+        <div class="form-container" id="formContainer">
+            <h2>Instant Salary Slip Generator</h2>
+            <p style="text-align:center; color:#666; margin-bottom:20px; font-size:0.9rem;">Fill the details below to generate an exact replica of the portal's salary slip.</p>
+            
+            <div class="form-group">
+                <div>
+                    <label>Teacher Name</label>
+                    <input type="text" id="tName" placeholder="e.g. Varsha Kumari">
+                </div>
+                <div>
+                    <label>Month & Year</label>
+                    <input type="month" id="sMonth" value="2026-04">
+                </div>
+                <div>
+                    <label>Slip Date</label>
+                    <input type="date" id="sDate" value="2026-05-03">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div>
+                    <label>Basic Salary (Rs.)</label>
+                    <input type="number" id="bSalary" placeholder="e.g. 3500">
+                </div>
+                <div>
+                    <label>Total Days in Month</label>
+                    <input type="number" id="mDays" value="30">
+                </div>
+                <div>
+                    <label>Bill No.</label>
+                    <input type="text" id="billNo" value="1">
+                </div>
+            </div>
+
+            <!-- Attendance Details -->
+            <div style="background:#f9f9f9; padding:15px; border-radius:6px; margin-bottom:15px; border:1px solid #eee;">
+                <h4 style="margin-top:0; color:#444;">Attendance & Paid Days</h4>
+                <div class="form-group" style="margin-bottom:0;">
+                    <div>
+                        <label>Present (P)</label>
+                        <input type="number" id="aPresent" value="8">
+                    </div>
+                    <div>
+                        <label>Sundays Paid</label>
+                        <input type="number" id="aSunday" value="0">
+                    </div>
+                    <div>
+                        <label>Holidays Paid</label>
+                        <input type="number" id="aHoliday" value="0">
+                    </div>
+                    <div>
+                        <label>Half Days (H)</label>
+                        <input type="number" id="aHalf" value="0">
+                    </div>
+                    <div>
+                        <label>Medical (M)</label>
+                        <input type="number" id="aMedical" value="0">
+                    </div>
+                    <div>
+                        <label>Absent/Leave (A)</label>
+                        <input type="number" id="aAbsent" value="0">
+                    </div>
+                </div>
+                <p style="font-size:0.8rem; color:#888; margin:10px 0 0 0;">Total Paid Days = Present + Medical + (Half * 0.5) + Sundays Paid + Holidays Paid</p>
+            </div>
+
+            <!-- Bank Details -->
+            <div style="background:#f9f9f9; padding:15px; border-radius:6px; border:1px solid #eee;">
+                <h4 style="margin-top:0; color:#444;">Bank Details</h4>
+                <div class="form-group" style="margin-bottom:0;">
+                    <div>
+                        <label>Account No.</label>
+                        <input type="text" id="bAcc" value="—">
+                    </div>
+                    <div>
+                        <label>IFSC Code</label>
+                        <input type="text" id="bIfsc" value="—">
+                    </div>
+                    <div>
+                        <label>PAN No.</label>
+                        <input type="text" id="bPan" value="NA">
+                    </div>
+                    <div>
+                        <label>Bank Name</label>
+                        <input type="text" id="bName" value="—">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-gen" onclick="generateSlip()">Generate Salary Slip</button>
+        </div>
+
+        <!-- Salary Slip Section -->
+        <div class="slip-wrapper" id="slipContainer">
+            
+            <div class="controls no-print">
+                <button class="edit-btn" onclick="editSlip()"><i class="fas fa-arrow-left"></i> Edit Details</button>
+                <button class="print-btn" onclick="window.print()"><i class="fas fa-print"></i> Print / Save PDF</button>
+            </div>
+
+            <div class="slip-card" style="margin-top:20px;">
+                <!-- School Letterhead Header -->
+                <div class="slip-header">
+                    <img src="static/logo.jpeg" alt="GVP Logo" onerror="this.src='https://via.placeholder.com/72?text=Logo'">
+                    <div class="slip-header-text">
+                        <h1>🕉️ Gayatri Vidyapeeth, Daudnagar</h1>
+                        <p>Kunti Utsav Bhawan, NH-139, Akorha, Daudnagar, Aurangabad, Bihar — 824113</p>
+                        <p style="margin-top:4px; font-size:0.7rem; color:rgba(255,255,255,0.7);">Teacher Staff Salary Bill</p>
+                    </div>
+                </div>
+
+                <!-- Bill Meta -->
+                <div class="bill-meta">
+                    <div>Ref. No.: &nbsp;<span>Bill No. <span id="outBillNo"></span></span></div>
+                    <div>Month: &nbsp;<span id="outMonthName"></span></div>
+                    <div>Date: &nbsp;<span id="outDate"></span></div>
+                </div>
+
+                <div class="slip-body">
+
+                    <!-- Bank Details Box -->
+                    <div class="bank-box">
+                        <h3><i class="fas fa-university" style="margin-right:5px;"></i>Bank Details of Teacher</h3>
+                        <div class="bank-grid">
+                            <div class="bank-row">
+                                <span class="bank-label">Name:</span>
+                                <span class="bank-val" id="outTNameBank"></span>
+                            </div>
+                            <div class="bank-row">
+                                <span class="bank-label">Account No.:</span>
+                                <span class="bank-val" id="outAcc"></span>
+                            </div>
+                            <div class="bank-row">
+                                <span class="bank-label">PAN No.:</span>
+                                <span class="bank-val" id="outPan"></span>
+                            </div>
+                            <div class="bank-row">
+                                <span class="bank-label">IFSC Code:</span>
+                                <span class="bank-val" id="outIfsc"></span>
+                            </div>
+                            <div class="bank-row" style="grid-column: span 2;">
+                                <span class="bank-label">Bank Name:</span>
+                                <span class="bank-val" id="outBankName"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- To Block -->
+                    <div class="to-block">
+                        <div class="to-label">To,</div>
+                        <address>
+                            <strong>Gayatri Vidyapeeth Trust</strong><br>
+                            Kunti Utsav Bhawan, NH-139, Akorha<br>
+                            Daudnagar, Aurangabad, Bihar — 824113
+                        </address>
+                    </div>
+
+                    <!-- Subject -->
+                    <p class="sub-line">
+                        <strong>Sub:</strong> Payment for Teacher Staff Salary — <strong id="outMonthSub"></strong>
+                    </p>
+                    <p class="body-text">
+                        Respected Sir/Madam,<br>
+                        Please pay bill payment for Teacher Staff Salary for the month of <strong id="outMonthBody"></strong>
+                        at <strong>Gayatri Vidyapeeth, Daudnagar, Aurangabad, Bihar</strong>.
+                    </p>
+
+                    <!-- Salary Details Table -->
+                    <table class="sal-table">
+                        <thead>
+                            <tr>
+                                <th style="width:40%;">Name</th>
+                                <th style="width:30%;">Designation</th>
+                                <th style="width:30%; text-align:right;">Amount (Rs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="outTNameTable"></td>
+                                <td>Teacher</td>
+                                <td id="outAmount1"></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2">Sub Total (in Rs.)</td>
+                                <td id="outAmount2"></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">CGST (in Rs.)</td>
+                                <td>00.0</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">SGST (in Rs.)</td>
+                                <td>00.0</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">Total (in Rs.)</td>
+                                <td id="outAmount3"></td>
+                            </tr>
+                            <tr class="tfoot-net">
+                                <td colspan="2">Net Total (in Rs.)</td>
+                                <td style="font-size:1rem;" id="outAmountNet"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <!-- Attendance Breakdown -->
+                    <div class="att-title" style="margin: 18px 0 0; font-size:0.75rem; color:#777; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">
+                        Attendance Breakdown
+                    </div>
+                    <div class="att-row">
+                        <div class="att-badge att-p">
+                            <span class="av" id="outP">0</span>
+                            <span class="al">Present (P)</span>
+                        </div>
+                        <div class="att-badge att-h">
+                            <span class="av" id="outH">0</span>
+                            <span class="al">Half Day (H)</span>
+                        </div>
+                        <div class="att-badge att-m">
+                            <span class="av" id="outM">0</span>
+                            <span class="al">Medical (M)</span>
+                        </div>
+                        <div class="att-badge att-a">
+                            <span class="av" id="outA">0</span>
+                            <span class="al">Absent (A)</span>
+                        </div>
+                    </div>
+
+                    <!-- Working Days & Leave Info -->
+                    <div class="days-info">
+                        <div class="di" style="color:#1A5C2E;">
+                            <span class="di-val" style="color:#1A5C2E;" id="outDP">0</span>
+                            <span class="di-lbl">Present (P)</span>
+                        </div>
+                        <div class="di" style="color:#6d28d9;">
+                            <span class="di-val" style="color:#6d28d9;" id="outDSun">0</span>
+                            <span class="di-lbl">Sunday (Paid)</span>
+                        </div>
+                        <div class="di" style="color:#0369a1;">
+                            <span class="di-val" style="color:#0369a1;" id="outDHol">0</span>
+                            <span class="di-lbl">Govt Holiday</span>
+                        </div>
+                        <div class="di" style="color:#1e40af;">
+                            <span class="di-val" style="color:#1e40af;" id="outDMed">0</span>
+                            <span class="di-lbl">Medical (M)</span>
+                        </div>
+                        <div class="di" style="color:#b45309;">
+                            <span class="di-val" style="color:#b45309;" id="outDHalf">0</span>
+                            <span class="di-lbl">Half Day (H)</span>
+                        </div>
+                        <div class="di" style="color:#B22222;">
+                            <span class="di-val" style="color:#B22222;" id="outDAbs">0</span>
+                            <span class="di-lbl">Leave (A)</span>
+                        </div>
+                        <div class="di" style="background:#064e3b;color:#fff;border-radius:8px;padding:4px 6px;">
+                            <span class="di-val" style="color:#fff;" id="outDPaid">0</span>
+                            <span class="di-lbl" style="color:#d1fae5;">Paid Days</span>
+                        </div>
+                    </div>
+
+                    <!-- Signature Row -->
+                    <div class="sig-row">
+                        <div class="sig-box">
+                            <div class="sig-line"></div>
+                            <span class="sig-title">Teacher Signature</span>
+                            <span class="sig-sub" id="outTNameSig"></span>
+                        </div>
+                        <div class="sig-box">
+                            <div class="sig-line"></div>
+                            <span class="sig-title">Authorized Signatory</span>
+                            <span class="sig-sub">Principal / Director</span>
+                            <span class="sig-sub">Gayatri Vidyapeeth, Daudnagar</span>
+                        </div>
+                    </div>
+
+                </div><!-- /slip-body -->
+
+                <!-- Footer Disclaimer -->
+                <div class="slip-footer">
+                    यह computer-generated salary slip है। Sundays और Govt Holidays — सभी Paid हैं। &nbsp;|&nbsp;
+                    Generated on: <span id="outFootDate"></span>
+                </div>
+            </div><!-- /slip-card -->
+        </div>
+    </div>
+
+    <script>
+        function formatMoney(amount) {
+            return parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function generateSlip() {
+            // Inputs
+            const tName = document.getElementById('tName').value || 'Teacher';
+            const sMonth = document.getElementById('sMonth').value || '2026-04';
+            let sDate = document.getElementById('sDate').value || '2026-05-03';
+            const bSalary = parseFloat(document.getElementById('bSalary').value) || 0;
+            const mDays = parseFloat(document.getElementById('mDays').value) || 30;
+            const billNo = document.getElementById('billNo').value || '1';
+
+            // Bank
+            const bAcc = document.getElementById('bAcc').value;
+            const bIfsc = document.getElementById('bIfsc').value;
+            const bPan = document.getElementById('bPan').value;
+            const bName = document.getElementById('bName').value;
+
+            // Attendance
+            const p = parseFloat(document.getElementById('aPresent').value) || 0;
+            const s = parseFloat(document.getElementById('aSunday').value) || 0;
+            const h = parseFloat(document.getElementById('aHoliday').value) || 0;
+            const half = parseFloat(document.getElementById('aHalf').value) || 0;
+            const m = parseFloat(document.getElementById('aMedical').value) || 0;
+            const a = parseFloat(document.getElementById('aAbsent').value) || 0;
+
+            // Calculations
+            const paidDays = p + m + (half * 0.5) + s + h;
+            const perDay = mDays > 0 ? (bSalary / mDays) : 0;
+            const netSalary = Math.round(perDay * paidDays);
+
+            // Date formatting
+            const dateObj = new Date(sMonth + '-01');
+            const monthName = dateObj.toLocaleString('default', { month: 'long', year: 'numeric' });
+            
+            // Indian Date Format
+            if(sDate) {
+                const dp = sDate.split('-');
+                sDate = `${dp[2]}/${dp[1]}/${dp[0]}`;
+            }
+
+            // Fill Data
+            document.getElementById('outBillNo').innerText = billNo;
+            document.getElementById('outMonthName').innerText = monthName;
+            document.getElementById('outMonthSub').innerText = monthName;
+            document.getElementById('outMonthBody').innerText = monthName;
+            document.getElementById('outDate').innerText = sDate;
+            document.getElementById('outFootDate').innerText = sDate;
+
+            document.getElementById('outTNameBank').innerText = tName;
+            document.getElementById('outTNameTable').innerText = tName;
+            document.getElementById('outTNameSig').innerText = tName;
+
+            document.getElementById('outAcc').innerText = bAcc;
+            document.getElementById('outIfsc').innerText = bIfsc;
+            document.getElementById('outPan').innerText = bPan;
+            document.getElementById('outBankName').innerText = bName;
+
+            const moneyStr = formatMoney(netSalary);
+            document.getElementById('outAmount1').innerText = moneyStr;
+            document.getElementById('outAmount2').innerText = moneyStr;
+            document.getElementById('outAmount3').innerText = moneyStr;
+            document.getElementById('outAmountNet').innerText = moneyStr;
+
+            // Attendance text
+            document.getElementById('outP').innerText = p;
+            document.getElementById('outH').innerText = half;
+            document.getElementById('outM').innerText = m;
+            document.getElementById('outA').innerText = a;
+
+            document.getElementById('outDP').innerText = p;
+            document.getElementById('outDSun').innerText = s;
+            document.getElementById('outDHol').innerText = h;
+            document.getElementById('outDMed').innerText = m;
+            document.getElementById('outDHalf').innerText = half;
+            document.getElementById('outDAbs').innerText = a;
+            document.getElementById('outDPaid').innerText = paidDays;
+
+            // Toggle view
+            document.getElementById('formContainer').style.display = 'none';
+            document.getElementById('slipContainer').style.display = 'block';
+        }
+
+        function editSlip() {
+            document.getElementById('formContainer').style.display = 'block';
+            document.getElementById('slipContainer').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
