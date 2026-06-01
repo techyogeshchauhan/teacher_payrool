@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Student Fee Management - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
+        <i class="fas fa-user-graduate text-orange-500"></i> छात्र शुल्क प्रबंधन
+    </h1>
+    <a href="{{ url_for('add_student') }}" 
+       class="saffron-grad text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:opacity-90 transition shadow">
+        <i class="fas fa-plus"></i> <span class="hindi">नया Student जोड़ें</span>
+    </a>
+</div>
+
+<!-- Desktop View Table -->
+<div class="hidden md:block bg-white rounded-2xl card-shadow overflow-hidden">
+    <div class="scroll-x">
+        <table class="w-full">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">नाम</th>
+                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider">Class</th>
+                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider">Roll No</th>
+                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">कुल शुल्क (Total)</th>
+                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">जमा (Paid)</th>
+                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">बाकी (Balance)</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider hindi text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for s in students %}
+                <tr class="hover:bg-orange-50 transition">
+                    <td class="px-4 py-4 font-bold text-gray-800 hindi">{{ s.name }}</td>
+                    <td class="px-4 py-4 text-gray-600 text-sm">{{ s.class }}</td>
+                    <td class="px-4 py-4 text-gray-600 text-sm font-medium">{{ s.roll_no }}</td>
+                    <td class="px-4 py-4 font-bold text-gray-700">₹{{ "{:,.2f}".format(s.total_fee) }}</td>
+                    <td class="px-4 py-4 font-bold text-green-600">₹{{ "{:,.2f}".format(s.paid_fee) }}</td>
+                    <td class="px-4 py-4 font-bold text-red-600">₹{{ "{:,.2f}".format(s.balance_fee) }}</td>
+                    <td class="px-4 py-4 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <a href="{{ url_for('pay_fee', student_id=s._id) }}"
+                               class="bg-green-100 text-green-600 px-3 py-2 rounded-xl text-xs hover:bg-green-600 hover:text-white transition font-bold" title="Pay Fee">
+                                <i class="fas fa-rupee-sign"></i> Pay
+                            </a>
+                            <a href="{{ url_for('fee_history', student_id=s._id) }}"
+                               class="bg-purple-100 text-purple-600 px-3 py-2 rounded-xl text-xs hover:bg-purple-600 hover:text-white transition font-bold" title="History">
+                                <i class="fas fa-history"></i>
+                            </a>
+                            <a href="{{ url_for('edit_student', student_id=s._id) }}"
+                               class="bg-blue-100 text-blue-600 px-3 py-2 rounded-xl text-xs hover:bg-blue-600 hover:text-white transition font-bold" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('delete_student', student_id=s._id) }}"
+                               onclick="return confirm('क्या आप सच में इस Student को हटाना चाहते हैं?')"
+                               class="bg-red-100 text-red-600 px-3 py-2 rounded-xl text-xs hover:bg-red-600 hover:text-white transition font-bold" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Mobile Dynamic Cards -->
+<div class="md:hidden space-y-4">
+    {% for s in students %}
+    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-orange-500 relative overflow-hidden">
+        <div class="flex justify-between items-start mb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 saffron-grad rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    {{ s.name[0] }}
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg hindi leading-tight">{{ s.name }}</h3>
+                    <p class="text-sm font-mono text-gray-500">Class: {{ s.class }} | Roll: {{ s.roll_no }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ url_for('delete_student', student_id=s._id) }}" 
+                   onclick="return confirm('हटाना चाहते हैं?')"
+                   class="w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition" title="Delete">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-y-3 mt-4 text-sm border-t border-gray-100 pt-4 mb-4">
+            <div>
+                <p class="text-gray-400 text-xs hindi">Total Fee</p>
+                <p class="font-bold text-gray-700">₹{{ "{:,.0f}".format(s.total_fee) }}</p>
+            </div>
+            <div>
+                <p class="text-gray-400 text-xs hindi">Paid</p>
+                <p class="font-bold text-green-600">₹{{ "{:,.0f}".format(s.paid_fee) }}</p>
+            </div>
+            <div>
+                <p class="text-gray-400 text-xs hindi">Balance</p>
+                <p class="font-bold text-red-600">₹{{ "{:,.0f}".format(s.balance_fee) }}</p>
+            </div>
+        </div>
+
+        <div class="flex gap-2 border-t border-gray-100 pt-3">
+            <a href="{{ url_for('pay_fee', student_id=s._id) }}" class="flex-1 bg-green-500 text-white text-center py-2 rounded-xl text-sm font-bold shadow hover:bg-green-600 transition">
+                <i class="fas fa-rupee-sign"></i> Pay
+            </a>
+            <a href="{{ url_for('fee_history', student_id=s._id) }}" class="flex-1 bg-purple-500 text-white text-center py-2 rounded-xl text-sm font-bold shadow hover:bg-purple-600 transition">
+                <i class="fas fa-history"></i> History
+            </a>
+            <a href="{{ url_for('edit_student', student_id=s._id) }}" class="w-10 bg-blue-500 text-white flex justify-center items-center rounded-xl hover:bg-blue-600 transition">
+                <i class="fas fa-edit"></i>
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not students %}
+<div class="bg-white rounded-2xl card-shadow p-12 text-center mt-6">
+    <i class="fas fa-user-graduate text-gray-300 text-6xl mb-4"></i>
+    <p class="text-gray-500 hindi text-lg">कोई Student नहीं मिला।</p>
+    <a href="{{ url_for('add_student') }}" class="inline-block mt-4 saffron-grad text-white px-8 py-2.5 rounded-xl hindi font-bold">
+        Student जोड़ें
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gayatri Vidyapeeth — May 2026 Payroll Chart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green-dark: #2E7D32;
+      --green-mid:  #4CAF50;
+      --green-light:#E8F5E9;
+      --amber-dark: #E65100;
+      --amber-mid:  #FF9800;
+      --amber-light:#FFF3E0;
+      --blue:       #1565C0;
+      --blue-light: #E3F2FD;
+      --red:        #B71C1C;
+      --red-light:  #FFEBEE;
+      --gray-50:    #FAFAFA;
+      --gray-100:   #F5F5F5;
+      --gray-200:   #EEEEEE;
+      --gray-400:   #BDBDBD;
+      --gray-600:   #757575;
+      --gray-800:   #424242;
+      --gray-900:   #212121;
+      --shadow:     0 2px 12px rgba(0,0,0,0.08);
+      --radius:     12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f0f4f8 0%, #e8edf2 100%);
+      min-height: 100vh;
+      padding: 24px 16px;
+      color: var(--gray-900);
+    }
+
+    /* ── Page wrapper ── */
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #388E3C 100%);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(27,94,32,0.3);
+    }
+    .header-left h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .header-left .sub {
+      font-size: 13px;
+      opacity: 0.82;
+      margin-top: 4px;
+    }
+    .header-badge {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      backdrop-filter: blur(8px);
+      border-radius: 8px;
+      padding: 10px 18px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .header-badge .badge-val { font-size: 20px; font-weight: 700; }
+    .header-badge .badge-lbl { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+    /* ── Alert note ── */
+    .alert-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #FFF8E1;
+      border: 1px solid #FFE082;
+      border-left: 4px solid var(--amber-mid);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 12.5px;
+      color: #5D4037;
+      margin-bottom: 20px;
+    }
+    .alert-note .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Period legend ── */
+    .legend {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: var(--shadow);
+      flex: 1;
+      min-width: 200px;
+    }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
+    }
+    .legend-item .dates { font-size: 11px; color: var(--gray-600); font-weight: 400; }
+
+    /* ── Table card ── */
+    .card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    /* Head */
+    thead tr:first-child th {
+      background: var(--gray-900);
+      color: #fff;
+      padding: 10px 8px;
+      font-weight: 600;
+      font-size: 11.5px;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    thead tr:first-child th.left { text-align: left; }
+
+    thead tr:nth-child(2) th {
+      background: var(--gray-800);
+      color: var(--gray-200);
+      padding: 7px 8px;
+      font-size: 10.5px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    thead tr:nth-child(2) th.p1 { background: #1B5E20; color: #C8E6C9; }
+    thead tr:nth-child(2) th.p2 { background: #E65100; color: #FFE0B2; }
+
+    /* Period group headers */
+    .th-p1 { background: #2E7D32 !important; color: #fff !important; }
+    .th-p2 { background: #E65100 !important; color: #fff !important; }
+
+    /* Body */
+    tbody tr {
+      transition: background 0.15s;
+    }
+    tbody tr:nth-child(even) { background: var(--gray-50); }
+    tbody tr:hover { background: var(--blue-light); }
+
+    td {
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--gray-200);
+      text-align: center;
+      vertical-align: middle;
+    }
+    td.left { text-align: left; }
+    td.name { font-weight: 600; color: var(--gray-900); }
+    td.id-cell { font-size: 10.5px; color: var(--gray-600); font-family: monospace; }
+
+    /* Period cell tints */
+    td.p1 { background: #E8F5E933; }
+    td.p2 { background: #FFF3E033; }
+    tbody tr:hover td.p1 { background: #C8E6C955; }
+    tbody tr:hover td.p2 { background: #FFE0B255; }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .tag-green { background: #C8E6C9; color: #1B5E20; }
+    .tag-amber { background: #FFE0B2; color: #E65100; }
+    .tag-red   { background: #FFCDD2; color: #B71C1C; }
+
+    /* Diff colors */
+    .diff-pos { color: var(--green-dark); font-weight: 600; }
+    .diff-neg { color: var(--red);        font-weight: 600; }
+    .diff-zero{ color: var(--gray-600);   font-weight: 500; }
+
+    /* Net salary highlight */
+    .net-new { color: var(--blue); font-weight: 700; font-size: 13px; }
+    .net-old  { color: var(--gray-600); font-size: 12px; }
+
+    /* Footer row */
+    tfoot tr td {
+      padding: 11px 8px;
+      border-top: 2px solid var(--gray-900);
+      font-weight: 700;
+      font-size: 13px;
+      background: var(--gray-100);
+    }
+
+    /* ── Summary Cards ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 600px) { .summary-grid { grid-template-columns: 1fr; } }
+
+    .s-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      border-top: 4px solid transparent;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .s-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.12); }
+    .s-card.card-blue  { border-color: var(--blue); }
+    .s-card.card-green { border-color: var(--green-mid); }
+    .s-card.card-red   { border-color: #EF5350; }
+
+    .s-icon { font-size: 24px; margin-bottom: 8px; }
+    .s-label { font-size: 12px; color: var(--gray-600); font-weight: 500; margin-bottom: 6px; }
+    .s-val { font-size: 24px; font-weight: 700; }
+    .s-val.blue  { color: var(--blue); }
+    .s-val.green { color: var(--green-dark); }
+    .s-val.red   { color: #EF5350; }
+    .s-sub { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+
+    /* ── Period explanation bar ── */
+    .period-bar {
+      display: flex;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 36px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .period-bar .seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: #fff;
+      transition: flex 0.4s;
+    }
+    .period-bar .seg1 { background: #2E7D32; flex: 23; }
+    .period-bar .seg2 { background: #E65100; flex: 8; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--gray-600);
+      padding: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>🏫 Gayatri Vidyapeeth</h1>
+      <div class="sub">May 2026 Revised Payroll — Split-Period Salary Calculation</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="header-badge">
+        <div class="badge-val">31</div>
+        <div class="badge-lbl">Total Days</div>
+      </div>
+      <div class="header-badge">
+        <div class="badge-val">₹/31</div>
+        <div class="badge-lbl">Base Rate</div>
+      </div>
+      <div class="header-badge" id="hdr-teachers">
+        <div class="badge-val" id="hdr-count">—</div>
+        <div class="badge-lbl">Teachers</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Period bar -->
+  <div class="period-bar">
+    <div class="seg seg1">📅 1 – 23 May &nbsp;|&nbsp; Full Rate (×1.0) &nbsp;—&nbsp; 23 days</div>
+    <div class="seg seg2">⚡ 24–31 &nbsp;|&nbsp; Half (×0.5)</div>
+  </div>
+
+  <!-- Alert -->
+  <div class="alert-note">
+    <span class="icon">⚠️</span>
+    <span>Absent days have been distributed proportionally between the two periods (23:8 ratio). If exact day-wise attendance per period is available, the figures will differ slightly.</span>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#2E7D32"></div>
+      <div>
+        <div>Period 1 — Full Rate (×1.0)</div>
+        <div class="dates">1 May 2026 → 23 May 2026 &nbsp;(23 days)</div>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#E65100"></div>
+      <div>
+        <div>Period 2 — Half Rate (×0.5)</div>
+        <div class="dates">24 May 2026 → 31 May 2026 &nbsp;(8 days)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary cards (filled by JS) -->
+  <div class="summary-grid" id="summary"></div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <colgroup>
+          <col style="width:36px">
+          <col style="width:72px">
+          <col style="width:130px">
+          <col style="width:80px">
+          <!-- P1 -->
+          <col style="width:60px">
+          <col style="width:70px">
+          <col style="width:80px">
+          <!-- P2 -->
+          <col style="width:60px">
+          <col style="width:70px">
+          <col style="width:80px">
+          <!-- totals -->
+          <col style="width:80px">
+          <col style="width:88px">
+          <col style="width:72px">
+          <col style="width:70px">
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="left">#</th>
+            <th class="left">ID</th>
+            <th class="left">Name</th>
+            <th>Basic</th>
+            <th colspan="3" class="th-p1">Period 1 (1–23 May) — Full Rate ×1.0</th>
+            <th colspan="3" class="th-p2">Period 2 (24–31 May) — Half Rate ×0.5</th>
+            <th>Old Net</th>
+            <th>New Net</th>
+            <th>Diff</th>
+            <th>Status</th>
+          </tr>
+          <tr>
+            <th></th><th></th><th></th><th></th>
+            <th class="p1">Paid Days</th>
+            <th class="p1">₹/day</th>
+            <th class="p1">Amount</th>
+            <th class="p2">Paid Days</th>
+            <th class="p2">₹/day (½)</th>
+            <th class="p2">Amount</th>
+            <th></th><th></th><th></th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+        <tfoot id="tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    Generated: <span id="gen-date"></span> &nbsp;•&nbsp; Gayatri Vidyapeeth, Payroll System &nbsp;•&nbsp; May 2026
+  </div>
+</div>
+
+<script>
+// ── Teacher data ──────────────────────────────────────────────────────────────
+const teachers = [
+  {no:1,  id:'TCH0518', name:'Madhukumari',    basic:7000,  absent:16.5, oldNet:3274.19},
+  {no:2,  id:'TCH9866', name:'Anu kumari',      basic:7000,  absent:12,   oldNet:4290.32},
+  {no:3,  id:'TCH7529', name:'Manish kumar',    basic:10000, absent:0,    oldNet:10000},
+  {no:4,  id:'TCH8068', name:'Beauty Kumari',   basic:3000,  absent:1,    oldNet:2903.23},
+  {no:5,  id:'TCH8876', name:'SUNNY KUMAR',     basic:10000, absent:0,    oldNet:10000},
+  {no:6,  id:'TCH9974', name:'Mukesh Prasad',   basic:7000,  absent:4,    oldNet:6096.77},
+  {no:7,  id:'TCH4911', name:'Yogesh Chauhan',  basic:14000, absent:11,   oldNet:9032.26},
+  {no:8,  id:'TCH1236', name:'RAVINDRA KUMAR',  basic:17000, absent:10,   oldNet:11516.13},
+  {no:9,  id:'TCH7009', name:'Sanju kumari',    basic:3000,  absent:1,    oldNet:2903.23},
+  {no:10, id:'TCH3226', name:'Ajeet Raj',       basic:10000, absent:0,    oldNet:10000},
+  {no:11, id:'TCH1455', name:'Shivani Singh',   basic:30000, absent:0,    oldNet:30000},
+  {no:12, id:'TCH1866', name:'Chandra Prakash', basic:8000,  absent:1,    oldNet:7741.94},
+];
+
+// ── Calculation ───────────────────────────────────────────────────────────────
+function calc(t) {
+  const perDay  = t.basic / 31;         // full per-day rate
+  const halfDay = t.basic / 62;         // half per-day rate (period 2)
+  const absP1   = t.absent * (23 / 31); // absent proportional in period 1
+  const absP2   = t.absent * (8  / 31); // absent proportional in period 2
+  const pdP1    = 23 - absP1;           // paid days in period 1
+  const pdP2    = 8  - absP2;           // paid days in period 2
+  const amtP1   = pdP1 * perDay;
+  const amtP2   = pdP2 * halfDay;
+  const newNet  = amtP1 + amtP2;
+  return { perDay, halfDay, pdP1, pdP2, amtP1, amtP2, newNet };
+}
+
+// ── Formatting ────────────────────────────────────────────────────────────────
+const fmt  = n => '₹' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const fmtD = n => n.toFixed(2);
+const fmtP = (n, tot) => ((n / tot) * 100).toFixed(1) + '%';
+
+// ── Build table ───────────────────────────────────────────────────────────────
+let totalOld = 0, totalNew = 0;
+const tbody = document.getElementById('tbody');
+
+teachers.forEach(t => {
+  const c    = calc(t);
+  const diff = c.newNet - t.oldNet;
+  totalOld  += t.oldNet;
+  totalNew  += c.newNet;
+
+  const diffCls = diff < -0.01 ? 'diff-neg' : (diff > 0.01 ? 'diff-pos' : 'diff-zero');
+  const diffStr = (diff >= 0 ? '+' : '') + fmt(diff);
+
+  // Status tag
+  let tag = '';
+  if (t.absent === 0)       tag = '<span class="tag tag-green">Full ✓</span>';
+  else if (t.absent <= 3)   tag = '<span class="tag tag-amber">Low Abs</span>';
+  else                      tag = '<span class="tag tag-red">Abs: '+t.absent+'</span>';
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="left" style="color:var(--gray-600);font-size:11px">${t.no}</td>
+    <td class="left id-cell">${t.id}</td>
+    <td class="left name">${t.name}</td>
+    <td style="font-weight:600">${fmt(t.basic)}</td>
+    <td class="p1">${fmtD(c.pdP1)}</td>
+    <td class="p1" style="font-size:11px;color:#2E7D32">${fmt(c.perDay)}</td>
+    <td class="p1" style="font-weight:600;color:#1B5E20">${fmt(c.amtP1)}</td>
+    <td class="p2">${fmtD(c.pdP2)}</td>
+    <td class="p2" style="font-size:11px;color:#E65100">${fmt(c.halfDay)}</td>
+    <td class="p2" style="font-weight:600;color:#BF360C">${fmt(c.amtP2)}</td>
+    <td class="net-old">${fmt(t.oldNet)}</td>
+    <td class="net-new">${fmt(c.newNet)}</td>
+    <td class="${diffCls}" style="font-size:11.5px">${diffStr}</td>
+    <td>${tag}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// ── Footer row ────────────────────────────────────────────────────────────────
+const totalDiff = totalNew - totalOld;
+const tfoot = document.getElementById('tfoot');
+tfoot.innerHTML = `<tr>
+  <td colspan="3" class="left">🧾 कुल (Grand Total)</td>
+  <td></td>
+  <td class="p1" colspan="3" style="color:#1B5E20;font-size:12px">Period 1 Total</td>
+  <td class="p2" colspan="3" style="color:#BF360C;font-size:12px">Period 2 Total</td>
+  <td class="net-old">${fmt(totalOld)}</td>
+  <td class="net-new">${fmt(totalNew)}</td>
+  <td class="diff-neg">${fmt(totalDiff)}</td>
+  <td></td>
+</tr>`;
+
+// ── Summary cards ─────────────────────────────────────────────────────────────
+document.getElementById('hdr-count').textContent = teachers.length;
+document.getElementById('gen-date').textContent  = new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric'});
+
+const totalReduction = Math.abs(totalDiff);
+const reductionPct   = ((totalReduction / totalOld) * 100).toFixed(1);
+
+document.getElementById('summary').innerHTML = `
+  <div class="s-card card-blue">
+    <div class="s-icon">💼</div>
+    <div class="s-label">Previous Total Payable</div>
+    <div class="s-val blue">${fmt(totalOld)}</div>
+    <div class="s-sub">${teachers.length} teachers</div>
+  </div>
+  <div class="s-card card-green">
+    <div class="s-icon">✅</div>
+    <div class="s-label">Revised Total Payable</div>
+    <div class="s-val green">${fmt(totalNew)}</div>
+    <div class="s-sub">After split-rate adjustment</div>
+  </div>
+  <div class="s-card card-red">
+    <div class="s-icon">📉</div>
+    <div class="s-label">Total Reduction</div>
+    <div class="s-val red">${fmt(totalDiff)}</div>
+    <div class="s-sub">${reductionPct}% of previous payroll</div>
+  </div>
+`;
+</script>
+</body>
+</html>

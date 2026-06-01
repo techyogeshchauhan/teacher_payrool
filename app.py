@@ -27,6 +27,24 @@ increment_col = db['increments']
 holidays_col = db['govt_holidays']
 logs_col = db['activity_logs']
 assets_col = db['assets']
+students_col = db['students']
+fee_history_col = db['fee_history']
+
+# ─── Special Salary Periods ─────────────────────────────────────────────────
+# Format: (year, month, split_from_day, multiplier)
+# split_from_day se end of month tak: multiplier rate apply hoga
+# Example: May 2026, from 24th onwards: half (0.5x) rate
+HALF_RATE_PERIODS = [
+    (2026, 5, 24, 0.5)   # 24 May – 31 May 2026 → half per-day rate
+]
+
+def get_half_rate_for_month(year, month):
+    """Return (split_from_day, multiplier) if a half-rate period exists for this month."""
+    for hy, hm, hday, hmult in HALF_RATE_PERIODS:
+        if hy == year and hm == month:
+            return hday, hmult
+    return None, None
+
 # Flask-Mail Configuration (Use environment variables or hardcode for now)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -130,6 +148,14 @@ def teacher_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def get_salary_calculation_days(year, month):
+    """
+    Salary calculation ke liye base days return karta hai.
+    Hamesha 30 — chahe month 28, 29, 30 ya 31 din ka ho.
+    """
+    return 30  # ALWAYS 30 days
+
+
 def get_month_summary(year, month):
     """Returns complete month summary: total days, sundays, govt holidays, working days."""
     days_in_month = calendar.monthrange(year, month)[1]
@@ -154,6 +180,9 @@ def get_month_summary(year, month):
     # Actual working days = Total - Sundays - Govt Holidays (on Mon-Sat)
     actual_working_days = days_in_month - sundays - len(holiday_days)
 
+    # Salary calculation days: hamesha 30 (fixed)
+    salary_calc_days = get_salary_calculation_days(year, month)
+
     return {
         'days_in_month': days_in_month,
         'sundays': sundays,
@@ -161,7 +190,8 @@ def get_month_summary(year, month):
         'holidays': len(holiday_days),
         'holiday_days': holiday_days,
         'holidays_list': govt_holidays,
-        'working_days': actual_working_days
+        'working_days': actual_working_days,
+        'salary_calc_days': salary_calc_days
     }
 
 # Keep old function for backward compatibility
@@ -171,28 +201,61 @@ def get_working_days(year, month):
 
 def calculate_paid_days(tid, year, month, summary):
     """
-    Attendance-based salary calculation.
+    Attendance-based salary calculation with split-period support.
 
-    Formula:
+    Normal months:
       paid_days = Present(P) + Medical(M) + Half(H)×0.5
                   + Sundays within work period
                   + Govt Holidays within work period
 
-    Work period = first paid-attendance day → last paid-attendance day of month.
-    (Sundays/Holidays ONLY count if they fall within the days teacher was working.)
-
-    Example: Basic=4500, April(30 days), Present=12, last present=Apr 16
-      → Sundays in Apr 1–16 = Apr 5, 12 = 2
-      → paid_days = 12 + 2 = 14  →  net = 4500/30 × 14 = ₹2100
+    Split-period months (e.g. May 2026: 24th onwards at 0.5x):
+      Period-1 (1 → split_day-1): full rate  × 1.0
+      Period-2 (split_day → end): half rate  × 0.5
+      paid_days = p1_days + p2_days × 0.5
     """
     month_str = f"{year}-{month:02d}"
+    days_in_month = summary['days_in_month']
+    salary_calc_days = summary.get('salary_calc_days', 30)
 
-    present  = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
-    half     = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
-    medical  = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
-    absent   = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
+    split_day, split_mult = get_half_rate_for_month(year, month)
+    has_split = split_day is not None
 
-    # Find work period: first → last PAID attendance day (P/M/H only, not A)
+    if has_split:
+        # ── Split-period attendance counts ──────────────────────────────
+        p1_start = f"{year}-{month:02d}-01"
+        p1_end   = f"{year}-{month:02d}-{(split_day - 1):02d}"
+        p2_start = f"{year}-{month:02d}-{split_day:02d}"
+        p2_end   = f"{year}-{month:02d}-{days_in_month:02d}"
+
+        def cnt(statuses, d_start, d_end):
+            return attendance_col.count_documents({
+                'teacher_id': tid,
+                'date': {'$gte': d_start, '$lte': d_end},
+                'status': {'$in': statuses}
+            })
+
+        p1_present = cnt(['present', 'P'], p1_start, p1_end)
+        p1_medical = cnt(['M'],            p1_start, p1_end)
+        p1_half    = cnt(['half_day', 'H'],p1_start, p1_end)
+        p1_absent  = cnt(['absent', 'A'], p1_start, p1_end)
+
+        p2_present = cnt(['present', 'P'], p2_start, p2_end)
+        p2_medical = cnt(['M'],            p2_start, p2_end)
+        p2_half    = cnt(['half_day', 'H'],p2_start, p2_end)
+        p2_absent  = cnt(['absent', 'A'], p2_start, p2_end)
+
+        present = p1_present + p2_present
+        medical = p1_medical + p2_medical
+        half    = p1_half    + p2_half
+        absent  = p1_absent  + p2_absent
+    else:
+        # ── Normal attendance counts ────────────────────────────────────
+        present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
+        half    = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
+        medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
+        absent  = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
+
+    # ── Work period: first paid-day → last paid-day ─────────────────────
     paid_records = list(attendance_col.find(
         {'teacher_id': tid,
          'date': {'$regex': f'^{month_str}'},
@@ -204,23 +267,64 @@ def calculate_paid_days(tid, year, month, summary):
         first_d = date.fromisoformat(paid_records[0]['date'])
         last_d  = date.fromisoformat(paid_records[-1]['date'])
 
-        # Sundays falling within work period
-        sundays_paid = sum(
-            1 for i in range((last_d - first_d).days + 1)
-            if (first_d + timedelta(days=i)).weekday() == 6   # 6 = Sunday
-        )
+        if has_split:
+            p1_end_date   = date(year, month, split_day - 1)
+            p2_start_date = date(year, month, split_day)
 
-        # Govt holidays (non-Sunday) falling within work period
-        holidays_paid = sum(
-            1 for h in summary.get('holidays_list', [])
-            if first_d <= date.fromisoformat(h['date']) <= last_d
-            and date.fromisoformat(h['date']).weekday() != 6
-        )
+            # Sundays in Period-1 within work period
+            s1_s = first_d
+            s1_e = min(last_d, p1_end_date)
+            sundays_p1 = sum(
+                1 for i in range((s1_e - s1_s).days + 1)
+                if (s1_s + timedelta(days=i)).weekday() == 6
+            ) if s1_s <= s1_e else 0
+
+            # Sundays in Period-2 within work period
+            s2_s = max(first_d, p2_start_date)
+            s2_e = last_d
+            sundays_p2 = sum(
+                1 for i in range((s2_e - s2_s).days + 1)
+                if (s2_s + timedelta(days=i)).weekday() == 6
+            ) if s2_s <= s2_e else 0
+
+            sundays_paid = sundays_p1 + sundays_p2
+
+            # Govt holidays split by period
+            hl = summary.get('holidays_list', [])
+            holidays_p1 = sum(
+                1 for h in hl
+                if first_d <= date.fromisoformat(h['date']) <= min(last_d, p1_end_date)
+                and date.fromisoformat(h['date']).weekday() != 6
+            )
+            holidays_p2 = sum(
+                1 for h in hl
+                if max(first_d, p2_start_date) <= date.fromisoformat(h['date']) <= last_d
+                and date.fromisoformat(h['date']).weekday() != 6
+            )
+            holidays_paid = holidays_p1 + holidays_p2
+
+            # Paid days: Period-1 full + Period-2 at split_mult
+            p1_days = p1_present + p1_medical + (p1_half * 0.5) + sundays_p1 + holidays_p1
+            p2_days = (p2_present + p2_medical + (p2_half * 0.5) + sundays_p2 + holidays_p2) * split_mult
+            paid_days = p1_days + p2_days
+
+        else:
+            sundays_paid = sum(
+                1 for i in range((last_d - first_d).days + 1)
+                if (first_d + timedelta(days=i)).weekday() == 6
+            )
+            holidays_paid = sum(
+                1 for h in summary.get('holidays_list', [])
+                if first_d <= date.fromisoformat(h['date']) <= last_d
+                and date.fromisoformat(h['date']).weekday() != 6
+            )
+            paid_days = present + medical + (half * 0.5) + sundays_paid + holidays_paid
+            # Cap at salary_calc_days so 30 days complete = full salary
+            paid_days = min(paid_days, salary_calc_days)
     else:
-        sundays_paid   = 0
-        holidays_paid  = 0
-
-    paid_days = present + medical + (half * 0.5) + sundays_paid + holidays_paid
+        sundays_paid  = 0
+        holidays_paid = 0
+        paid_days     = 0
 
     return {
         'present':       present,
@@ -229,9 +333,37 @@ def calculate_paid_days(tid, year, month, summary):
         'absent':        absent,
         'sundays_paid':  sundays_paid,
         'holidays_paid': holidays_paid,
-        'paid_days':     round(paid_days, 1),
+        'paid_days':     round(paid_days, 2),
         'leave_taken':   absent,
+        'has_split':     has_split,
     }
+
+
+def compute_net_salary(basic_salary, att, salary_calc_days):
+    """
+    Net salary compute karo:
+    - Split-period month (has_split=True): per_day x paid_days
+      (kyunki paid_days already half-rate adjust ho chuka hai)
+    - Normal month + 0 absent: exact basic salary
+    - Normal month + absent/half: basic - deduction
+    """
+    per_day = basic_salary / salary_calc_days if salary_calc_days > 0 else 0
+
+    if att.get('has_split'):
+        # Split period: paid_days mein already half-rate factor hai
+        net_salary = round(per_day * att['paid_days'], 2)
+        deduction  = round(basic_salary - net_salary, 2)
+    elif att['absent'] == 0 and att['half'] == 0:
+        # 0 absent = exact full salary (no rounding loss)
+        net_salary = basic_salary
+        deduction  = 0.0
+    else:
+        absent_weighted = att['absent'] + att['half'] * 0.5
+        deduction  = round(per_day * absent_weighted, 2)
+        net_salary = round(basic_salary - deduction, 2)
+
+    return net_salary, deduction, round(per_day, 2)
+
 
 
 @app.after_request
@@ -508,10 +640,11 @@ def payroll():
 
         att = calculate_paid_days(tid, year, month, summary)
 
-        days_in_month  = summary['days_in_month']
-        per_day_salary = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
-        net_salary     = round(per_day_salary * att['paid_days'], 2)
-        deduction      = round(per_day_salary * (att['absent'] + att['half'] * 0.5), 2)
+        # Salary calculation days: hamesha 30, agar 31 aur Sunday ho to 31
+        salary_calc_days = summary.get('salary_calc_days', 30)
+        net_salary, deduction, per_day_salary = compute_net_salary(
+            teacher['basic_salary'], att, salary_calc_days
+        )
 
         total_payable += net_salary
 
@@ -520,7 +653,7 @@ def payroll():
             'name':           teacher['name'],
             'subject':        teacher['subject'],
             'basic_salary':   teacher['basic_salary'],
-            'days_in_month':  days_in_month,
+            'days_in_month':  summary['days_in_month'],
             'sundays':        att['sundays_paid'],
             'holidays':       att['holidays_paid'],
             'working_days':   working_days,
@@ -532,7 +665,7 @@ def payroll():
             'per_day':        round(per_day_salary, 2),
             'deduction':      deduction,
             'net_salary':     net_salary,
-            'calculation_days': days_in_month
+            'calculation_days': salary_calc_days
         })
 
     return render_template('payroll.html',
@@ -543,6 +676,12 @@ def payroll():
                          total_payable=round(total_payable, 2),
                          summary=summary)
 
+
+@app.route('/admin/payroll/chart')
+@admin_required
+def payroll_chart():
+    """May 2026 Split-Period Payroll Chart"""
+    return render_template('payroll_chart_may2026.html')
 
 
 @app.route('/admin/attendance/report')
@@ -716,10 +855,11 @@ def teacher_dashboard():
     prev_year = year if month > 1 else year - 1
     prev_summary = get_month_summary(prev_year, prev_month)
     prev_att = calculate_paid_days(tid, prev_year, prev_month, prev_summary)
-    prev_days_in_month = prev_summary['days_in_month']
+    prev_salary_calc_days = prev_summary.get('salary_calc_days', 30)
     prev_paid_days = prev_att['paid_days']
-    prev_per_day = teacher['basic_salary'] / prev_days_in_month if prev_days_in_month > 0 else 0
-    prev_estimated_salary = round(prev_per_day * prev_paid_days, 2)
+    prev_estimated_salary, _, prev_per_day = compute_net_salary(
+        teacher['basic_salary'], prev_att, prev_salary_calc_days
+    )
 
     summary = get_month_summary(year, month)
     working_days = summary['working_days']
@@ -731,17 +871,20 @@ def teacher_dashboard():
     absent = att['absent']
     medical = att['medical']
 
-    days_in_month = summary['days_in_month']
+    # Salary calculation days: hamesha 30, agar 31 aur Sunday ho to 31
+    salary_calc_days = summary.get('salary_calc_days', 30)
     paid_days = att['paid_days']
-    
-    per_day = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
-    estimated_salary = round(per_day * paid_days, 2)
+
+    estimated_salary, _, per_day = compute_net_salary(
+        teacher['basic_salary'], att, salary_calc_days
+    )
 
     recent = list(attendance_col.find({'teacher_id': tid}).sort('date', -1).limit(10))
     assigned_assets = list(assets_col.find({'teacher_id': tid}).sort('timestamp', -1))
     
     log_activity(tid, teacher['name'], 'VISIT_DASHBOARD', 'Visited teacher dashboard')
 
+    days_in_month = None
     return render_template('teacher_dashboard.html',
                          teacher=teacher,
                          present=present, half=half, absent=absent,
@@ -786,13 +929,15 @@ def teacher_salary():
         return redirect(url_for('teacher_salary', month=prev_month, year=prev_year))
 
     att  = calculate_paid_days(tid, year, month, summary)
-    days_in_month = summary['days_in_month']
-    per_day       = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
-    net_salary    = round(per_day * att['paid_days'], 2)
-    deduction     = round(per_day * (att['absent'] + att['half'] * 0.5), 2)
+    # Salary calculation days: hamesha 30, agar 31 aur Sunday ho to 31
+    salary_calc_days = summary.get('salary_calc_days', 30)
+    net_salary, deduction, per_day = compute_net_salary(
+        teacher['basic_salary'], att, salary_calc_days
+    )
 
     all_teachers = list(teachers_col.find({'active': True}, {'teacher_id': 1}).sort('_id', 1))
-    bill_no = next((i + 1 for i, t in enumerate(all_teachers) if t['teacher_id'] == tid), 1)
+    bill_index = next((i + 1 for i, t in enumerate(all_teachers) if t['teacher_id'] == tid), 1)
+    unique_bill_no = f"GVP-{year}-{month:02d}-{bill_index:03d}"
 
     slip_date = today.strftime('%d/%m/%Y')
     log_activity(tid, teacher['name'], 'VISIT_SALARY', f'Viewed salary slip for {calendar.month_name[month]} {year}')
@@ -803,7 +948,7 @@ def teacher_salary():
                          month_name=calendar.month_name[month],
                          summary=summary,
                          total_working_days=att['paid_days'],
-                         calculation_days=days_in_month,
+                         calculation_days=salary_calc_days,
                          present=att['present'], half=att['half'],
                          medical=att['medical'], absent=att['absent'],
                          sundays_paid=att['sundays_paid'],
@@ -813,7 +958,7 @@ def teacher_salary():
                          per_day=round(per_day, 2),
                          deduction=deduction,
                          net_salary=net_salary,
-                         bill_no=f"{bill_no:02d}",
+                         bill_no=unique_bill_no,
                          slip_date=slip_date,
                          no_att_data=no_att_data,
                          is_admin=False)
@@ -844,13 +989,15 @@ def admin_salary_slip(teacher_id):
         return redirect(url_for('admin_salary_slip', teacher_id=teacher_id, month=prev_month, year=prev_year))
 
     att  = calculate_paid_days(teacher_id, year, month, summary)
-    days_in_month = summary['days_in_month']
-    per_day       = teacher['basic_salary'] / days_in_month if days_in_month > 0 else 0
-    net_salary    = round(per_day * att['paid_days'], 2)
-    deduction     = round(per_day * (att['absent'] + att['half'] * 0.5), 2)
+    # Salary calculation days: hamesha 30, agar 31 aur Sunday ho to 31
+    salary_calc_days = summary.get('salary_calc_days', 30)
+    net_salary, deduction, per_day = compute_net_salary(
+        teacher['basic_salary'], att, salary_calc_days
+    )
 
     all_teachers = list(teachers_col.find({'active': True}, {'teacher_id': 1}).sort('_id', 1))
-    bill_no = next((i + 1 for i, t in enumerate(all_teachers) if t['teacher_id'] == teacher_id), 1)
+    bill_index = next((i + 1 for i, t in enumerate(all_teachers) if t['teacher_id'] == teacher_id), 1)
+    unique_bill_no = f"GVP-{year}-{month:02d}-{bill_index:03d}"
     slip_date = today.strftime('%d/%m/%Y')
 
     return render_template('salary_slip.html',
@@ -859,7 +1006,7 @@ def admin_salary_slip(teacher_id):
                          month_name=calendar.month_name[month],
                          summary=summary,
                          total_working_days=att['paid_days'],
-                         calculation_days=days_in_month,
+                         calculation_days=salary_calc_days,
                          present=att['present'], half=att['half'],
                          medical=att['medical'], absent=att['absent'],
                          sundays_paid=att['sundays_paid'],
@@ -869,7 +1016,7 @@ def admin_salary_slip(teacher_id):
                          per_day=round(per_day, 2),
                          deduction=deduction,
                          net_salary=net_salary,
-                         bill_no=f"{bill_no:02d}",
+                         bill_no=unique_bill_no,
                          slip_date=slip_date,
                          no_att_data=no_att_data,
                          is_admin=True)
@@ -1184,6 +1331,131 @@ def teacher_change_password():
             return redirect(url_for('teacher_dashboard'))
             
     return render_template('teacher_change_password.html')
+
+# ─── Student Fee Management ──────────────────────────────────────────────────
+
+@app.route('/admin/students')
+@principal_required
+def manage_students():
+    students = list(students_col.find().sort('name', 1))
+    return render_template('manage_students.html', students=students)
+
+@app.route('/admin/student/add', methods=['GET', 'POST'])
+@principal_required
+def add_student():
+    if request.method == 'POST':
+        name = request.form['name']
+        roll_no = request.form['roll_no']
+        student_class = request.form['class']
+        total_fee = float(request.form.get('total_fee', 0))
+        
+        student = {
+            'name': name,
+            'roll_no': roll_no,
+            'class': student_class,
+            'total_fee': total_fee,
+            'paid_fee': 0,
+            'balance_fee': total_fee,
+            'added_at': datetime.now()
+        }
+        students_col.insert_one(student)
+        flash(f'✅ Student {name} सफलतापूर्वक जोड़ा गया!')
+        return redirect(url_for('manage_students'))
+    return render_template('add_student.html')
+
+@app.route('/admin/student/pay/<student_id>', methods=['GET', 'POST'])
+@principal_required
+def pay_fee(student_id):
+    student = students_col.find_one({'_id': ObjectId(student_id)})
+    if not student:
+        flash('Student नहीं मिला!')
+        return redirect(url_for('manage_students'))
+
+    if request.method == 'POST':
+        amount = float(request.form['amount'])
+        month = request.form['month']
+        remarks = request.form.get('remarks', '')
+        
+        new_paid = student.get('paid_fee', 0) + amount
+        new_balance = student.get('total_fee', 0) - new_paid
+        
+        students_col.update_one(
+            {'_id': ObjectId(student_id)},
+            {'$set': {'paid_fee': new_paid, 'balance_fee': new_balance}}
+        )
+        
+        receipt_no = f"REC{int(datetime.now().timestamp())}"
+        
+        fee_history_col.insert_one({
+            'student_id': str(student_id),
+            'student_name': student['name'],
+            'amount': amount,
+            'month': month,
+            'remarks': remarks,
+            'receipt_no': receipt_no,
+            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'collected_by': session.get('admin_name') or session.get('principal_name')
+        })
+        flash(f'✅ ₹{amount} की फीस {student["name"]} के लिए जमा कर दी गई है!')
+        return redirect(url_for('fee_receipt', receipt_no=receipt_no))
+
+    return render_template('pay_fee.html', student=student)
+
+@app.route('/admin/student/receipt/<receipt_no>')
+@principal_required
+def fee_receipt(receipt_no):
+    receipt = fee_history_col.find_one({'receipt_no': receipt_no})
+    if not receipt:
+        flash('Receipt नहीं मिली!')
+        return redirect(url_for('manage_students'))
+        
+    student = students_col.find_one({'_id': ObjectId(receipt['student_id'])})
+    return render_template('fee_receipt.html', receipt=receipt, student=student)
+
+@app.route('/admin/student/fee_history/<student_id>')
+@principal_required
+def fee_history(student_id):
+    student = students_col.find_one({'_id': ObjectId(student_id)})
+    if not student:
+        flash('Student नहीं मिला!')
+        return redirect(url_for('manage_students'))
+        
+    history = list(fee_history_col.find({'student_id': str(student_id)}).sort('date', -1))
+    return render_template('student_fee_history.html', student=student, history=history)
+
+@app.route('/admin/student/edit/<student_id>', methods=['GET', 'POST'])
+@principal_required
+def edit_student(student_id):
+    student = students_col.find_one({'_id': ObjectId(student_id)})
+    if not student:
+        flash('Student नहीं मिला!')
+        return redirect(url_for('manage_students'))
+        
+    if request.method == 'POST':
+        total_fee = float(request.form.get('total_fee', 0))
+        paid_fee = student.get('paid_fee', 0)
+        balance_fee = total_fee - paid_fee
+        
+        updates = {
+            'name': request.form['name'],
+            'roll_no': request.form['roll_no'],
+            'class': request.form['class'],
+            'total_fee': total_fee,
+            'balance_fee': balance_fee
+        }
+        students_col.update_one({'_id': ObjectId(student_id)}, {'$set': updates})
+        flash(f'✅ {updates["name"]} की जानकारी अपडेट हो गई!')
+        return redirect(url_for('manage_students'))
+        
+    return render_template('edit_student.html', student=student)
+
+@app.route('/admin/student/delete/<student_id>')
+@principal_required
+def delete_student(student_id):
+    students_col.delete_one({'_id': ObjectId(student_id)})
+    fee_history_col.delete_many({'student_id': str(student_id)})
+    flash('Student और उसकी फीस हिस्ट्री हटा दी गई!')
+    return redirect(url_for('manage_students'))
 
 if __name__ == '__main__':
     init_admin()

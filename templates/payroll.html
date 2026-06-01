@@ -93,6 +93,7 @@
         <table class="w-full text-xs">
             <thead class="bg-gray-800 text-white">
                 <tr>
+                    <th class="text-left px-3 py-3">S.No.</th>
                     <th class="text-left px-3 py-3">ID</th>
                     <th class="text-left px-3 py-3 hindi">नाम</th>
                     <th class="text-center px-3 py-3 hindi">Basic Salary</th>
@@ -113,6 +114,7 @@
             <tbody class="divide-y divide-gray-100">
                 {% for p in payroll %}
                 <tr class="hover:bg-orange-50 transition">
+                    <td class="px-3 py-3 font-bold text-gray-600 text-center">{{ loop.index }}</td>
                     <td class="px-3 py-3">
                         <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-mono font-bold">{{ p.teacher_id }}</span>
                     </td>
@@ -152,12 +154,12 @@
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="15" class="text-center py-12 text-gray-400 hindi">कोई data नहीं मिला।</td></tr>
+                <tr><td colspan="16" class="text-center py-12 text-gray-400 hindi">कोई data नहीं मिला।</td></tr>
                 {% endfor %}
             </tbody>
             <tfoot class="bg-gray-100 font-bold">
                 <tr>
-                    <td colspan="13" class="px-4 py-4 text-right text-gray-700 hindi">कुल Payable Amount →</td>
+                    <td colspan="14" class="px-4 py-4 text-right text-gray-700 hindi">कुल Payable Amount →</td>
                     <td class="px-4 py-4 text-center">
                         <span class="bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-base">
                             ₹{{ "{:,.2f}".format(total_payable) }}

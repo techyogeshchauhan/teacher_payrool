@@ -1,0 +1,176 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:13px;color:var(--color-text-primary)}
+h2{font-size:16px;font-weight:500;margin-bottom:4px}
+.sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:16px}
+.note{font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-left:3px solid #F0997B;padding:8px 12px;border-radius:4px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+thead th{background:var(--color-background-secondary);padding:8px 6px;text-align:center;font-weight:500;border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap;overflow:hidden}
+thead th.left{text-align:left}
+tbody tr:nth-child(even){background:var(--color-background-secondary)}
+tbody tr:hover{background:var(--color-background-tertiary)}
+td{padding:7px 6px;border-bottom:0.5px solid var(--color-border-tertiary);text-align:center;vertical-align:middle}
+td.left{text-align:left}
+td.name{font-weight:500}
+.p1{background:#EAF3DE33}
+.p2{background:#FAEEDA33}
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+.tag-green{background:#C0DD97;color:#3B6D11}
+.tag-amber{background:#FAC775;color:#854F0B}
+.tag-red{background:#F7C1C1;color:#791F1F}
+.total-row td{font-weight:500;border-top:1.5px solid var(--color-border-primary);background:var(--color-background-secondary)}
+.diff-neg{color:#A32D2D}
+.diff-zero{color:#3B6D11}
+tfoot td{padding:8px 6px;font-weight:500;border-top:1.5px solid var(--color-border-primary);background:var(--color-background-secondary)}
+.period-header{font-size:11px;color:var(--color-text-secondary);font-weight:400}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.s-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center}
+.s-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.s-val{font-size:18px;font-weight:500}
+.s-val.red{color:#A32D2D}
+.s-val.green{color:#3B6D11}
+</style>
+
+<div style="padding:1rem 0">
+<h2>गायत्री विद्यापीठ — May 2026 Revised Payroll</h2>
+<p class="sub">Split-rate calculation: 1–23 May @ full rate | 24–31 May @ half rate</p>
+<div class="note">⚠ Absent days are distributed proportionally between the two periods (since day-wise attendance is not available). If you have exact attendance per period, the numbers will differ.</div>
+
+<div style="overflow-x:auto">
+<table>
+<colgroup>
+<col style="width:32px">
+<col style="width:56px">
+<col style="width:90px">
+<col style="width:62px">
+<col style="width:52px">
+<col style="width:52px">
+<col style="width:62px">
+<col style="width:52px">
+<col style="width:52px">
+<col style="width:62px">
+<col style="width:68px">
+<col style="width:68px">
+<col style="width:62px">
+</colgroup>
+<thead>
+<tr>
+<th class="left">#</th>
+<th class="left">ID</th>
+<th class="left">Name</th>
+<th>Basic</th>
+<th colspan="3" style="background:#EAF3DE55;color:#3B6D11">Period 1 (1–23 May) <span class="period-header">Full rate</span></th>
+<th colspan="3" style="background:#FAEEDA55;color:#854F0B">Period 2 (24–31 May) <span class="period-header">Half rate</span></th>
+<th>Old Net</th>
+<th>New Net</th>
+<th>Diff</th>
+</tr>
+<tr>
+<th></th><th></th><th></th><th></th>
+<th class="p1">Pd Days</th>
+<th class="p1">₹/day</th>
+<th class="p1">Amount</th>
+<th class="p2">Pd Days</th>
+<th class="p2">₹/day</th>
+<th class="p2">Amount</th>
+<th></th><th></th><th></th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+<tfoot id="tfoot"></tfoot>
+</table>
+</div>
+
+<div class="summary-grid" id="summary"></div>
+</div>
+
+<script>
+const teachers=[
+  {no:1,id:'TCH0518',name:'Madhukumari',basic:7000,absent:16.5,oldNet:3274.19},
+  {no:2,id:'TCH9866',name:'Anu kumari',basic:7000,absent:12,oldNet:4290.32},
+  {no:3,id:'TCH7529',name:'Manish kumar',basic:10000,absent:0,oldNet:10000},
+  {no:4,id:'TCH8068',name:'Beauty Kumari',basic:3000,absent:1,oldNet:2903.23},
+  {no:5,id:'TCH8876',name:'SUNNY KUMAR',basic:10000,absent:0,oldNet:10000},
+  {no:6,id:'TCH9974',name:'Mukesh Prasad',basic:7000,absent:4,oldNet:6096.77},
+  {no:7,id:'TCH4911',name:'Yogesh Chauhan',basic:14000,absent:11,oldNet:9032.26},
+  {no:8,id:'TCH1236',name:'RAVINDRA KUMAR',basic:17000,absent:10,oldNet:11516.13},
+  {no:9,id:'TCH7009',name:'Sanju kumari',basic:3000,absent:1,oldNet:2903.23},
+  {no:10,id:'TCH3226',name:'Ajeet Raj',basic:10000,absent:0,oldNet:10000},
+  {no:11,id:'TCH1455',name:'Shivani Singh',basic:30000,absent:0,oldNet:30000},
+  {no:12,id:'TCH1866',name:'Chandra Prakash',basic:8000,absent:1,oldNet:7741.94},
+];
+
+function calc(t){
+  const perDay=t.basic/31;
+  const halfDay=t.basic/62;
+  const absP1=t.absent*(23/31);
+  const absP2=t.absent*(8/31);
+  const pdP1=23-absP1;
+  const pdP2=8-absP2;
+  const amtP1=pdP1*perDay;
+  const amtP2=pdP2*halfDay;
+  const newNet=amtP1+amtP2;
+  return{perDay,halfDay,pdP1,pdP2,amtP1,amtP2,newNet};
+}
+
+const fmt=n=>'₹'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const fmtD=n=>n.toFixed(2);
+
+let totalOld=0,totalNew=0;
+const tbody=document.getElementById('tbody');
+
+teachers.forEach(t=>{
+  const c=calc(t);
+  const diff=c.newNet-t.oldNet;
+  totalOld+=t.oldNet;
+  totalNew+=c.newNet;
+  const diffCls=diff<-0.01?'diff-neg':'diff-zero';
+  const diffStr=(diff<0?'':'+')+fmt(diff);
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td class="left">${t.no}</td>
+    <td class="left" style="font-size:10px;color:var(--color-text-secondary)">${t.id}</td>
+    <td class="left name">${t.name}</td>
+    <td>${fmt(t.basic)}</td>
+    <td class="p1">${fmtD(c.pdP1)}</td>
+    <td class="p1" style="font-size:11px">${fmt(c.perDay)}</td>
+    <td class="p1" style="font-weight:500">${fmt(c.amtP1)}</td>
+    <td class="p2">${fmtD(c.pdP2)}</td>
+    <td class="p2" style="font-size:11px;color:#854F0B">${fmt(c.halfDay)}</td>
+    <td class="p2" style="font-weight:500">${fmt(c.amtP2)}</td>
+    <td style="color:var(--color-text-secondary)">${fmt(t.oldNet)}</td>
+    <td style="font-weight:500;color:#185FA5">${fmt(c.newNet)}</td>
+    <td class="${diffCls}" style="font-size:11px">${diffStr}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+const tfoot=document.getElementById('tfoot');
+const totalDiff=totalNew-totalOld;
+tfoot.innerHTML=`<tr>
+  <td colspan="3" class="left">कुल (Total)</td>
+  <td></td>
+  <td colspan="3" class="p1"></td>
+  <td colspan="3" class="p2"></td>
+  <td>${fmt(totalOld)}</td>
+  <td style="color:#185FA5">${fmt(totalNew)}</td>
+  <td class="diff-neg" style="font-size:11px">${fmt(totalDiff)}</td>
+</tr>`;
+
+const summary=document.getElementById('summary');
+summary.innerHTML=`
+  <div class="s-card">
+    <div class="s-label">Old Total Payable</div>
+    <div class="s-val">${fmt(totalOld)}</div>
+  </div>
+  <div class="s-card">
+    <div class="s-label">New Total Payable</div>
+    <div class="s-val green">${fmt(totalNew)}</div>
+  </div>
+  <div class="s-card">
+    <div class="s-label">Total Reduction</div>
+    <div class="s-val red">${fmt(totalDiff)}</div>
+  </div>
+`;
+</script>

@@ -66,43 +66,60 @@
                 <a href="{{ url_for('admin_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-home text-xs"></i> Dashboard
                 </a>
-                <a href="{{ url_for('manage_teachers') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-users text-xs"></i> Teachers
+                
+                <!-- Staff Dropdown -->
+                <div class="relative group">
+                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
+                        <i class="fas fa-users-cog text-xs"></i> Staff <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    </button>
+                    <div class="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
+                        <a href="{{ url_for('manage_teachers') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-users w-5 text-center text-gray-400"></i> Teachers</a>
+                        <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-calendar-check w-5 text-center text-gray-400"></i> Attendance</a>
+                        <a href="{{ url_for('payroll') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-rupee-sign w-5 text-center text-gray-400"></i> Payroll</a>
+                        <a href="{{ url_for('salary_increment') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-arrow-trend-up w-5 text-center text-gray-400"></i> Increment</a>
+                        <a href="{{ url_for('teacher_logs') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 border-t border-gray-50 mt-1 pt-2"><i class="fas fa-clipboard-list w-5 text-center text-gray-400"></i> Logs</a>
+                    </div>
+                </div>
+
+                <!-- Operations Dropdown -->
+                <div class="relative group">
+                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
+                        <i class="fas fa-cogs text-xs"></i> Operations <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    </button>
+                    <div class="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
+                        <a href="{{ url_for('manage_holidays') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-calendar-times w-5 text-center text-gray-400"></i> Holidays</a>
+                        <a href="{{ url_for('manage_assets') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-boxes w-5 text-center text-gray-400"></i> Assets</a>
+                        <a href="{{ url_for('attendance_report') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-chart-bar w-5 text-center text-gray-400"></i> Reports</a>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('manage_students') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-user-graduate text-xs"></i> Students
                 </a>
-                <a href="{{ url_for('mark_attendance') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-calendar-check text-xs"></i> Attendance
-                </a>
-                <a href="{{ url_for('payroll') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-rupee-sign text-xs"></i> Payroll
-                </a>
-                <a href="{{ url_for('salary_increment') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-arrow-trend-up text-xs"></i> Increment
-                </a>
-                <a href="{{ url_for('manage_holidays') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-calendar-times text-xs"></i> Holidays
-                </a>
-                <a href="{{ url_for('attendance_report') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-chart-bar text-xs"></i> Report
-                </a>
-                <a href="{{ url_for('teacher_logs') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-clipboard-list text-xs"></i> Logs
-                </a>
-                <a href="{{ url_for('manage_assets') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-boxes text-xs"></i> Assets
-                </a>
+
                 {% elif session.get('principal') %}
                 <a href="{{ url_for('principal_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-home text-xs"></i> Dashboard
                 </a>
-                <a href="{{ url_for('mark_attendance') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-calendar-check text-xs"></i> Attendance
-                </a>
-                <a href="{{ url_for('attendance_report') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-chart-bar text-xs"></i> Report
-                </a>
+                
+                <div class="relative group">
+                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
+                        <i class="fas fa-users-cog text-xs"></i> Staff <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    </button>
+                    <div class="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
+                        <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-calendar-check w-5 text-center text-gray-400"></i> Attendance</a>
+                        <a href="{{ url_for('attendance_report') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-chart-bar w-5 text-center text-gray-400"></i> Reports</a>
+                    </div>
+                </div>
+
                 <a href="{{ url_for('manage_assets') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-boxes text-xs"></i> Assets
                 </a>
+
+                <a href="{{ url_for('manage_students') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-user-graduate text-xs"></i> Students
+                </a>
+
                 {% else %}
                 <a href="{{ url_for('teacher_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-home text-xs"></i> Dashboard
@@ -113,14 +130,17 @@
                 <a href="{{ url_for('teacher_salary') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-file-invoice-dollar text-xs"></i> Salary
                 </a>
-                <a href="{{ url_for('teacher_profile') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-user-circle text-xs"></i> Profile
-                </a>
-                <a href="{{ url_for('teacher_change_password') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-key text-xs"></i> Password
-                </a>
+                <div class="relative group">
+                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
+                        <i class="fas fa-user-circle text-xs"></i> Account <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    </button>
+                    <div class="absolute top-full right-0 mt-1 w-40 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
+                        <a href="{{ url_for('teacher_profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600"><i class="fas fa-user w-5 text-center text-gray-400"></i> Profile</a>
+                        <a href="{{ url_for('teacher_change_password') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600"><i class="fas fa-key w-5 text-center text-gray-400"></i> Password</a>
+                    </div>
+                </div>
                 {% endif %}
-                <a href="{{ url_for('logout') }}" class="bg-white text-orange-600 px-4 py-2 rounded-xl text-sm font-bold shadow hover:bg-orange-50 transition ml-3">
+                <a href="{{ url_for('logout') }}" class="bg-white text-orange-600 px-4 py-2 rounded-xl text-sm font-bold shadow hover:bg-orange-50 transition ml-3 flex items-center gap-1">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
@@ -178,6 +198,9 @@
             <a href="{{ url_for('manage_assets') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-boxes w-6 text-center text-orange-500"></i> Assets
             </a>
+            <a href="{{ url_for('manage_students') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-user-graduate w-6 text-center text-orange-500"></i> Students
+            </a>
             {% elif session.get('principal') %}
             <a href="{{ url_for('principal_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-home w-6 text-center text-orange-500"></i> Dashboard
@@ -190,6 +213,9 @@
             </a>
             <a href="{{ url_for('manage_assets') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-boxes w-6 text-center text-orange-500"></i> Assets
+            </a>
+            <a href="{{ url_for('manage_students') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-user-graduate w-6 text-center text-orange-500"></i> Students
             </a>
             {% else %}
             <a href="{{ url_for('teacher_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
