@@ -30,20 +30,7 @@ assets_col = db['assets']
 students_col = db['students']
 fee_history_col = db['fee_history']
 
-# ─── Special Salary Periods ─────────────────────────────────────────────────
-# Format: (year, month, split_from_day, multiplier)
-# split_from_day se end of month tak: multiplier rate apply hoga
-# Example: May 2026, from 24th onwards: half (0.5x) rate
-HALF_RATE_PERIODS = [
-    (2026, 5, 24, 0.5)   # 24 May – 31 May 2026 → half per-day rate
-]
-
-def get_half_rate_for_month(year, month):
-    """Return (split_from_day, multiplier) if a half-rate period exists for this month."""
-    for hy, hm, hday, hmult in HALF_RATE_PERIODS:
-        if hy == year and hm == month:
-            return hday, hmult
-    return None, None
+# All salary calculations use simple full per-day rate (basic / 30) for every month.
 
 # Flask-Mail Configuration (Use environment variables or hardcode for now)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -199,128 +186,171 @@ def get_working_days(year, month):
     return get_month_summary(year, month)['working_days']
 
 
-def calculate_paid_days(tid, year, month, summary):
+def detect_continuous_leave_periods(tid, year, month, sunday_days=None):
     """
-    Attendance-based salary calculation with split-period support.
-
-    Normal months:
-      paid_days = Present(P) + Medical(M) + Half(H)×0.5
-                  + Sundays within work period
-                  + Govt Holidays within work period
-
-    Split-period months (e.g. May 2026: 24th onwards at 0.5x):
-      Period-1 (1 → split_day-1): full rate  × 1.0
-      Period-2 (split_day → end): half rate  × 0.5
-      paid_days = p1_days + p2_days × 0.5
+    Detect continuous leave periods (3+ consecutive absent days).
+    Sundays are automatically included if they fall between absent days.
+    Returns list of (start_day, end_day) tuples.
+    
+    Example:
+      Absent: 1, 2, 4, 5, 6 (Day 3 is Sunday - not marked)
+      → Detects: (1, 6) because Sunday 3 fills the gap
     """
     month_str = f"{year}-{month:02d}"
-    days_in_month = summary['days_in_month']
-    salary_calc_days = summary.get('salary_calc_days', 30)
-
-    split_day, split_mult = get_half_rate_for_month(year, month)
-    has_split = split_day is not None
-
-    if has_split:
-        # ── Split-period attendance counts ──────────────────────────────
-        p1_start = f"{year}-{month:02d}-01"
-        p1_end   = f"{year}-{month:02d}-{(split_day - 1):02d}"
-        p2_start = f"{year}-{month:02d}-{split_day:02d}"
-        p2_end   = f"{year}-{month:02d}-{days_in_month:02d}"
-
-        def cnt(statuses, d_start, d_end):
-            return attendance_col.count_documents({
-                'teacher_id': tid,
-                'date': {'$gte': d_start, '$lte': d_end},
-                'status': {'$in': statuses}
-            })
-
-        p1_present = cnt(['present', 'P'], p1_start, p1_end)
-        p1_medical = cnt(['M'],            p1_start, p1_end)
-        p1_half    = cnt(['half_day', 'H'],p1_start, p1_end)
-        p1_absent  = cnt(['absent', 'A'], p1_start, p1_end)
-
-        p2_present = cnt(['present', 'P'], p2_start, p2_end)
-        p2_medical = cnt(['M'],            p2_start, p2_end)
-        p2_half    = cnt(['half_day', 'H'],p2_start, p2_end)
-        p2_absent  = cnt(['absent', 'A'], p2_start, p2_end)
-
-        present = p1_present + p2_present
-        medical = p1_medical + p2_medical
-        half    = p1_half    + p2_half
-        absent  = p1_absent  + p2_absent
-    else:
-        # ── Normal attendance counts ────────────────────────────────────
-        present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
-        half    = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
-        medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
-        absent  = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
-
-    # ── Work period: first paid-day → last paid-day ─────────────────────
-    paid_records = list(attendance_col.find(
-        {'teacher_id': tid,
-         'date': {'$regex': f'^{month_str}'},
-         'status': {'$in': ['present', 'P', 'M', 'half_day', 'H']}},
-        {'date': 1}
-    ).sort('date', 1))
-
-    if paid_records:
-        first_d = date.fromisoformat(paid_records[0]['date'])
-        last_d  = date.fromisoformat(paid_records[-1]['date'])
-
-        if has_split:
-            p1_end_date   = date(year, month, split_day - 1)
-            p2_start_date = date(year, month, split_day)
-
-            # Sundays in Period-1 within work period
-            s1_s = first_d
-            s1_e = min(last_d, p1_end_date)
-            sundays_p1 = sum(
-                1 for i in range((s1_e - s1_s).days + 1)
-                if (s1_s + timedelta(days=i)).weekday() == 6
-            ) if s1_s <= s1_e else 0
-
-            # Sundays in Period-2 within work period
-            s2_s = max(first_d, p2_start_date)
-            s2_e = last_d
-            sundays_p2 = sum(
-                1 for i in range((s2_e - s2_s).days + 1)
-                if (s2_s + timedelta(days=i)).weekday() == 6
-            ) if s2_s <= s2_e else 0
-
-            sundays_paid = sundays_p1 + sundays_p2
-
-            # Govt holidays split by period
-            hl = summary.get('holidays_list', [])
-            holidays_p1 = sum(
-                1 for h in hl
-                if first_d <= date.fromisoformat(h['date']) <= min(last_d, p1_end_date)
-                and date.fromisoformat(h['date']).weekday() != 6
-            )
-            holidays_p2 = sum(
-                1 for h in hl
-                if max(first_d, p2_start_date) <= date.fromisoformat(h['date']) <= last_d
-                and date.fromisoformat(h['date']).weekday() != 6
-            )
-            holidays_paid = holidays_p1 + holidays_p2
-
-            # Paid days: Period-1 full + Period-2 at split_mult
-            p1_days = p1_present + p1_medical + (p1_half * 0.5) + sundays_p1 + holidays_p1
-            p2_days = (p2_present + p2_medical + (p2_half * 0.5) + sundays_p2 + holidays_p2) * split_mult
-            paid_days = p1_days + p2_days
-
+    days_in_month = calendar.monthrange(year, month)[1]
+    
+    if sunday_days is None:
+        sunday_days = set()
+    
+    # Get all absent dates for this teacher
+    absent_records = list(attendance_col.find({
+        'teacher_id': tid,
+        'date': {'$regex': f'^{month_str}'},
+        'status': {'$in': ['absent', 'A']}
+    }).sort('date', 1))
+    
+    absent_days = sorted([int(rec['date'].split('-')[2]) for rec in absent_records])
+    
+    if not absent_days:
+        return []
+    
+    # Expand absent_days to include Sundays that bridge gaps
+    # Example: [1, 2, 4, 5] with Sunday=3 → [1, 2, 3, 4, 5]
+    expanded_absent = set(absent_days)
+    for day in absent_days:
+        # Check next few days for Sundays (bridge small gaps)
+        for offset in [1, 2, 3]:
+            next_day = day + offset
+            if next_day in sunday_days and next_day <= days_in_month:
+                # Check if there's an absent day after this Sunday
+                if any(ad > next_day and ad <= next_day + 3 for ad in absent_days):
+                    expanded_absent.add(next_day)
+    
+    absent_days = sorted(list(expanded_absent))
+    
+    # Find continuous sequences (3+ days including Sundays)
+    continuous_periods = []
+    current_start = absent_days[0]
+    current_end = absent_days[0]
+    
+    for i in range(1, len(absent_days)):
+        if absent_days[i] == current_end + 1:
+            # Continuous
+            current_end = absent_days[i]
         else:
-            sundays_paid = sum(
-                1 for i in range((last_d - first_d).days + 1)
-                if (first_d + timedelta(days=i)).weekday() == 6
-            )
-            holidays_paid = sum(
-                1 for h in summary.get('holidays_list', [])
-                if first_d <= date.fromisoformat(h['date']) <= last_d
-                and date.fromisoformat(h['date']).weekday() != 6
-            )
+            # Break in sequence
+            if current_end - current_start + 1 >= 3:  # 3+ days = continuous leave
+                continuous_periods.append((current_start, current_end))
+            current_start = absent_days[i]
+            current_end = absent_days[i]
+    
+    # Check last sequence
+    if current_end - current_start + 1 >= 3:
+        continuous_periods.append((current_start, current_end))
+    
+    return continuous_periods
+
+
+def calculate_paid_days(tid, year, month, summary):
+    """
+    Attendance-based paid days calculation with Continuous Leave Rule.
+
+    Standard Formula:
+      per_day   = Basic Salary ÷ 30
+      paid_days = Present(P) + Medical(M) + Half(H)×0.5
+                  + Sundays (4 fixed) + Govt Holidays (paid)
+
+    Continuous Leave Rule:
+      If employee has 3+ consecutive absent days, any Sunday/Holiday 
+      falling within that continuous leave period is NOT paid.
+      Those days are considered part of leave period.
+
+    Example:
+      - Ravindra: Absent 21-31 May (continuous)
+      - 25 May = Sunday, 26 May = Holiday (within leave period)
+      - Result: Sunday & Holiday NOT paid (counted as leave)
+      
+      - Anu: Working normally with scattered absences
+      - Result: All Sundays & Holidays remain paid
+    """
+    month_str = f"{year}-{month:02d}"
+    salary_calc_days = summary.get('salary_calc_days', 30)
+    days_in_month = summary.get('days_in_month', 30)
+
+    # ── Attendance counts ────────────────────────────────────────────────
+    present = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['present', 'P']}})
+    half    = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['half_day', 'H']}})
+    medical = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': 'M'})
+    absent  = attendance_col.count_documents({'teacher_id': tid, 'date': {'$regex': f'^{month_str}'}, 'status': {'$in': ['absent', 'A']}})
+
+    # ── Check: koi bhi paid attendance hai? ─────────────────────────────
+    has_any_attendance = (present + half + medical) > 0
+
+    if has_any_attendance:
+        # ── Get Sundays and Holidays first ──────────────────────────────
+        sunday_days = summary.get('sunday_days', set())
+        holiday_days = summary.get('holiday_days', set())
+        
+        # ── Detect continuous leave periods ─────────────────────────────
+        # Pass sunday_days so function can detect Sundays between absent days
+        continuous_leave_periods = detect_continuous_leave_periods(tid, year, month, sunday_days)
+        
+        # Start with base counts
+        sundays_paid = 4  # Default: 4 Sundays paid
+        holidays_paid = len(holiday_days)  # All govt holidays paid
+        
+        # Variable to track if Sundays are already in attendance (for display)
+        sundays_in_attendance = False
+        
+        # ── SPECIAL CASE: MAY 2026 Manual Adjustments ───────────────────
+        # Madhu Kumari: Only 1 Sunday for May 2026
+        if tid == 'TCH0518' and year == 2026 and month == 5:
+            sundays_paid = 1
+        # Yogesh Chauhan: Only 2 Sundays for May 2026
+        elif tid == 'TCH4911' and year == 2026 and month == 5:
+            sundays_paid = 2
+        # Sambhavi: Joined 16 May - Sundays already counted in P/H attendance
+        elif tid == 'TCH4941' and year == 2026 and month == 5:
+            # For calculation: 0 (to avoid double counting)
+            # For display: 2 (to show in salary slip)
+            sundays_paid = 2
+            sundays_in_attendance = True
+        # Hanny: Joined 14 May - Sundays already counted in P attendance
+        elif tid == 'TCH0468' and year == 2026 and month == 5:
+            # For calculation: 0 (to avoid double counting)
+            # For display: 2 (to show in salary slip)
+            sundays_paid = 2
+            sundays_in_attendance = True
+        else:
+            # ── Apply Continuous Leave Rule ─────────────────────────────
+            # Deduct Sundays/Holidays that fall within continuous leave periods
+            sundays_in_leave = 0
+            holidays_in_leave = 0
+            
+            for leave_start, leave_end in continuous_leave_periods:
+                # Check each day in this continuous leave period
+                for day in range(leave_start, leave_end + 1):
+                    # Check if this day is a Sunday
+                    if day in sunday_days:
+                        sundays_in_leave += 1
+                    
+                    # Check if this day is a Government Holiday
+                    if day in holiday_days:
+                        holidays_in_leave += 1
+            
+            # Deduct Sundays/Holidays that fall in continuous leave
+            sundays_paid = max(0, sundays_paid - sundays_in_leave)
+            holidays_paid = max(0, holidays_paid - holidays_in_leave)
+
+        # Total paid_days = kaam ke din + Sundays + Holidays (after continuous leave adjustment)
+        # Special: If sundays are already in attendance (Sambhavi/Hanny), don't add them to paid_days
+        if sundays_in_attendance:
+            paid_days = present + medical + (half * 0.5) + holidays_paid
+        else:
             paid_days = present + medical + (half * 0.5) + sundays_paid + holidays_paid
-            # Cap at salary_calc_days so 30 days complete = full salary
-            paid_days = min(paid_days, salary_calc_days)
+
+        # Cap at 30: pura maheena present = exact full salary
+        paid_days = min(paid_days, salary_calc_days)
     else:
         sundays_paid  = 0
         holidays_paid = 0
@@ -335,32 +365,38 @@ def calculate_paid_days(tid, year, month, summary):
         'holidays_paid': holidays_paid,
         'paid_days':     round(paid_days, 2),
         'leave_taken':   absent,
-        'has_split':     has_split,
     }
 
 
 def compute_net_salary(basic_salary, att, salary_calc_days):
     """
-    Net salary compute karo:
-    - Split-period month (has_split=True): per_day x paid_days
-      (kyunki paid_days already half-rate adjust ho chuka hai)
-    - Normal month + 0 absent: exact basic salary
-    - Normal month + absent/half: basic - deduction
+    Net salary compute karo using PAID DAYS method.
+
+    Formula:
+      per_day    = basic_salary ÷ 30
+      net_salary = per_day × paid_days
+
+    Example: Salary = 7,000
+             per_day = 7,000 ÷ 30 = ₹233.33
+             16 paid days → net = 233.33 × 16 = ₹3,733.33
+
+    The paid_days already includes:
+      - Present days
+      - Medical days
+      - Half days (×0.5)
+      - Paid Sundays (after continuous leave deduction)
+      - Paid Govt Holidays (after continuous leave deduction)
     """
     per_day = basic_salary / salary_calc_days if salary_calc_days > 0 else 0
-
-    if att.get('has_split'):
-        # Split period: paid_days mein already half-rate factor hai
-        net_salary = round(per_day * att['paid_days'], 2)
-        deduction  = round(basic_salary - net_salary, 2)
-    elif att['absent'] == 0 and att['half'] == 0:
-        # 0 absent = exact full salary (no rounding loss)
-        net_salary = basic_salary
-        deduction  = 0.0
-    else:
-        absent_weighted = att['absent'] + att['half'] * 0.5
-        deduction  = round(per_day * absent_weighted, 2)
-        net_salary = round(basic_salary - deduction, 2)
+    
+    # Use paid_days from attendance calculation
+    paid_days = att.get('paid_days', 0)
+    
+    # Calculate net salary based on paid days
+    net_salary = round(per_day * paid_days, 2)
+    
+    # Deduction is the difference
+    deduction = round(basic_salary - net_salary, 2)
 
     return net_salary, deduction, round(per_day, 2)
 
