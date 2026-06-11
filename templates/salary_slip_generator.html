@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+{% block title %}Salary Slip Generator — गायत्री विद्यापीठ{% endblock %}
+
+{% block extra_head %}
+<style>
+    .gen-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+        overflow: hidden;
+    }
+    .gen-header {
+        background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);
+        color: #fff;
+        padding: 24px 30px;
+    }
+    .gen-header h1 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin: 0 0 4px;
+        font-family: 'Noto Sans Devanagari', sans-serif;
+    }
+    .gen-header p {
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.8);
+        margin: 0;
+    }
+    .gen-body {
+        padding: 28px 30px 32px;
+    }
+    .form-label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+    .form-label .required { color: #B22222; }
+    .form-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 2px solid #e0d5c5;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        color: #333;
+        background: #fffaf4;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: 'Poppins', sans-serif;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: #B22222;
+        box-shadow: 0 0 0 3px rgba(178,34,34,0.12);
+    }
+    .form-input:hover { border-color: #c9b89e; }
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .form-full { grid-column: span 2; }
+    .hint-text {
+        font-size: 0.72rem;
+        color: #999;
+        margin-top: 4px;
+    }
+    .submit-btn {
+        background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);
+        color: #fff;
+        padding: 12px 32px;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.2s;
+        font-family: 'Poppins', sans-serif;
+        letter-spacing: 0.3px;
+    }
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(123,28,28,0.3);
+    }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn i { margin-right: 6px; }
+    .days-summary {
+        background: #f0f7ff;
+        border: 1.5px solid #c8dff0;
+        border-radius: 10px;
+        padding: 14px 20px;
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .ds-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .ds-val {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #1A5C2E;
+    }
+    .ds-lbl {
+        font-size: 0.65rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .ds-val.warn { color: #B22222; }
+    .validation-msg {
+        background: #fee2e2;
+        border: 1.5px solid #fca5a5;
+        color: #991b1b;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        display: none;
+        margin-top: 16px;
+    }
+    .validation-msg i { margin-right: 6px; }
+
+    @media (max-width: 640px) {
+        .form-grid { grid-template-columns: 1fr; }
+        .form-full { grid-column: span 1; }
+        .gen-body { padding: 20px 16px 24px; }
+        .gen-header { padding: 18px 16px; }
+        .gen-header h1 { font-size: 1.15rem; }
+        .days-summary { gap: 12px 16px; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:720px; margin:0 auto;">
+
+    <!-- Page Title -->
+    <div class="flex items-center gap-3 mb-5">
+        <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-700">
+            <i class="fas fa-file-invoice text-lg"></i>
+        </div>
+        <div>
+            <h1 class="text-xl font-bold text-gray-800 hindi">Salary Slip Generator</h1>
+            <p class="text-xs text-gray-500">Attendance details भरें और Salary Slip generate करें</p>
+        </div>
+    </div>
+
+    <div class="gen-card">
+        <div class="gen-header">
+            <h1><i class="fas fa-calculator" style="margin-right:8px; font-size:1.1rem;"></i>Attendance & Salary Details</h1>
+            <p>Employee चुनें, attendance भरें — salary automatically calculate होगी</p>
+        </div>
+
+        <div class="gen-body">
+            <form method="POST" id="slipForm" action="{{ url_for('salary_slip_generator') }}">
+
+                <!-- Row 1: Employee Selection (full width) -->
+                <div class="form-grid">
+                    <div class="form-full">
+                        <label class="form-label">
+                            <i class="fas fa-user-tie" style="margin-right:4px; color:#7B1C1C;"></i>
+                            Employee <span class="required">*</span>
+                        </label>
+                        <select name="teacher_id" id="teacherSelect" class="form-input" required>
+                            <option value="">— Employee चुनें —</option>
+                            {% for t in teachers %}
+                            <option value="{{ t.teacher_id }}"
+                                data-name="{{ t.name }}"
+                                data-salary="{{ t.basic_salary }}"
+                                data-subject="{{ t.subject }}">
+                                {{ t.name }} ({{ t.teacher_id }}) — ₹{{ "{:,.0f}".format(t.basic_salary) }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Row 2: Month & Year -->
+                    <div>
+                        <label class="form-label">
+                            <i class="fas fa-calendar-alt" style="margin-right:4px; color:#7B1C1C;"></i>
+                            Month <span class="required">*</span>
+                        </label>
+                        <select name="month" id="monthSelect" class="form-input" required>
+                            {% set months = ['','January','February','March','April','May','June','July','August','September','October','November','December'] %}
+                            {% for m in range(1, 13) %}
+                            <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>
+                                {{ months[m] }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">
+                            <i class="fas fa-calendar" style="margin-right:4px; color:#7B1C1C;"></i>
+                            Year <span class="required">*</span>
+                        </label>
+                        <select name="year" id="yearSelect" class="form-input" required>
+                            {% for y in range(2023, 2028) %}
+                            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Row 3: Present & Absent -->
+                    <div>
+                        <label class="form-label">
+                            <i class="fas fa-check-circle" style="margin-right:4px; color:#065f46;"></i>
+                            Present Days <span class="required">*</span>
+                        </label>
+                        <input type="number" name="present_days" id="presentDays"
+                               class="form-input" min="0" max="31" value="0" required
+                               oninput="updateSummary()">
+                        <p class="hint-text">School में उपस्थित दिन (P + H + M सभी)</p>
+                    </div>
+                    <div>
+                        <label class="form-label">
+                            <i class="fas fa-times-circle" style="margin-right:4px; color:#991b1b;"></i>
+                            Absent Days <span class="required">*</span>
+                        </label>
+                        <input type="number" name="absent_days" id="absentDays"
+                               class="form-input" min="0" max="31" value="0" required
+                               oninput="updateSummary()">
+                        <p class="hint-text">अनुपस्थित दिन (बिना छुट्टी)</p>
+                    </div>
+
+                    <!-- Row 4: Paid Leave & Sunday -->
+                    <div>
+                        <label class="form-label">
+                            <i class="fas fa-calendar-check" style="margin-right:4px; color:#1e40af;"></i>
+                            Paid Leave / Advance Leave
+                        </label>
+                        <input type="number" name="paid_leave" id="paidLeave"
+                               class="form-input" min="0" max="30" value="0"
+                               oninput="updateSummary()">
+                        <p class="hint-text">Approved paid छुट्टी / Medical leave</p>
+                    </div>
+                    <div>
+                        <label class="form-label">
+                            <i class="fas fa-sun" style="margin-right:4px; color:#6d28d9;"></i>
+                            Sunday Count (Paid Sundays)
+                        </label>
+                        <input type="number" name="sunday_count" id="sundayCount"
+                               class="form-input" min="0" max="5" value="4"
+                               oninput="updateSummary()">
+                        <p class="hint-text">Default: 4 (paid Sundays per month)</p>
+                    </div>
+                </div>
+
+                <!-- Live Summary -->
+                <div style="margin-top:24px;">
+                    <div style="font-size:0.72rem; color:#777; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
+                        <i class="fas fa-chart-pie" style="margin-right:4px;"></i> Live Calculation Preview
+                    </div>
+                    <div class="days-summary" id="liveSummary">
+                        <div class="ds-item">
+                            <span class="ds-val" id="sumPresent">0</span>
+                            <span class="ds-lbl">Present</span>
+                        </div>
+                        <div class="ds-item">
+                            <span class="ds-val" style="color:#991b1b;" id="sumAbsent">0</span>
+                            <span class="ds-lbl">Absent</span>
+                        </div>
+                        <div class="ds-item">
+                            <span class="ds-val" style="color:#1e40af;" id="sumLeave">0</span>
+                            <span class="ds-lbl">Paid Leave</span>
+                        </div>
+                        <div class="ds-item">
+                            <span class="ds-val" style="color:#6d28d9;" id="sumSunday">4</span>
+                            <span class="ds-lbl">Sundays</span>
+                        </div>
+                        <div class="ds-item" style="background:#064e3b;color:#fff;border-radius:8px;padding:6px 10px;">
+                            <span class="ds-val" style="color:#fff;" id="sumPaid">4</span>
+                            <span class="ds-lbl" style="color:#d1fae5;">Paid Days</span>
+                        </div>
+                        <div class="ds-item" style="background:#7B1C1C;color:#fff;border-radius:8px;padding:6px 10px;">
+                            <span class="ds-val" style="color:#fff;" id="sumSalary">₹0</span>
+                            <span class="ds-lbl" style="color:#fecaca;">Est. Salary</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation Message -->
+                <div class="validation-msg" id="validationMsg">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="validationText"></span>
+                </div>
+
+                <!-- Submit -->
+                <div style="margin-top:28px; display:flex; gap:12px; flex-wrap:wrap; justify-content:flex-end;">
+                    <a href="{{ url_for('payroll') }}" class="bg-gray-100 text-gray-600 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Payroll
+                    </a>
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <i class="fas fa-file-invoice-dollar"></i> Generate Salary Slip
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateSummary() {
+    const present = parseInt(document.getElementById('presentDays').value) || 0;
+    const absent  = parseInt(document.getElementById('absentDays').value) || 0;
+    const leave   = parseInt(document.getElementById('paidLeave').value) || 0;
+    const sunday  = parseInt(document.getElementById('sundayCount').value) || 0;
+
+    const paidDays = Math.min(present + leave + sunday, 30);
+
+    document.getElementById('sumPresent').textContent = present;
+    document.getElementById('sumAbsent').textContent  = absent;
+    document.getElementById('sumLeave').textContent   = leave;
+    document.getElementById('sumSunday').textContent  = sunday;
+    document.getElementById('sumPaid').textContent    = paidDays;
+
+    // Estimate salary from selected teacher
+    const sel = document.getElementById('teacherSelect');
+    const opt = sel.options[sel.selectedIndex];
+    const salary = parseFloat(opt?.dataset?.salary) || 0;
+    const perDay = salary / 30;
+    const estSalary = Math.round(perDay * paidDays);
+
+    document.getElementById('sumSalary').textContent = '₹' + estSalary.toLocaleString('en-IN');
+
+    // Validation
+    const total = present + absent + leave + sunday;
+    const msgBox = document.getElementById('validationMsg');
+    const msgText = document.getElementById('validationText');
+    const btn = document.getElementById('submitBtn');
+
+    if (total > 31) {
+        msgBox.style.display = 'block';
+        msgText.textContent = 'कुल दिन (Present + Absent + Leave + Sunday) 31 से ज़्यादा नहीं हो सकते!';
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+    } else if (sel.value === '') {
+        msgBox.style.display = 'none';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    } else {
+        msgBox.style.display = 'none';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+}
+
+document.getElementById('teacherSelect').addEventListener('change', updateSummary);
+document.addEventListener('DOMContentLoaded', updateSummary);
+</script>
+{% endblock %}

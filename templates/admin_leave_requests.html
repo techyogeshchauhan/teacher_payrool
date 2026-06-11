@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Manage Leave Requests - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
+        <i class="fas fa-envelope-open-text text-orange-500"></i>
+        Leave Requests Management
+    </h1>
+    <p class="text-gray-500 text-sm hindi">शिक्षकों की छुट्टी के आवेदनों को Manage करें</p>
+</div>
+
+<div class="bg-white rounded-2xl card-shadow overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800 hindi">Pending & Recent Requests</h2>
+    </div>
+    
+    <div class="scroll-x p-6">
+        <div class="space-y-4">
+            {% for req in requests %}
+            <div class="p-5 border rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 {% if req.status == 'Pending' %}border-l-4 border-yellow-400 bg-yellow-50/30{% endif %}">
+                <div class="flex-grow">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-bold text-gray-800 text-lg">{{ req.teacher_name }}</span>
+                        <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-mono">{{ req.teacher_id }}</span>
+                    </div>
+                    <p class="font-semibold text-gray-700 hindi mb-1">
+                        <i class="fas fa-calendar-day text-orange-500 w-5"></i> 
+                        {{ req.start_date }} <span class="text-gray-400 mx-1">से</span> {{ req.end_date }}
+                    </p>
+                    <p class="text-sm text-gray-600 hindi"><i class="fas fa-comment-alt text-gray-400 w-5"></i> कारण: {{ req.reason }}</p>
+                    <p class="text-xs text-gray-400 mt-2">Applied on: {{ req.applied_on.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                
+                <div class="flex items-center gap-3 shrink-0 mt-4 md:mt-0">
+                    {% if req.status == 'Pending' %}
+                    <form method="POST" action="{{ url_for('admin_leave_requests') }}" class="inline">
+                        <input type="hidden" name="request_id" value="{{ req._id }}">
+                        <input type="hidden" name="action" value="approve">
+                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold transition flex items-center gap-2">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_leave_requests') }}" class="inline">
+                        <input type="hidden" name="request_id" value="{{ req._id }}">
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold transition flex items-center gap-2">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </form>
+                    {% elif req.status == 'Approved' %}
+                        <span class="bg-green-100 text-green-700 px-4 py-2 rounded-xl text-sm font-bold border border-green-200"><i class="fas fa-check-circle"></i> Approved</span>
+                    {% elif req.status == 'Rejected' %}
+                        <span class="bg-red-100 text-red-700 px-4 py-2 rounded-xl text-sm font-bold border border-red-200"><i class="fas fa-times-circle"></i> Rejected</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-10">
+                <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-500 hindi text-lg">कोई Pending Requests नहीं हैं।</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

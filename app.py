@@ -29,6 +29,7 @@ logs_col = db['activity_logs']
 assets_col = db['assets']
 students_col = db['students']
 fee_history_col = db['fee_history']
+leave_requests_col = db['leave_requests']
 
 # All salary calculations use simple full per-day rate (basic / 30) for every month.
 
@@ -482,15 +483,47 @@ def logout():
 @admin_required
 def admin_dashboard():
     total_teachers = teachers_col.count_documents({'active': True})
-    today_str = date.today().strftime('%Y-%m-%d')
+    today_date = date.today()
+    today_str = today_date.strftime('%Y-%m-%d')
     today_attendance = attendance_col.count_documents({'date': today_str, 'status': {'$in': ['present', 'P']}})
+    absent_today = attendance_col.count_documents({'date': today_str, 'status': {'$in': ['absent', 'A']}})
     teachers = list(teachers_col.find({'active': True}))
+    
+    # ─── Chart Data Preparation ───
+    trend_labels = []
+    trend_presents = []
+    trend_absents = []
+    
+    for i in range(6, -1, -1):
+        d = today_date - timedelta(days=i)
+        d_str = d.strftime('%Y-%m-%d')
+        trend_labels.append(d.strftime('%d %b')) # e.g., '10 Jun'
+        p = attendance_col.count_documents({'date': d_str, 'status': {'$in': ['present', 'P']}})
+        a = attendance_col.count_documents({'date': d_str, 'status': {'$in': ['absent', 'A']}})
+        trend_presents.append(p)
+        trend_absents.append(a)
+        
+    subject_counts = {}
+    for t in teachers:
+        subj = t.get('subject', 'Other')
+        if not subj: subj = 'Other'
+        subject_counts[subj] = subject_counts.get(subj, 0) + 1
+        
+    pie_labels = list(subject_counts.keys())
+    pie_data = list(subject_counts.values())
+
     return render_template('admin_dashboard.html', 
                          total=total_teachers,
                          present_today=today_attendance,
+                         absent_today=absent_today,
                          teachers=teachers,
                          today=today_str,
-                         admin_name=session.get('admin_name'))
+                         admin_name=session.get('admin_name'),
+                         trend_labels=trend_labels,
+                         trend_presents=trend_presents,
+                         trend_absents=trend_absents,
+                         pie_labels=pie_labels,
+                         pie_data=pie_data)
 
 @app.route('/principal/dashboard')
 @principal_required
@@ -498,9 +531,11 @@ def principal_dashboard():
     total_teachers = teachers_col.count_documents({'active': True})
     today_str = date.today().strftime('%Y-%m-%d')
     today_attendance = attendance_col.count_documents({'date': today_str, 'status': {'$in': ['present', 'P']}})
+    absent_today = attendance_col.count_documents({'date': today_str, 'status': {'$in': ['absent', 'A']}})
     return render_template('principal_dashboard.html', 
                          total=total_teachers,
                          present_today=today_attendance,
+                         absent_today=absent_today,
                          today=today_str,
                          principal_name=session.get('principal_name'))
 
@@ -628,6 +663,14 @@ def mark_attendance():
     for rec in attendance_col.find({'date': selected_date}):
         existing[rec['teacher_id']] = rec['status']
     
+    # Get teachers on approved leave for selected_date
+    approved_leaves = leave_requests_col.find({
+        'status': 'Approved',
+        'start_date': {'$lte': selected_date},
+        'end_date': {'$gte': selected_date}
+    })
+    teachers_on_leave = set([req['teacher_id'] for req in approved_leaves])
+
     if request.method == 'POST':
         att_date = request.form['att_date']
         for teacher in teachers:
@@ -645,7 +688,7 @@ def mark_attendance():
                         'teacher_name': teacher['name'],
                         'date': att_date,
                         'status': status,
-                        'marked_by': session.get('admin_name') or session.get('principal_name'),
+                        'marked_by': 'Admin' if session.get('admin') else 'Principal',
                         'marked_at': datetime.now()
                     }},
                     upsert=True
@@ -656,7 +699,8 @@ def mark_attendance():
     return render_template('mark_attendance.html',
                          teachers=teachers,
                          selected_date=selected_date,
-                         existing=existing)
+                         existing=existing,
+                         teachers_on_leave=teachers_on_leave)
 
 @app.route('/admin/payroll')
 @admin_required
@@ -1058,6 +1102,34 @@ def admin_salary_slip(teacher_id):
                          is_admin=True)
 
 
+@app.route('/teacher/leave', methods=['GET', 'POST'])
+@teacher_required
+def teacher_leave():
+    tid = session['teacher_id']
+    if request.method == 'POST':
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        reason = request.form['reason']
+        
+        teacher = teachers_col.find_one({'teacher_id': tid})
+        
+        leave_req = {
+            'teacher_id': tid,
+            'teacher_name': teacher['name'],
+            'start_date': start_date,
+            'end_date': end_date,
+            'reason': reason,
+            'status': 'Pending',
+            'applied_on': datetime.now()
+        }
+        leave_requests_col.insert_one(leave_req)
+        flash('छुट्टी का आवेदन सफलतापूर्वक भेज दिया गया है!')
+        return redirect(url_for('teacher_leave'))
+        
+    leaves = list(leave_requests_col.find({'teacher_id': tid}).sort('applied_on', -1))
+    today_str = date.today().strftime('%Y-%m-%d')
+    return render_template('teacher_leave.html', leaves=leaves, today_str=today_str)
+
 @app.route('/teacher/attendance/report')
 @teacher_required
 def teacher_attendance_report():
@@ -1367,6 +1439,101 @@ def teacher_change_password():
             return redirect(url_for('teacher_dashboard'))
             
     return render_template('teacher_change_password.html')
+
+@app.route('/teacher/holidays')
+@teacher_required
+def teacher_holidays():
+    holidays = list(holidays_col.find().sort('date', 1))
+    return render_template('teacher_holidays.html', holidays=holidays)
+
+# ─── Salary Slip Generator ───────────────────────────────────────────────────
+
+@app.route('/admin/salary/slip-generator', methods=['GET', 'POST'])
+@admin_required
+def salary_slip_generator():
+    teachers = list(teachers_col.find({'active': True}))
+
+    if request.method == 'POST':
+        teacher_id = request.form['teacher_id']
+        month = int(request.form['month'])
+        year = int(request.form['year'])
+        present_days = int(request.form.get('present_days', 0))
+        absent_days = int(request.form.get('absent_days', 0))
+        paid_leave = int(request.form.get('paid_leave', 0))
+        sunday_count = int(request.form.get('sunday_count', 4))
+
+        teacher = teachers_col.find_one({'teacher_id': teacher_id})
+        if not teacher:
+            flash('Teacher नहीं मिले!')
+            return redirect(url_for('salary_slip_generator'))
+
+        basic_salary = teacher['basic_salary']
+        salary_calc_days = 30  # Always 30 — same as existing engine
+
+        # Build att dict matching calculate_paid_days() return format
+        paid_days = min(present_days + paid_leave + sunday_count, salary_calc_days)
+
+        att = {
+            'present': present_days,
+            'half': 0,
+            'medical': paid_leave,
+            'absent': absent_days,
+            'sundays_paid': sunday_count,
+            'holidays_paid': 0,
+            'paid_days': paid_days,
+            'leave_taken': absent_days,
+        }
+
+        # Use the EXISTING compute_net_salary() — no logic change
+        net_salary, deduction, per_day = compute_net_salary(
+            basic_salary, att, salary_calc_days
+        )
+
+        # Generate unique bill number
+        all_teachers = list(teachers_col.find({'active': True}, {'teacher_id': 1}).sort('_id', 1))
+        bill_index = next((i + 1 for i, t in enumerate(all_teachers) if t['teacher_id'] == teacher_id), 1)
+        unique_bill_no = f"GVP-SG-{year}-{month:02d}-{bill_index:03d}"
+
+        today = date.today()
+        slip_date = today.strftime('%d/%m/%Y')
+
+        return render_template('salary_slip_generated.html',
+                             teacher=teacher,
+                             month=month, year=year,
+                             month_name=calendar.month_name[month],
+                             present_days=present_days,
+                             absent_days=absent_days,
+                             paid_leave=paid_leave,
+                             sunday_count=sunday_count,
+                             paid_days=paid_days,
+                             basic_salary=basic_salary,
+                             per_day=round(per_day, 2),
+                             allowances=0,
+                             deduction=deduction,
+                             net_salary=net_salary,
+                             bill_no=unique_bill_no,
+                             slip_date=slip_date)
+
+    today = date.today()
+    return render_template('salary_slip_generator.html',
+                         teachers=teachers,
+                         current_month=today.month,
+                         current_year=today.year)
+
+
+@app.route('/admin/leave/requests', methods=['GET', 'POST'])
+@admin_required
+def admin_leave_requests():
+    if request.method == 'POST':
+        req_id = request.form['request_id']
+        action = request.form['action']
+        status = 'Approved' if action == 'approve' else 'Rejected'
+        leave_requests_col.update_one({'_id': ObjectId(req_id)}, {'$set': {'status': status}})
+        flash(f'Leave request {status}!')
+        return redirect(url_for('admin_leave_requests'))
+        
+    requests = list(leave_requests_col.find().sort([('status', -1), ('applied_on', -1)]))
+    return render_template('admin_leave_requests.html', requests=requests)
 
 # ─── Student Fee Management ──────────────────────────────────────────────────
 

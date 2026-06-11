@@ -39,7 +39,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-500 text-xs hindi">आज अनुपस्थित</p>
-                <p class="text-3xl font-bold text-red-500">{{ total - present_today }}</p>
+                <p class="text-3xl font-bold text-red-500">{{ absent_today }}</p>
             </div>
             <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
                 <i class="fas fa-user-times text-red-400 text-xl"></i>
@@ -55,6 +55,24 @@
             <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
                 <i class="fas fa-calendar text-yellow-500 text-xl"></i>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Trend Chart -->
+    <div class="lg:col-span-2 bg-white rounded-2xl p-5 card-shadow border border-gray-100">
+        <h3 class="font-bold text-gray-800 mb-4 hindi flex items-center gap-2"><i class="fas fa-chart-line text-orange-500"></i> पिछले 7 दिनों की उपस्थिति (Last 7 Days Trend)</h3>
+        <div style="height: 280px; position: relative;">
+            <canvas id="attendanceTrendChart"></canvas>
+        </div>
+    </div>
+    <!-- Pie Chart -->
+    <div class="bg-white rounded-2xl p-5 card-shadow border border-gray-100">
+        <h3 class="font-bold text-gray-800 mb-4 hindi flex items-center gap-2"><i class="fas fa-chart-pie text-green-500"></i> विषय (Subject) Distribution</h3>
+        <div style="height: 280px; position: relative;" class="flex justify-center items-center">
+            <canvas id="subjectPieChart"></canvas>
         </div>
     </div>
 </div>
@@ -115,5 +133,87 @@
         </table>
     </div>
 </div>
+
+<!-- Chart.js and Graph Implementation -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Data from Backend
+    const trendLabels = {{ trend_labels | tojson }};
+    const trendPresents = {{ trend_presents | tojson }};
+    const trendAbsents = {{ trend_absents | tojson }};
+    
+    const pieLabels = {{ pie_labels | tojson }};
+    const pieData = {{ pie_data | tojson }};
+
+    // Chart.js Default styling
+    Chart.defaults.font.family = "'Poppins', 'Noto Sans Devanagari', sans-serif";
+
+    // 1. Line Chart: Attendance Trend
+    const ctxTrend = document.getElementById('attendanceTrendChart').getContext('2d');
+    new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+            labels: trendLabels,
+            datasets: [
+                {
+                    label: 'उपस्थित (Present)',
+                    data: trendPresents,
+                    borderColor: '#16a34a',
+                    backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#16a34a',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'अनुपस्थित (Absent)',
+                    data: trendAbsents,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ef4444',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+
+    // 2. Doughnut Chart: Subject Distribution
+    const ctxPie = document.getElementById('subjectPieChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+            labels: pieLabels,
+            datasets: [{
+                data: pieData,
+                backgroundColor: [
+                    '#f97316', '#3b82f6', '#10b981', '#ec4899', '#8b5cf6', '#eab308', '#06b6d4', '#f43f5e'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 10 } }
+            }
+        }
+    });
+</script>
 
 {% endblock %}

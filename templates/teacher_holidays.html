@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}School Holidays - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
+        <i class="fas fa-umbrella-beach text-blue-500"></i>
+        School Holidays Calendar
+    </h1>
+    <p class="text-gray-500 text-sm hindi">वर्ष की सभी छुट्टियों की सूची</p>
+</div>
+
+<div class="bg-white rounded-2xl card-shadow overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 bg-blue-50">
+        <h2 class="font-bold text-gray-800 hindi flex items-center gap-2">
+            <i class="fas fa-list-ul text-blue-600"></i> Upcoming Holidays
+        </h2>
+    </div>
+    
+    <div class="scroll-x p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for h in holidays %}
+            <div class="border rounded-xl p-4 flex flex-col items-center justify-center text-center hover:shadow-md transition">
+                <div class="bg-blue-100 text-blue-700 w-16 h-16 rounded-full flex items-center justify-center mb-3">
+                    <i class="fas fa-calendar-star text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 text-lg hindi">{{ h.title }}</h3>
+                <p class="text-sm font-semibold text-gray-500 mt-1 hindi">
+                    {{ h.date.split('-')[2] }}-{{ h.date.split('-')[1] }}-{{ h.date.split('-')[0] }}
+                </p>
+            </div>
+            {% else %}
+            <div class="col-span-full text-center py-8 text-gray-400 hindi">
+                कोई छुट्टियां नहीं जोड़ी गई हैं।
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

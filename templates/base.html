@@ -75,7 +75,9 @@
                     <div class="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
                         <a href="{{ url_for('manage_teachers') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-users w-5 text-center text-gray-400"></i> Teachers</a>
                         <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-calendar-check w-5 text-center text-gray-400"></i> Attendance</a>
+                        <a href="{{ url_for('admin_leave_requests') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-envelope-open-text w-5 text-center text-gray-400"></i> Leave Requests</a>
                         <a href="{{ url_for('payroll') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-rupee-sign w-5 text-center text-gray-400"></i> Payroll</a>
+                        <a href="{{ url_for('salary_slip_generator') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-file-invoice-dollar w-5 text-center text-gray-400"></i> Slip Generator</a>
                         <a href="{{ url_for('salary_increment') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-arrow-trend-up w-5 text-center text-gray-400"></i> Increment</a>
                         <a href="{{ url_for('teacher_logs') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 border-t border-gray-50 mt-1 pt-2"><i class="fas fa-clipboard-list w-5 text-center text-gray-400"></i> Logs</a>
                     </div>
@@ -126,6 +128,12 @@
                 </a>
                 <a href="{{ url_for('teacher_attendance_report') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-calendar-alt text-xs"></i> Attendance
+                </a>
+                <a href="{{ url_for('teacher_leave') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-plane-departure text-xs"></i> Leaves
+                </a>
+                <a href="{{ url_for('teacher_holidays') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-umbrella-beach text-xs"></i> Holidays
                 </a>
                 <a href="{{ url_for('teacher_salary') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
                     <i class="fas fa-file-invoice-dollar text-xs"></i> Salary
@@ -180,8 +188,14 @@
             <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-calendar-check w-6 text-center text-orange-500"></i> Attendance
             </a>
+            <a href="{{ url_for('admin_leave_requests') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-envelope-open-text w-6 text-center text-orange-500"></i> Leave Requests
+            </a>
             <a href="{{ url_for('payroll') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-rupee-sign w-6 text-center text-orange-500"></i> Payroll
+            </a>
+            <a href="{{ url_for('salary_slip_generator') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-file-invoice-dollar w-6 text-center text-orange-500"></i> Slip Generator
             </a>
             <a href="{{ url_for('salary_increment') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-arrow-trend-up w-6 text-center text-orange-500"></i> Increment
@@ -223,6 +237,12 @@
             </a>
             <a href="{{ url_for('teacher_attendance_report') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
                 <i class="fas fa-calendar-alt w-6 text-center text-green-600"></i> Attendance
+            </a>
+            <a href="{{ url_for('teacher_leave') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
+                <i class="fas fa-plane-departure w-6 text-center text-green-600"></i> Leaves
+            </a>
+            <a href="{{ url_for('teacher_holidays') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
+                <i class="fas fa-umbrella-beach w-6 text-center text-green-600"></i> Holidays
             </a>
             <a href="{{ url_for('teacher_salary') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
                 <i class="fas fa-file-invoice-dollar w-6 text-center text-green-600"></i> Salary
