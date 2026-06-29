@@ -64,7 +64,9 @@
                     <a href="{{ url_for('about') }}" class="text-gray-600 hover:text-orange-600 font-semibold transition">हमारे बारे में</a>
                     <a href="{{ url_for('contact') }}" class="text-gray-600 hover:text-orange-600 font-semibold transition">संपर्क करें</a>
                     <a href="{{ url_for('teacher_login') }}" class="text-gray-600 hover:text-green-600 font-semibold transition">शिक्षक कॉर्नर</a>
+                    <a href="{{ url_for('student_login') }}" class="text-gray-600 hover:text-blue-600 font-semibold transition">Student Portal</a>
                     <a href="{{ url_for('principal_login') }}" class="text-orange-600 font-semibold transition">प्रधानाचार्य कॉर्नर</a>
+                    <a href="{{ url_for('accountant.accountant_login') }}" class="text-teal-600 hover:text-teal-700 font-semibold transition">अकाउंटेंट कॉर्नर</a>
                     <a href="{{ url_for('admin_login') }}" class="saffron-grad text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition"><i class="fas fa-user-shield mr-2"></i>Admin Login</a>
                 </div>
                 <div class="md:hidden flex items-center">
@@ -81,7 +83,9 @@
             <a href="{{ url_for('about') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-info-circle w-6 text-center text-orange-500 mr-2"></i> हमारे बारे में</a>
             <a href="{{ url_for('contact') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-phone-alt w-6 text-center text-orange-500 mr-2"></i> संपर्क करें</a>
             <a href="{{ url_for('teacher_login') }}" class="block font-bold text-gray-700 hover:text-green-600 hindi"><i class="fas fa-chalkboard-teacher w-6 text-center text-green-500 mr-2"></i> शिक्षक कॉर्नर</a>
+            <a href="{{ url_for('student_login') }}" class="block font-bold text-gray-700 hover:text-blue-600 hindi"><i class="fas fa-user-graduate w-6 text-center text-blue-500 mr-2"></i> छात्र पोर्टल</a>
             <a href="{{ url_for('principal_login') }}" class="block font-bold text-gray-700 hover:text-orange-600 hindi"><i class="fas fa-user-tie w-6 text-center text-orange-500 mr-2"></i> प्रधानाचार्य कॉर्नर</a>
+            <a href="{{ url_for('accountant.accountant_login') }}" class="block font-bold text-gray-700 hover:text-teal-600 hindi"><i class="fas fa-calculator w-6 text-center text-teal-500 mr-2"></i> अकाउंटेंट कॉर्नर</a>
             <div class="border-t border-gray-100 pt-4 mt-2">
                 <a href="{{ url_for('admin_login') }}" class="block font-bold text-white bg-orange-500 px-4 py-3 rounded-xl text-center shadow-md hindi hover:bg-orange-600"><i class="fas fa-user-shield mr-2"></i> एडमिन लॉगिन</a>
             </div>
@@ -105,14 +109,22 @@
                 दाउदनगर का अग्रणी शिक्षण संस्थान, जहाँ बच्चों का भविष्य संवरता है।
             </p>
             
-            <div class="flex flex-col sm:flex-row gap-5 justify-center mt-6 w-full max-w-lg mx-auto">
-                <a href="{{ url_for('teacher_login') }}" class="flex-1 green-grad hover:scale-105 text-white font-bold py-5 px-8 rounded-2xl shadow-2xl transform transition duration-300 flex items-center justify-center gap-3 text-xl border border-white/20">
+            <div class="flex flex-wrap justify-center gap-5 mt-6 w-full max-w-4xl mx-auto">
+                <a href="{{ url_for('student_login') }}" class="flex-1 min-w-[200px] bg-gradient-to-br from-blue-500 to-indigo-600 hover:scale-105 text-white font-bold py-5 px-6 rounded-2xl shadow-2xl transform transition duration-300 flex items-center justify-center gap-3 text-xl border border-white/20">
+                    <i class="fas fa-user-graduate text-2xl"></i>
+                    <span class="hindi text-shadow">छात्र पोर्टल</span>
+                </a>
+                <a href="{{ url_for('teacher_login') }}" class="flex-1 min-w-[200px] green-grad hover:scale-105 text-white font-bold py-5 px-6 rounded-2xl shadow-2xl transform transition duration-300 flex items-center justify-center gap-3 text-xl border border-white/20">
                     <i class="fas fa-chalkboard-teacher text-2xl"></i>
                     <span class="hindi text-shadow">शिक्षक पोर्टल</span>
                 </a>
                 <a href="{{ url_for('principal_login') }}" class="flex-1 saffron-grad hover:scale-105 text-white font-bold py-5 px-8 rounded-2xl shadow-2xl transform transition duration-300 flex items-center justify-center gap-3 text-xl border border-white/20">
                     <i class="fas fa-user-tie text-2xl"></i>
                     <span class="hindi text-shadow">Principal</span>
+                </a>
+                <a href="{{ url_for('accountant.accountant_login') }}" class="flex-1 bg-gradient-to-br from-teal-500 to-teal-700 hover:scale-105 text-white font-bold py-5 px-8 rounded-2xl shadow-2xl transform transition duration-300 flex items-center justify-center gap-3 text-xl border border-white/20">
+                    <i class="fas fa-calculator text-2xl"></i>
+                    <span class="hindi text-shadow">अकाउंटेंट</span>
                 </a>
                 <a href="{{ url_for('admin_login') }}" class="flex-1 maroon-grad hover:scale-105 text-white font-bold py-5 px-8 rounded-2xl shadow-2xl transform transition duration-300 flex items-center justify-center gap-3 text-xl border border-white/20">
                     <i class="fas fa-user-shield text-2xl"></i>
@@ -194,7 +206,9 @@
                         <li><a href="{{ url_for('about') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> हमारे बारे में</a></li>
                         <li><a href="{{ url_for('contact') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> संपर्क करें</a></li>
                         <li><a href="{{ url_for('teacher_login') }}" class="text-gray-400 hover:text-green-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> शिक्षक पोर्टल</a></li>
+                        <li><a href="{{ url_for('student_login') }}" class="text-gray-400 hover:text-blue-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> छात्र पोर्टल</a></li>
                         <li><a href="{{ url_for('principal_login') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> प्रधानाचार्य पोर्टल</a></li>
+                        <li><a href="{{ url_for('accountant.accountant_login') }}" class="text-gray-400 hover:text-teal-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> अकाउंटेंट पोर्टल</a></li>
                         <li><a href="{{ url_for('admin_login') }}" class="text-gray-400 hover:text-orange-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-xs"></i> एडमिन लॉगिन</a></li>
                     </ul>
                 </div>

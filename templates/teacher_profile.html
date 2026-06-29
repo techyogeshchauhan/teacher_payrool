@@ -37,6 +37,7 @@
                 <!-- Upload Form -->
                 <div class="flex-1 w-full">
                     <form method="POST" enctype="multipart/form-data" id="photo-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <label class="block text-sm font-semibold text-gray-700 mb-2 hindi">
                             नई Photo चुनें <span class="text-gray-400 font-normal">(JPG/PNG/WEBP, max 2MB)</span>
                         </label>

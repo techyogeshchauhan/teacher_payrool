@@ -21,6 +21,7 @@
 
 {% if teachers %}
 <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="att_date" value="{{ selected_date }}">
     
     <div class="bg-white rounded-2xl card-shadow overflow-hidden mb-6">

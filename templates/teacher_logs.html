@@ -80,6 +80,7 @@
         <form method="POST" action="{{ url_for('clear_logs') }}"
               onsubmit="return confirm('क्या आप पिछले 2 दिन से पुराने सभी logs delete करना चाहते हैं?')"
               class="flex items-center gap-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="bg-red-50 text-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-500 hover:text-white transition" title="2 दिन से पुराने logs हटाएं">
                 <i class="fas fa-trash"></i> Clear Old (Older than 2 Days)
             </button>

@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Add Student - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{{ url_for('accountant.accountant_manage_students') }}" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-teal-600 hover:bg-teal-50 transition shadow-sm">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-800 hindi">नया Student जोड़ें</h1>
+    </div>
+
+    <form method="POST" class="bg-white rounded-3xl card-shadow p-6 sm:p-8 border-t-4 border-teal-500">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <!-- Section: Basic Info -->
+        <div class="mb-6">
+            <h2 class="text-sm font-bold text-teal-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fas fa-user text-teal-500"></i> <span class="hindi">बुनियादी जानकारी (Basic Info)</span>
+            </h2>
+            <div class="space-y-4">
+                <!-- Name -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 hindi">पूरा नाम (Full Name) <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <input type="text" name="name" required class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-medium hindi" placeholder="उदा: राहुल कुमार">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Admission No -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Admission No</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <input type="text" name="admission_no" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-medium" placeholder="GVP-2026-001">
+                        </div>
+                    </div>
+
+                    <!-- Class -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Class <span class="text-red-500">*</span></label>
+                        <select name="class" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-medium">
+                            <option value="">-- चुनें --</option>
+                            <option value="Nursery">Nursery</option>
+                            <option value="LKG">LKG</option>
+                            <option value="UKG">UKG</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                        </select>
+                    </div>
+
+                    <!-- Section -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Section</label>
+                        <select name="section" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-medium">
+                            <option value="">-- None --</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Roll No -->
+                <div class="w-full sm:w-1/3">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Roll Number <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-id-badge"></i>
+                        </div>
+                        <input type="text" name="roll_no" required class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-medium" placeholder="101">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Family Details -->
+        <div class="mb-6 pt-6 border-t border-gray-100">
+            <h2 class="text-sm font-bold text-teal-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fas fa-users text-teal-500"></i> <span class="hindi">पारिवारिक जानकारी (Family Details)</span>
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Father Name -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 hindi">पिता का नाम (Father Name)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-male"></i>
+                        </div>
+                        <input type="text" name="father_name" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-medium hindi" placeholder="उदा: श्री रामेश्वर प्रसाद">
+                    </div>
+                </div>
+
+                <!-- Mother Name -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 hindi">माता का नाम (Mother Name)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-female"></i>
+                        </div>
+                        <input type="text" name="mother_name" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-medium hindi" placeholder="उदा: श्रीमती सुनीता देवी">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Contact -->
+        <div class="mb-6 pt-6 border-t border-gray-100">
+            <h2 class="text-sm font-bold text-teal-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fas fa-phone text-teal-500"></i> <span class="hindi">संपर्क (Contact)</span>
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Mobile -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 hindi">मोबाइल नंबर (Mobile)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <input type="tel" name="mobile" maxlength="10" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-medium" placeholder="9876543210">
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 hindi">पता (Address)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <input type="text" name="address" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-medium hindi" placeholder="गांव/मोहल्ला, पोस्ट, जिला">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Fee & Status -->
+        <div class="mb-6 pt-6 border-t border-gray-100">
+            <h2 class="text-sm font-bold text-teal-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fas fa-rupee-sign text-teal-500"></i> <span class="hindi">शुल्क और स्थिति (Fee & Status)</span>
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Total Annual Fee -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 hindi">कुल वार्षिक शुल्क (Total Annual Fee) <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <input type="number" name="total_fee" required min="0" step="1" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-bold text-lg" placeholder="10000">
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 hindi">स्थिति (Status)</label>
+                    <select name="status" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-gray-800 font-medium">
+                        <option value="Active" selected>Active ✅</option>
+                        <option value="Inactive">Inactive ❌</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 hindi flex items-center justify-center gap-2">
+                <i class="fas fa-check-circle"></i> Student को सेव करें
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

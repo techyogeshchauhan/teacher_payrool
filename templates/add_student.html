@@ -11,6 +11,7 @@
     </div>
 
     <form method="POST" class="bg-white rounded-3xl card-shadow p-6 sm:p-8 border-t-4 border-orange-500">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="space-y-5">
             <!-- Name -->
             <div>

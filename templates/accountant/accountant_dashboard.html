@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}Accountant Dashboard - गायत्री विद्यापीठ{% endblock %}
+{% block extra_head %}
+<style>
+    .stat-card { transition: all 0.3s ease; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
+    .teal-grad { background: linear-gradient(135deg, #0d9488 0%, #2dd4bf 100%); }
+    .emerald-grad { background: linear-gradient(135deg, #059669 0%, #34d399 100%); }
+    .amber-grad { background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%); }
+    .rose-grad { background: linear-gradient(135deg, #e11d48 0%, #fb7185 100%); }
+    .indigo-grad { background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+    <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-800 hindi flex items-center gap-3">
+            <div class="w-12 h-12 teal-grad rounded-xl flex items-center justify-center text-white shadow-lg">
+                <i class="fas fa-calculator text-lg"></i>
+            </div>
+            Accountant Dashboard
+        </h1>
+        <p class="text-gray-500 text-sm mt-1 hindi">नमस्ते, <span class="font-bold text-teal-700">{{ accountant_name }}</span> 🙏</p>
+    </div>
+    <a href="{{ url_for('accountant.accountant_add_student') }}" 
+       class="teal-grad text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:opacity-90 transition shadow-lg">
+        <i class="fas fa-plus"></i> <span class="hindi">नया Student जोड़ें</span>
+    </a>
+</div>
+
+<!-- Summary Stats Cards -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <!-- Total Students -->
+    <div class="stat-card bg-white rounded-2xl card-shadow p-5 border-t-4 border-teal-500 relative overflow-hidden">
+        <div class="absolute -top-4 -right-4 w-20 h-20 bg-teal-50 rounded-full opacity-50"></div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 teal-grad rounded-lg flex items-center justify-center text-white">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <span class="text-xs text-gray-500 font-bold uppercase tracking-wider hindi">कुल छात्र</span>
+            </div>
+            <p class="text-3xl font-black text-gray-800">{{ stats.total_students }}</p>
+            <div class="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">{{ active_count }} Active</span>
+                {% if inactive_count > 0 %}
+                <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold">{{ inactive_count }} Inactive</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Fee -->
+    <div class="stat-card bg-white rounded-2xl card-shadow p-5 border-t-4 border-indigo-500 relative overflow-hidden">
+        <div class="absolute -top-4 -right-4 w-20 h-20 bg-indigo-50 rounded-full opacity-50"></div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 indigo-grad rounded-lg flex items-center justify-center text-white">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <span class="text-xs text-gray-500 font-bold uppercase tracking-wider hindi">कुल शुल्क</span>
+            </div>
+            <p class="text-2xl sm:text-3xl font-black text-gray-800">₹{{ "{:,.0f}".format(stats.total_fee) }}</p>
+            <p class="text-xs text-gray-400 mt-1">Total Annual Fee</p>
+        </div>
+    </div>
+
+    <!-- Total Collected -->
+    <div class="stat-card bg-white rounded-2xl card-shadow p-5 border-t-4 border-emerald-500 relative overflow-hidden">
+        <div class="absolute -top-4 -right-4 w-20 h-20 bg-emerald-50 rounded-full opacity-50"></div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 emerald-grad rounded-lg flex items-center justify-center text-white">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <span class="text-xs text-gray-500 font-bold uppercase tracking-wider hindi">जमा हुआ</span>
+            </div>
+            <p class="text-2xl sm:text-3xl font-black text-green-600">₹{{ "{:,.0f}".format(stats.total_paid) }}</p>
+            {% if stats.total_fee > 0 %}
+            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: {{ (stats.total_paid / stats.total_fee * 100) | round(1) }}%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">{{ (stats.total_paid / stats.total_fee * 100) | round(1) }}% Collected</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Total Pending -->
+    <div class="stat-card bg-white rounded-2xl card-shadow p-5 border-t-4 border-rose-500 relative overflow-hidden">
+        <div class="absolute -top-4 -right-4 w-20 h-20 bg-rose-50 rounded-full opacity-50"></div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rose-grad rounded-lg flex items-center justify-center text-white">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <span class="text-xs text-gray-500 font-bold uppercase tracking-wider hindi">बकाया</span>
+            </div>
+            <p class="text-2xl sm:text-3xl font-black text-red-600">₹{{ "{:,.0f}".format(stats.total_balance) }}</p>
+            <p class="text-xs text-gray-400 mt-1">Total Pending</p>
+        </div>
+    </div>
+</div>
+
+<!-- Class-wise Collection Summary -->
+{% if class_summary %}
+<div class="bg-white rounded-2xl card-shadow overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+        <div class="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center text-teal-600">
+            <i class="fas fa-chart-bar text-sm"></i>
+        </div>
+        <h2 class="text-lg font-bold text-gray-800 hindi">कक्षा-वार शुल्क संग्रह (Class-wise Collection)</h2>
+    </div>
+    <div class="scroll-x">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Class</th>
+                    <th class="text-center px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hindi">छात्र</th>
+                    <th class="text-right px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hindi">कुल शुल्क</th>
+                    <th class="text-right px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hindi">जमा</th>
+                    <th class="text-right px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hindi">बकाया</th>
+                    <th class="text-center px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Progress</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for cs in class_summary %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-5 py-4 font-bold text-gray-800">{{ cs._id or 'N/A' }}</td>
+                    <td class="px-5 py-4 text-center">
+                        <span class="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs font-bold">{{ cs.count }}</span>
+                    </td>
+                    <td class="px-5 py-4 text-right font-bold text-gray-700">₹{{ "{:,.0f}".format(cs.total_fee) }}</td>
+                    <td class="px-5 py-4 text-right font-bold text-green-600">₹{{ "{:,.0f}".format(cs.total_paid) }}</td>
+                    <td class="px-5 py-4 text-right font-bold text-red-600">₹{{ "{:,.0f}".format(cs.total_balance) }}</td>
+                    <td class="px-5 py-4">
+                        {% if cs.total_fee > 0 %}
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 max-w-[120px] mx-auto">
+                            <div class="bg-teal-500 h-2.5 rounded-full" style="width: {{ (cs.total_paid / cs.total_fee * 100) | round(1) }}%"></div>
+                        </div>
+                        <p class="text-[10px] text-gray-400 text-center mt-1">{{ (cs.total_paid / cs.total_fee * 100) | round(1) }}%</p>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Payments -->
+{% if recent_payments %}
+<div class="bg-white rounded-2xl card-shadow overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+                <i class="fas fa-history text-sm"></i>
+            </div>
+            <h2 class="text-lg font-bold text-gray-800 hindi">हाल के भुगतान (Recent Payments)</h2>
+        </div>
+        <a href="{{ url_for('accountant.accountant_manage_students') }}" class="text-xs font-bold text-teal-600 hover:text-teal-700 transition">
+            सभी देखें <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+    </div>
+    <div class="scroll-x">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hindi">छात्र</th>
+                    <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Receipt</th>
+                    <th class="text-right px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hindi">राशि</th>
+                    <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Mode</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for p in recent_payments %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-5 py-3 text-sm text-gray-600 whitespace-nowrap">{{ p.date }}</td>
+                    <td class="px-5 py-3 font-bold text-gray-800 hindi text-sm">{{ p.student_name }}</td>
+                    <td class="px-5 py-3">
+                        <a href="{{ url_for('accountant.accountant_fee_receipt', receipt_no=p.receipt_no) }}" 
+                           class="bg-teal-100 text-teal-700 font-mono px-2 py-1 rounded text-xs font-bold hover:bg-teal-600 hover:text-white transition">
+                            {{ p.receipt_no }}
+                        </a>
+                    </td>
+                    <td class="px-5 py-3 text-right font-black text-green-600">₹{{ "{:,.0f}".format(p.amount) }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">
+                        <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">{{ p.get('payment_mode', 'Cash') }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+    <a href="{{ url_for('accountant.accountant_manage_students') }}" 
+       class="bg-white rounded-2xl card-shadow p-5 flex items-center gap-4 hover:border-teal-500 border-2 border-transparent transition group">
+        <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition">
+            <i class="fas fa-users text-lg"></i>
+        </div>
+        <div>
+            <p class="font-bold text-gray-800 hindi">छात्र देखें</p>
+            <p class="text-xs text-gray-500">Manage Students</p>
+        </div>
+    </a>
+    <a href="{{ url_for('accountant.accountant_add_student') }}" 
+       class="bg-white rounded-2xl card-shadow p-5 flex items-center gap-4 hover:border-emerald-500 border-2 border-transparent transition group">
+        <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition">
+            <i class="fas fa-user-plus text-lg"></i>
+        </div>
+        <div>
+            <p class="font-bold text-gray-800 hindi">नया Student</p>
+            <p class="text-xs text-gray-500">Add Student</p>
+        </div>
+    </a>
+    <a href="{{ url_for('accountant.accountant_manage_students', fee_status='pending') }}" 
+       class="bg-white rounded-2xl card-shadow p-5 flex items-center gap-4 hover:border-rose-500 border-2 border-transparent transition group">
+        <div class="w-12 h-12 bg-rose-100 rounded-xl flex items-center justify-center text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition">
+            <i class="fas fa-exclamation-circle text-lg"></i>
+        </div>
+        <div>
+            <p class="font-bold text-gray-800 hindi">बकाया फीस</p>
+            <p class="text-xs text-gray-500">Pending Fees</p>
+        </div>
+    </a>
+</div>
+
+{% endblock %}

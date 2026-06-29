@@ -1,18 +1,105 @@
 {% extends "base.html" %}
 {% block title %}Student Fee Management - गायत्री विद्यापीठ{% endblock %}
+{% block extra_head %}
+<style>
+    .filter-bar { background: linear-gradient(135deg, #fff7ed 0%, #fefce8 100%); }
+    .fee-bar-bg { background: #f3f4f6; border-radius: 999px; height: 6px; }
+    .fee-bar    { background: linear-gradient(90deg,#16a34a,#22c55e); border-radius: 999px; height: 6px; transition: width 0.6s ease; }
+</style>
+{% endblock %}
+
 {% block content %}
 
-<div class="flex items-center justify-between mb-6">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
     <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
         <i class="fas fa-user-graduate text-orange-500"></i> छात्र शुल्क प्रबंधन
     </h1>
-    <a href="{{ url_for('add_student') }}" 
+    <a href="{{ url_for('add_student') }}"
        class="saffron-grad text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:opacity-90 transition shadow">
         <i class="fas fa-plus"></i> <span class="hindi">नया Student जोड़ें</span>
     </a>
 </div>
 
-<!-- Desktop View Table -->
+<!-- Quick Stats -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    {% set total_s   = students | length %}
+    {% set total_fee = students | sum(attribute='total_fee') %}
+    {% set total_paid= students | sum(attribute='paid_fee') %}
+    {% set total_bal = students | sum(attribute='balance_fee') %}
+    <div class="bg-white rounded-xl p-4 card-shadow border-l-4 border-orange-400">
+        <p class="text-xs text-gray-500 hindi">कुल छात्र</p>
+        <p class="text-2xl font-bold text-orange-600">{{ total_s }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 card-shadow border-l-4 border-blue-400">
+        <p class="text-xs text-gray-500 hindi">कुल शुल्क</p>
+        <p class="text-xl font-bold text-blue-700">₹{{ "{:,.0f}".format(total_fee) }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 card-shadow border-l-4 border-green-500">
+        <p class="text-xs text-gray-500 hindi">जमा (Paid)</p>
+        <p class="text-xl font-bold text-green-600">₹{{ "{:,.0f}".format(total_paid) }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 card-shadow border-l-4 border-red-400">
+        <p class="text-xs text-gray-500 hindi">बाकी (Balance)</p>
+        <p class="text-xl font-bold text-red-600">₹{{ "{:,.0f}".format(total_bal) }}</p>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar rounded-2xl card-shadow p-4 sm:p-5 mb-6 border border-orange-100">
+    <form method="GET" action="{{ url_for('manage_students') }}" class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Class</label>
+            <select name="class" class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent transition">
+                <option value="">सभी Classes</option>
+                {% for c in all_classes %}
+                <option value="{{ c }}" {{ 'selected' if filter_class == c }}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Section</label>
+            <select name="section" class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent transition">
+                <option value="">All</option>
+                {% for s in all_sections %}
+                <option value="{{ s }}" {{ 'selected' if filter_section == s }}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1 hindi">खोजें</label>
+            <input type="text" name="search" value="{{ filter_search }}" placeholder="नाम, Roll No, Adm No..."
+                   class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent transition">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1 hindi">फीस स्थिति</label>
+            <select name="fee_status" class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent transition">
+                <option value="" {{ 'selected' if not filter_fee_status }}>All</option>
+                <option value="fully_paid" {{ 'selected' if filter_fee_status == 'fully_paid' }}>Fully Paid ✅</option>
+                <option value="pending"    {{ 'selected' if filter_fee_status == 'pending'    }}>Pending ⏳</option>
+                <option value="partial"    {{ 'selected' if filter_fee_status == 'partial'    }}>Partial 🔶</option>
+            </select>
+        </div>
+        <div class="flex items-end gap-2">
+            <button type="submit" class="flex-1 saffron-grad text-white px-4 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition flex items-center justify-center gap-1">
+                <i class="fas fa-search"></i> <span class="hindi">खोजें</span>
+            </button>
+            <a href="{{ url_for('manage_students') }}" class="px-3 py-2.5 bg-gray-200 text-gray-600 rounded-xl hover:bg-gray-300 transition text-sm" title="Clear">
+                <i class="fas fa-times"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Result Count -->
+<p class="text-sm text-gray-500 mb-4 hindi">
+    <i class="fas fa-list mr-1"></i> कुल <span class="font-bold text-orange-600">{{ students|length }}</span> छात्र मिले
+    {% if filter_class %} — Class: <span class="font-bold">{{ filter_class }}</span>{% endif %}
+    {% if filter_section %} — Section: <span class="font-bold">{{ filter_section }}</span>{% endif %}
+    {% if filter_search %} — खोज: "<span class="font-bold">{{ filter_search }}</span>"{% endif %}
+</p>
+
+<!-- Desktop Table -->
 <div class="hidden md:block bg-white rounded-2xl card-shadow overflow-hidden">
     <div class="scroll-x">
         <table class="w-full">
@@ -21,40 +108,71 @@
                     <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">नाम</th>
                     <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider">Class</th>
                     <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider">Roll No</th>
-                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">कुल शुल्क (Total)</th>
-                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">जमा (Paid)</th>
-                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">बाकी (Balance)</th>
-                    <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider hindi text-center">Actions</th>
+                    <th class="text-left px-4 py-4 text-xs font-semibold uppercase tracking-wider">Adm No</th>
+                    <th class="text-right px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">कुल शुल्क</th>
+                    <th class="text-right px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">जमा</th>
+                    <th class="text-right px-4 py-4 text-xs font-semibold uppercase tracking-wider hindi">बाकी</th>
+                    <th class="text-center px-4 py-4 text-xs font-semibold uppercase tracking-wider">Progress</th>
+                    <th class="text-center px-4 py-4 text-xs font-semibold uppercase tracking-wider">Status</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 {% for s in students %}
+                {% set pct = ((s.paid_fee / s.total_fee * 100) | int) if s.total_fee > 0 else 0 %}
                 <tr class="hover:bg-orange-50 transition">
-                    <td class="px-4 py-4 font-bold text-gray-800 hindi">{{ s.name }}</td>
-                    <td class="px-4 py-4 text-gray-600 text-sm">{{ s.class }}</td>
-                    <td class="px-4 py-4 text-gray-600 text-sm font-medium">{{ s.roll_no }}</td>
-                    <td class="px-4 py-4 font-bold text-gray-700">₹{{ "{:,.2f}".format(s.total_fee) }}</td>
-                    <td class="px-4 py-4 font-bold text-green-600">₹{{ "{:,.2f}".format(s.paid_fee) }}</td>
-                    <td class="px-4 py-4 font-bold text-red-600">₹{{ "{:,.2f}".format(s.balance_fee) }}</td>
+                    <td class="px-4 py-4">
+                        <p class="font-bold text-gray-800 hindi">{{ s.name }}</p>
+                        {% if s.get('father_name') %}
+                        <p class="text-xs text-gray-400 hindi">पिता: {{ s.father_name }}</p>
+                        {% endif %}
+                        {% if s.get('mobile') %}
+                        <p class="text-xs text-gray-400"><i class="fas fa-phone text-[10px]"></i> {{ s.mobile }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-4 text-gray-600 text-sm font-medium">{{ s.class }}{% if s.get('section') %}-{{ s.section }}{% endif %}</td>
+                    <td class="px-4 py-4 text-gray-600 text-sm font-mono font-bold">{{ s.roll_no }}</td>
+                    <td class="px-4 py-4 text-gray-400 text-xs font-mono">{{ s.get('admission_no', '—') }}</td>
+                    <td class="px-4 py-4 font-bold text-gray-700 text-right">₹{{ "{:,.0f}".format(s.total_fee) }}</td>
+                    <td class="px-4 py-4 font-bold text-green-600 text-right">₹{{ "{:,.0f}".format(s.paid_fee) }}</td>
+                    <td class="px-4 py-4 font-bold text-right {{ 'text-green-600' if s.balance_fee <= 0 else 'text-red-600' }}">
+                        ₹{{ "{:,.0f}".format(s.balance_fee) }}
+                    </td>
+                    <td class="px-4 py-4 w-28">
+                        <div class="fee-bar-bg">
+                            <div class="fee-bar" style="width: {{ pct }}%"></div>
+                        </div>
+                        <p class="text-center text-[10px] text-gray-400 mt-1">{{ pct }}%</p>
+                    </td>
                     <td class="px-4 py-4 text-center">
-                        <div class="flex items-center justify-center gap-2">
+                        {% if s.get('status') == 'Inactive' %}
+                        <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold">Inactive</span>
+                        {% else %}
+                        <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-bold">Active</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            {% if s.balance_fee > 0 %}
                             <a href="{{ url_for('pay_fee', student_id=s._id) }}"
-                               class="bg-green-100 text-green-600 px-3 py-2 rounded-xl text-xs hover:bg-green-600 hover:text-white transition font-bold" title="Pay Fee">
+                               class="bg-green-100 text-green-700 px-2.5 py-2 rounded-xl text-xs hover:bg-green-600 hover:text-white transition font-bold" title="Pay Fee">
                                 <i class="fas fa-rupee-sign"></i> Pay
                             </a>
+                            {% endif %}
                             <a href="{{ url_for('fee_history', student_id=s._id) }}"
-                               class="bg-purple-100 text-purple-600 px-3 py-2 rounded-xl text-xs hover:bg-purple-600 hover:text-white transition font-bold" title="History">
+                               class="bg-purple-100 text-purple-600 px-2.5 py-2 rounded-xl text-xs hover:bg-purple-600 hover:text-white transition font-bold" title="Fee History">
                                 <i class="fas fa-history"></i>
                             </a>
                             <a href="{{ url_for('edit_student', student_id=s._id) }}"
-                               class="bg-blue-100 text-blue-600 px-3 py-2 rounded-xl text-xs hover:bg-blue-600 hover:text-white transition font-bold" title="Edit">
+                               class="bg-blue-100 text-blue-600 px-2.5 py-2 rounded-xl text-xs hover:bg-blue-600 hover:text-white transition font-bold" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{{ url_for('delete_student', student_id=s._id) }}"
-                               onclick="return confirm('क्या आप सच में इस Student को हटाना चाहते हैं?')"
-                               class="bg-red-100 text-red-600 px-3 py-2 rounded-xl text-xs hover:bg-red-600 hover:text-white transition font-bold" title="Delete">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
+                            <form action="{{ url_for('delete_student', student_id=s._id) }}" method="POST" class="inline" onsubmit="return confirm('⚠️ क्या आप सच में {{ s.name }} को हटाना चाहते हैं?\n\nStudent और उसकी पूरी फीस हिस्ट्री हमेशा के लिए हट जाएगी!')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="bg-red-100 text-red-600 px-2.5 py-2 rounded-xl text-xs hover:bg-red-600 hover:text-white transition font-bold" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -64,48 +182,68 @@
     </div>
 </div>
 
-<!-- Mobile Dynamic Cards -->
+<!-- Mobile Cards -->
 <div class="md:hidden space-y-4">
     {% for s in students %}
-    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-orange-500 relative overflow-hidden">
+    {% set pct = ((s.paid_fee / s.total_fee * 100) | int) if s.total_fee > 0 else 0 %}
+    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 {{ 'border-green-500' if s.balance_fee <= 0 else 'border-orange-400' }} relative overflow-hidden">
         <div class="flex justify-between items-start mb-3">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 saffron-grad rounded-full flex items-center justify-center text-white font-bold text-xl">
+                <div class="w-12 h-12 saffron-grad rounded-full flex items-center justify-center text-white font-bold text-xl shrink-0">
                     {{ s.name[0] }}
                 </div>
                 <div>
                     <h3 class="font-bold text-gray-800 text-lg hindi leading-tight">{{ s.name }}</h3>
-                    <p class="text-sm font-mono text-gray-500">Class: {{ s.class }} | Roll: {{ s.roll_no }}</p>
+                    <p class="text-sm font-mono text-gray-500">Class: {{ s.class }}{% if s.get('section') %}-{{ s.section }}{% endif %} | Roll: {{ s.roll_no }}</p>
+                    {% if s.get('admission_no') %}
+                    <p class="text-xs text-gray-400 font-mono">Adm: {{ s.admission_no }}</p>
+                    {% endif %}
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ url_for('delete_student', student_id=s._id) }}" 
-                   onclick="return confirm('हटाना चाहते हैं?')"
-                   class="w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition" title="Delete">
-                    <i class="fas fa-trash-alt text-xs"></i>
-                </a>
+            <div class="flex flex-col items-end gap-1">
+                {% if s.get('status') == 'Inactive' %}
+                <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Inactive</span>
+                {% endif %}
+                <form action="{{ url_for('delete_student', student_id=s._id) }}" method="POST" class="inline" onsubmit="return confirm('हटाना चाहते हैं?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition" title="Delete">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                </form>
             </div>
         </div>
-        
-        <div class="grid grid-cols-3 gap-y-3 mt-4 text-sm border-t border-gray-100 pt-4 mb-4">
+
+        <!-- Fee Progress Bar -->
+        <div class="mb-3">
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Fee Progress</span><span class="font-bold text-gray-600">{{ pct }}%</span>
+            </div>
+            <div class="fee-bar-bg">
+                <div class="fee-bar" style="width: {{ pct }}%"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-y-3 text-sm border-t border-gray-100 pt-3 mb-4">
             <div>
-                <p class="text-gray-400 text-xs hindi">Total Fee</p>
+                <p class="text-gray-400 text-xs">Total Fee</p>
                 <p class="font-bold text-gray-700">₹{{ "{:,.0f}".format(s.total_fee) }}</p>
             </div>
             <div>
-                <p class="text-gray-400 text-xs hindi">Paid</p>
+                <p class="text-gray-400 text-xs">Paid</p>
                 <p class="font-bold text-green-600">₹{{ "{:,.0f}".format(s.paid_fee) }}</p>
             </div>
             <div>
-                <p class="text-gray-400 text-xs hindi">Balance</p>
-                <p class="font-bold text-red-600">₹{{ "{:,.0f}".format(s.balance_fee) }}</p>
+                <p class="text-gray-400 text-xs">Balance</p>
+                <p class="font-bold {{ 'text-green-600' if s.balance_fee <= 0 else 'text-red-600' }}">₹{{ "{:,.0f}".format(s.balance_fee) }}</p>
             </div>
         </div>
 
         <div class="flex gap-2 border-t border-gray-100 pt-3">
+            {% if s.balance_fee > 0 %}
             <a href="{{ url_for('pay_fee', student_id=s._id) }}" class="flex-1 bg-green-500 text-white text-center py-2 rounded-xl text-sm font-bold shadow hover:bg-green-600 transition">
                 <i class="fas fa-rupee-sign"></i> Pay
             </a>
+            {% endif %}
             <a href="{{ url_for('fee_history', student_id=s._id) }}" class="flex-1 bg-purple-500 text-white text-center py-2 rounded-xl text-sm font-bold shadow hover:bg-purple-600 transition">
                 <i class="fas fa-history"></i> History
             </a>
@@ -120,10 +258,16 @@
 {% if not students %}
 <div class="bg-white rounded-2xl card-shadow p-12 text-center mt-6">
     <i class="fas fa-user-graduate text-gray-300 text-6xl mb-4"></i>
-    <p class="text-gray-500 hindi text-lg">कोई Student नहीं मिला।</p>
-    <a href="{{ url_for('add_student') }}" class="inline-block mt-4 saffron-grad text-white px-8 py-2.5 rounded-xl hindi font-bold">
-        Student जोड़ें
+    <p class="text-gray-500 hindi text-lg mb-2">कोई Student नहीं मिला।</p>
+    {% if filter_class or filter_section or filter_search or filter_fee_status %}
+    <a href="{{ url_for('manage_students') }}" class="inline-block mt-2 bg-gray-200 text-gray-700 px-8 py-2.5 rounded-xl hindi font-bold hover:bg-gray-300 transition">
+        <i class="fas fa-times mr-1"></i> Filter हटाएं
     </a>
+    {% else %}
+    <a href="{{ url_for('add_student') }}" class="inline-block mt-2 saffron-grad text-white px-8 py-2.5 rounded-xl hindi font-bold shadow hover:opacity-90 transition">
+        <i class="fas fa-plus mr-1"></i> Student जोड़ें
+    </a>
+    {% endif %}
 </div>
 {% endif %}
 

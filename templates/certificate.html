@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}Certificate - {{ student.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Montserrat:wght@400;600;800&display=swap');
+    
+    @media print {
+        body, html { background: white !important; margin: 0; padding: 0; }
+        nav, footer, .no-print { display: none !important; }
+        main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+        .cert-container { box-shadow: none !important; margin: 0 !important; padding: 0 !important; max-width: 100% !important; border: none !important; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        /* To enforce landscape printing in standard browsers */
+        @page { size: landscape; margin: 0mm; }
+    }
+
+    .cert-wrapper {
+        font-family: 'Montserrat', sans-serif;
+        background: #fff;
+        padding: 20px; /* Outer border spacing */
+        max-width: 1100px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .cert-inner {
+        border: 12px solid #1a006b;
+        padding: 8px;
+        position: relative;
+    }
+
+    .cert-inner-2 {
+        border: 4px solid #FFB300; /* Gold */
+        padding: 40px 60px;
+        text-align: center;
+        background: url("{{ url_for('static', filename='bg.jpg') }}") center center no-repeat;
+        background-size: cover;
+        position: relative;
+        /* Make bg lighter so text is visible */
+        box-shadow: inset 0 0 0 1000px rgba(255,255,255,0.92);
+    }
+    
+    .cert-logo {
+        width: 100px; height: 100px;
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        border: 2px solid #FFB300;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .cert-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 52px;
+        font-weight: 900;
+        color: #1a006b;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .cert-subtitle {
+        font-size: 14px;
+        color: #666;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        margin-bottom: 40px;
+        font-weight: 600;
+    }
+
+    .cert-presented-to {
+        font-family: 'Pinyon Script', cursive;
+        font-size: 42px;
+        color: #333;
+        margin-bottom: -10px;
+    }
+
+    .cert-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 56px;
+        font-weight: 700;
+        color: #FF6B00;
+        border-bottom: 2px solid #ccc;
+        display: inline-block;
+        min-width: 600px;
+        padding-bottom: 10px;
+        margin-bottom: 30px;
+    }
+
+    .cert-text {
+        font-size: 16px;
+        color: #444;
+        max-width: 700px;
+        margin: 0 auto 40px;
+        line-height: 1.8;
+    }
+
+    .cert-course {
+        font-weight: 800;
+        color: #1a006b;
+        font-size: 20px;
+    }
+    
+    .cert-grade {
+        color: #FF6B00;
+        font-weight: 800;
+        font-size: 20px;
+    }
+
+    .cert-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 60px;
+        padding: 0 40px;
+    }
+
+    .sig-block {
+        text-align: center;
+        width: 200px;
+    }
+
+    .sig-line {
+        border-bottom: 2px solid #333;
+        margin-bottom: 10px;
+        height: 40px;
+    }
+
+    .sig-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .cert-badge {
+        width: 120px;
+        height: 120px;
+        background: radial-gradient(circle, #FFB300 0%, #E55A00 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: 'Playfair Display', serif;
+        font-size: 18px;
+        font-weight: 900;
+        text-align: center;
+        line-height: 1.2;
+        box-shadow: 0 10px 20px rgba(229, 90, 0, 0.4);
+        position: absolute;
+        bottom: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid white;
+        outline: 2px solid #FFB300;
+    }
+    
+    .cert-no {
+        position: absolute;
+        top: 20px; left: 30px;
+        font-family: monospace;
+        font-size: 12px;
+        color: #999;
+    }
+    .cert-date {
+        position: absolute;
+        top: 20px; right: 30px;
+        font-family: monospace;
+        font-size: 12px;
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Action Bar (no print) -->
+<div class="max-w-4xl mx-auto mb-5 flex justify-between items-center no-print">
+    <a href="javascript:history.back()"
+       class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-orange-600 hover:bg-orange-50 transition shadow">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <button onclick="window.print()"
+            class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition flex items-center gap-2">
+        <i class="fas fa-print"></i> Print Certificate
+    </button>
+</div>
+
+<!-- CERTIFICATE -->
+<div class="cert-container">
+    <div class="cert-wrapper">
+        <div class="cert-inner">
+            <div class="cert-inner-2">
+                
+                <div class="cert-no">No: {{ cert.certificate_no }}</div>
+                <div class="cert-date">Date: {{ cert.issue_date }}</div>
+
+                <img src="{{ url_for('static', filename='yog.jpeg') }}" class="cert-logo" alt="School Logo">
+                
+                <h1 class="cert-title">Gayatri Vidyapeeth</h1>
+                <div class="cert-subtitle">Daudnagar, Bihar</div>
+
+                <div class="cert-presented-to">This Certificate is Proudly Presented to</div>
+                
+                <div class="cert-name">{{ cert.student_name }}</div>
+                
+                <div class="cert-text">
+                    For successfully completing the <span class="cert-course">{{ cert.course }}</span> program 
+                    and demonstrating exceptional dedication, hard work, and excellence during the academic session.
+                    Awarded with Grade <span class="cert-grade">{{ cert.grade }}</span>.
+                </div>
+
+                <div class="cert-footer">
+                    <div class="sig-block">
+                        <div class="sig-line"></div>
+                        <div class="sig-title">Class Teacher</div>
+                    </div>
+                    
+                    <div class="cert-badge">
+                        <span>CERTIFIED<br>EXCELLENCE</span>
+                    </div>
+
+                    <div class="sig-block">
+                        <div class="sig-line"></div>
+                        <div class="sig-title">Principal</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="no-print text-center mt-6">
+    <p class="text-xs text-gray-400 italic">
+        Tip: For best results, print in Landscape mode with "Background graphics" enabled.
+    </p>
+</div>
+
+{% endblock %}

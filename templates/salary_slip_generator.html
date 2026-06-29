@@ -158,6 +158,7 @@
 
         <div class="gen-body">
             <form method="POST" id="slipForm" action="{{ url_for('salary_slip_generator') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <!-- Row 1: Employee Selection (full width) -->
                 <div class="form-grid">

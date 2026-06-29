@@ -1,8 +1,35 @@
-flask
-pymongo
-gunicorn
-python-dotenv
-pandas
-openpyxl
-flask-mail
+# Core Framework
+flask==3.0.0
+pymongo==4.6.1
+gunicorn==21.2.0
 
+# Security
+python-dotenv==1.0.0
+bcrypt==4.1.2
+bleach==6.1.0
+Flask-Limiter==3.5.0
+Flask-Session==0.5.0
+Flask-Talisman==1.1.0
+cryptography==42.0.0
+
+# Email
+flask-mail==0.9.1
+
+# Data Processing
+pandas==2.1.4
+openpyxl==3.1.2
+
+# CSRF Protection
+Flask-WTF==1.2.1
+WTForms==3.1.1
+
+# Input Validation
+email-validator==2.1.0
+phonenumbers==8.13.27
+
+# Utilities
+Pillow==10.2.0
+python-magic-bin==0.4.14
+
+# JWT (for future API auth)
+PyJWT==2.8.0

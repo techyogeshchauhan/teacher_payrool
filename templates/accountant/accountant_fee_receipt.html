@@ -3,9 +3,6 @@
 
 {% block extra_head %}
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
-
-    /* ── Print Rules ─────────────────────────────────────── */
     @media print {
         @page { size: A4 portrait; margin: 0; }
         body, html { background: white !important; margin: 0; padding: 0; }
@@ -15,8 +12,6 @@
         .bill-card { width: 100% !important; max-width: 640px !important; margin: 0 auto !important; box-shadow: none !important; border-radius: 0 !important; page-break-inside: avoid; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
-
-    /* ── Bill Styles ─────────────────────────────────────── */
     .bill-card {
         background: #FFB3D9;
         border: 2px solid #9B1B6A;
@@ -33,58 +28,27 @@
         text-align: center;
     }
     .bill-title {
-        font-size: 26px;
-        font-weight: 900;
-        color: #1a006b;
-        letter-spacing: 0.5px;
-        line-height: 1.1;
-        text-transform: uppercase;
+        font-size: 26px; font-weight: 900; color: #1a006b;
+        letter-spacing: 0.5px; line-height: 1.1; text-transform: uppercase;
     }
-    .bill-subtitle {
-        font-size: 11.5px;
-        color: #1a006b;
-        font-weight: 600;
-        margin-top: 2px;
-        line-height: 1.4;
-    }
+    .bill-subtitle { font-size: 11.5px; color: #1a006b; font-weight: 600; margin-top: 2px; line-height: 1.4; }
     .demand-badge {
-        display: inline-block;
-        border: 2px solid #1a006b;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 800;
-        color: #1a006b;
-        padding: 1px 14px;
-        margin-bottom: 4px;
-        letter-spacing: 1px;
+        display: inline-block; border: 2px solid #1a006b; border-radius: 20px;
+        font-size: 11px; font-weight: 800; color: #1a006b;
+        padding: 1px 14px; margin-bottom: 4px; letter-spacing: 1px;
     }
     .bill-body { padding: 10px 16px; }
     .field-row {
-        display: flex;
-        align-items: flex-end;
-        gap: 4px;
-        margin-bottom: 6px;
-        font-size: 13px;
-        color: #1a006b;
-        font-weight: 600;
+        display: flex; align-items: flex-end; gap: 4px;
+        margin-bottom: 6px; font-size: 13px; color: #1a006b; font-weight: 600;
     }
     .field-label { white-space: nowrap; font-weight: 700; }
     .field-value {
-        border-bottom: 1px solid #9B1B6A;
-        flex: 1;
-        min-width: 60px;
-        padding-bottom: 1px;
-        font-weight: 600;
-        font-family: 'Arial', sans-serif;
+        border-bottom: 1px solid #9B1B6A; flex: 1; min-width: 60px;
+        padding-bottom: 1px; font-weight: 600; font-family: 'Arial', sans-serif;
     }
-    /* ── Fee Table ── */
     .fee-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-    .fee-table th, .fee-table td {
-        border: 1px solid #9B1B6A;
-        padding: 4px 8px;
-        font-size: 12.5px;
-        color: #1a006b;
-    }
+    .fee-table th, .fee-table td { border: 1px solid #9B1B6A; padding: 4px 8px; font-size: 12.5px; color: #1a006b; }
     .fee-table thead th {
         background: #FFB3D9;
         font-weight: 800;
@@ -99,7 +63,6 @@
     .note-row  { font-size: 11.5px; color: #1a006b; margin-top: 6px; font-family: 'Noto Sans Devanagari', sans-serif; font-weight: 600; }
     .sig-row   { display: flex; justify-content: space-between; margin-top: 20px; font-size: 12px; font-weight: 700; color: #1a006b; border-top: 1px solid #9B1B6A; padding-top: 8px; }
     .highlight-amount { font-size: 17px; font-weight: 900; }
-    /* paid-stamp */
     .stamp {
         position: absolute; top: 50%; right: 10px; transform: translateY(-50%) rotate(-20deg);
         border: 4px double #006600; border-radius: 6px;
@@ -111,30 +74,27 @@
 
 {% block content %}
 
-<!-- Action Bar (no print) -->
+<!-- Action Bar -->
 <div class="max-w-2xl mx-auto mb-5 flex justify-between items-center no-print">
-    <a href="{{ url_for('manage_students') }}"
+    <a href="{{ url_for('accountant.accountant_manage_students') }}"
        class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-pink-700 hover:bg-pink-50 transition shadow">
         <i class="fas fa-arrow-left"></i>
     </a>
-    <div class="flex gap-3">
-        <button onclick="window.print()"
-                class="bg-pink-700 text-white px-5 py-2.5 rounded-xl font-bold shadow hover:bg-pink-800 transition flex items-center gap-2">
-            <i class="fas fa-print"></i> Print Receipt
-        </button>
-    </div>
+    <button onclick="window.print()"
+            class="bg-pink-700 text-white px-5 py-2.5 rounded-xl font-bold shadow hover:bg-pink-800 transition flex items-center gap-2">
+        <i class="fas fa-print"></i> Print Receipt
+    </button>
 </div>
 
-<!-- ══════════════ DEMAND BILL CARD ══════════════ -->
+<!-- DEMAND BILL CARD -->
 <div class="receipt-wrapper" style="max-width:640px; margin:0 auto;">
 <div class="bill-card relative">
 
-    <!-- PAID stamp (if fully paid) -->
-    {% if student.balance_fee <= 0 %}
+    {% if student and student.balance_fee <= 0 %}
     <div class="stamp">PAID ✓</div>
     {% endif %}
 
-    <!-- ── Header ── -->
+    <!-- Header -->
     <div class="bill-header">
         <div class="demand-badge">Demand Bill</div>
         <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
@@ -149,14 +109,13 @@
         </div>
     </div>
 
-    <!-- ── Body ── -->
+    <!-- Body -->
     <div class="bill-body">
-
-        <!-- Row 1: S.No + Date -->
+        <!-- S.No + Date -->
         <div style="display:flex; gap:16px; margin-bottom:5px;">
             <div class="field-row" style="flex:1">
                 <span class="field-label">S. No.-</span>
-                <span class="field-value">{{ loop.index if loop else '1' }}</span>
+                <span class="field-value">1</span>
             </div>
             <div class="field-row" style="flex:1">
                 <span class="field-label">Date</span>
@@ -164,39 +123,39 @@
             </div>
         </div>
 
-        <!-- Row 2: Student's Name + Class -->
+        <!-- Student Name + Class -->
         <div style="display:flex; gap:16px; margin-bottom:5px;">
             <div class="field-row" style="flex:2">
                 <span class="field-label">Student's Name.</span>
-                <span class="field-value hindi" style="font-size:14px; font-weight:800;">{{ student.name }}</span>
+                <span class="field-value hindi" style="font-size:14px; font-weight:800;">{{ receipt.student_name }}</span>
             </div>
             <div class="field-row" style="flex:1">
                 <span class="field-label">Class</span>
                 <span class="field-value" style="font-weight:800;">
-                    {{ student.class }}{% if student.get('section') %}-{{ student.section }}{% endif %}
+                    {{ receipt.get('class', '') }}{% if receipt.get('section') %}-{{ receipt.section }}{% endif %}
                 </span>
             </div>
         </div>
 
-        <!-- Row 3: Father/Mother Name + Roll No -->
+        <!-- Father + Roll No -->
         <div style="display:flex; gap:16px; margin-bottom:5px;">
             <div class="field-row" style="flex:2">
                 <span class="field-label">S/o D/o.</span>
                 <span class="field-value hindi" style="font-weight:700;">
-                    {{ student.get('father_name') or student.get('mother_name') or '—' }}
+                    {{ student.get('father_name') or student.get('mother_name') or '—' if student else '—' }}
                 </span>
             </div>
             <div class="field-row" style="flex:1">
                 <span class="field-label">Roll No.</span>
-                <span class="field-value" style="font-weight:800;">{{ student.roll_no }}</span>
+                <span class="field-value" style="font-weight:800;">{{ receipt.get('roll_no', '') }}</span>
             </div>
         </div>
 
-        <!-- Row 4: Address + Month -->
+        <!-- Address + Month -->
         <div style="display:flex; gap:16px; margin-bottom:8px;">
             <div class="field-row" style="flex:2">
                 <span class="field-label">Address.</span>
-                <span class="field-value hindi">{{ student.get('address') or '—' }}</span>
+                <span class="field-value hindi">{{ student.get('address', '—') if student else '—' }}</span>
             </div>
             <div class="field-row" style="flex:1.5">
                 <span class="field-label">For the month of</span>
@@ -204,7 +163,7 @@
             </div>
         </div>
 
-        <!-- ── Fee Table ── -->
+        <!-- Fee Table -->
         <table class="fee-table">
             <thead>
                 <tr>
@@ -256,7 +215,6 @@
                     <tr><td class="desc-col">Late Fine</td><td class="amt-col"></td><td class="p-col"></td></tr>
                     <tr><td class="desc-col">Others{% if receipt.remarks %} ({{ receipt.remarks }}){% endif %}</td><td class="amt-col"></td><td class="p-col"></td></tr>
                 {% endif %}
-                <!-- TOTAL ROW -->
                 <tr class="total-row">
                     <td class="desc-col" style="text-align:right; font-weight:900;">Total-</td>
                     <td class="amt-col" style="font-size:16px;">{{ "{:,.0f}".format(receipt.amount) }}/-</td>
@@ -265,34 +223,33 @@
             </tbody>
         </table>
 
-        <!-- Amount in Words -->
+        <!-- Words + Mode -->
         <div class="words-row">
             Rupees in Word.....
             <strong>{{ "{:,.0f}".format(receipt.amount) }} Rupees Only</strong>
             &nbsp;&nbsp;&nbsp;
-            Payment Mode: <strong>{{ receipt.payment_mode or 'Cash' }}</strong>
+            Payment Mode: <strong>{{ receipt.get('payment_mode', 'Cash') }}</strong>
         </div>
 
-        <!-- Account Summary Row -->
+        <!-- Account Summary -->
         <div style="display:flex; gap:24px; margin-top:6px; font-size:12px; color:#1a006b; font-weight:600; border-top:1px dashed #9B1B6A; padding-top:5px;">
-            <div>Total Annual Fee: <strong>₹{{ "{:,.0f}".format(student.total_fee) }}</strong></div>
-            <div>Total Paid: <strong>₹{{ "{:,.0f}".format(student.paid_fee) }}</strong></div>
-            <div style="color:{% if student.balance_fee <= 0 %}green{% else %}#c0000a{% endif %};">
-                Balance: <strong>₹{{ "{:,.0f}".format(student.balance_fee) }}</strong>
+            <div>Total Fee: <strong>₹{{ "{:,.0f}".format(receipt.get('total_fee', 0)) }}</strong></div>
+            <div>Total Paid: <strong>₹{{ "{:,.0f}".format(receipt.get('total_paid_after', 0)) }}</strong></div>
+            <div style="color:{% if receipt.get('balance_after', 1) <= 0 %}green{% else %}#c0000a{% endif %};">
+                Balance: <strong>₹{{ "{:,.0f}".format(receipt.get('balance_after', 0)) }}</strong>
             </div>
+        </div>
+
+        <!-- Receipt Meta -->
+        <div style="font-size:10.5px; color:#555; margin-top:4px;">
+            Receipt No: <strong>{{ receipt.receipt_no }}</strong> &nbsp;|&nbsp;
+            Collected By: <strong>{{ receipt.collected_by }}</strong>
         </div>
 
         <!-- Hindi Note -->
         <div class="note-row">
             नोट–प्रत्येक माह के 7 तारीख तक शुल्क जमा करना अनिवार्य है,<br>
             अन्यथा विलम्ब शुल्क लगेगा।
-        </div>
-
-        <!-- Receipt No (small) -->
-        <div style="font-size:10.5px; color:#555; margin-top:4px;">
-            Receipt No: <strong>{{ receipt.receipt_no }}</strong> &nbsp;|&nbsp;
-            Collected By: <strong>{{ receipt.collected_by }}</strong> &nbsp;|&nbsp;
-            Date: <strong>{{ receipt.date }}</strong>
         </div>
 
         <!-- Signatures -->
@@ -306,15 +263,13 @@
                 <div style="border-top:1px solid #9B1B6A; padding-top:4px; min-width:130px;">Received By</div>
             </div>
         </div>
+    </div>
+</div>
+</div>
 
-    </div><!-- /bill-body -->
-</div><!-- /bill-card -->
-</div><!-- /receipt-wrapper -->
-
-<!-- Print tip -->
 <div class="no-print text-center mt-6">
     <p class="text-xs text-gray-400 italic hindi">
-        Print करने के लिए ऊपर "Print Receipt" बटन दबाएं। यह रसीद स्कूल के Demand Bill format में है।
+        Print करने के लिए ऊपर "Print Receipt" बटन दबाएं।
     </p>
     <p class="text-xs text-gray-400 mt-1">
         Receipt No: <span class="font-mono font-bold">{{ receipt.receipt_no }}</span>

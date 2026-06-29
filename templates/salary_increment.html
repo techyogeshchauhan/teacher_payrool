@@ -16,6 +16,7 @@
             </h2>
         </div>
         <form method="POST" class="p-6 space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <!-- Teacher Select -->
             <div>

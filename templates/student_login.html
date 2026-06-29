@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Student Login - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="min-h-[80vh] flex items-center justify-center py-10 px-4">
+    <div class="max-w-md w-full bg-white/90 backdrop-blur-md rounded-3xl p-8 card-shadow border border-orange-100">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-white rounded-full mx-auto p-1 shadow-md mb-4 border border-orange-200">
+                <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
+            </div>
+            <h1 class="text-2xl font-black text-gray-800 hindi tracking-wide">Student Portal</h1>
+            <p class="text-sm text-gray-500 font-medium mt-1">Login to view Dashboard & Certificates</p>
+        </div>
+
+        <form method="POST" class="space-y-5">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <!-- Roll Number -->
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1.5 hindi">रोल नंबर (Roll Number)</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-id-badge text-gray-400"></i>
+                    </div>
+                    <input type="text" name="roll_no" required placeholder="Enter Roll Number"
+                           class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition text-sm font-medium text-gray-800">
+                </div>
+            </div>
+
+            <!-- Password / Mobile -->
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1.5 hindi">पासवर्ड (Mobile No.)</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password" name="password" required placeholder="Enter Mobile Number"
+                           class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition text-sm font-medium text-gray-800">
+                </div>
+                <p class="text-xs text-gray-400 mt-2"><i class="fas fa-info-circle text-orange-400"></i> <span class="hindi">आपका रजिस्टर्ड मोबाइल नंबर ही आपका पासवर्ड है।</span></p>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="w-full saffron-grad text-white py-3.5 rounded-xl font-bold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-0.5 transition-all duration-200 mt-2">
+                Login <i class="fas fa-sign-in-alt ml-1"></i>
+            </button>
+        </form>
+
+        <div class="mt-8 text-center border-t border-gray-100 pt-6">
+            <p class="text-xs text-gray-500 font-medium">Are you an Admin?</p>
+            <a href="{{ url_for('admin_login') }}" class="text-sm font-bold text-orange-600 hover:text-orange-700 transition">
+                Go to Admin Login <i class="fas fa-arrow-right text-[10px] ml-1"></i>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

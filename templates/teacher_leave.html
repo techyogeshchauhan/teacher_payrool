@@ -16,6 +16,7 @@
         <div class="bg-white rounded-2xl p-6 card-shadow border-t-4 border-orange-500">
             <h2 class="font-bold text-gray-800 hindi mb-4">नई छुट्टी का आवेदन</h2>
             <form method="POST" action="{{ url_for('teacher_leave') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2 hindi">कब से (Start Date)</label>
                     <input type="date" name="start_date" required min="{{ today_str }}" class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">

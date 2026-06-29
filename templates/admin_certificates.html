@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Manage Certificates - Admin{% endblock %}
+{% block content %}
+
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
+    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
+        <i class="fas fa-award text-yellow-500"></i> प्रमाण पत्र प्रबंधन (Certificates)
+    </h1>
+</div>
+
+<div class="bg-white rounded-2xl card-shadow overflow-hidden border border-gray-100">
+    <div class="scroll-x">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider hindi">छात्र का नाम</th>
+                    <th class="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Class & Roll</th>
+                    <th class="text-center px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Certificate Status</th>
+                    <th class="text-right px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for s in students %}
+                {% set cert = cert_map.get(s._id|string) %}
+                <tr class="hover:bg-orange-50 transition">
+                    <td class="px-6 py-4">
+                        <p class="font-bold text-gray-800 hindi">{{ s.name }}</p>
+                        {% if s.mobile %}
+                        <p class="text-xs text-gray-400 font-mono">{{ s.mobile }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-600">
+                        {{ s.class }}{% if s.section %}-{{ s.section }}{% endif %} | <span class="font-bold font-mono">{{ s.roll_no }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        {% if cert %}
+                        <div class="inline-flex flex-col items-center">
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold mb-1 border border-green-200">
+                                <i class="fas fa-check-circle mr-1"></i> Awarded
+                            </span>
+                            <span class="text-[10px] text-gray-400 font-mono">{{ cert.certificate_no }}</span>
+                        </div>
+                        {% else %}
+                        <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-bold border border-gray-200">
+                            Not Awarded
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        {% if cert %}
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{{ url_for('view_certificate', cert_id=cert._id) }}" target="_blank"
+                               class="bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <form action="{{ url_for('delete_certificate', student_id=s._id) }}" method="POST" class="inline" onsubmit="return confirm('क्या आप सच में इस छात्र का प्रमाण पत्र रद्द करना चाहते हैं?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white transition">
+                                    <i class="fas fa-trash"></i> Revoke
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <!-- Generate Form -->
+                        <form action="{{ url_for('generate_certificate', student_id=s._id) }}" method="POST" class="flex items-center justify-end gap-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="text" name="course_name" placeholder="Course Name" value="Annual Curriculum" required
+                                   class="w-32 px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-yellow-400 outline-none">
+                            <select name="grade" class="w-16 px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-yellow-400 outline-none">
+                                <option value="A+">A+</option>
+                                <option value="A">A</option>
+                                <option value="B+">B+</option>
+                                <option value="B">B</option>
+                            </select>
+                            <button type="submit" class="bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-yellow-500 hover:text-white transition shadow-sm">
+                                <i class="fas fa-plus-circle"></i> Award
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if not students %}
+        <div class="p-12 text-center text-gray-400 hindi">
+            <i class="fas fa-users text-4xl mb-3"></i>
+            <p>कोई छात्र नहीं मिला। पहले छात्र जोड़ें।</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -16,7 +16,19 @@
             --deep-green: #1A5C2E;
             --cream: #FFF8F0;
         }
-        body { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; background: #f5f0eb; }
+        body { 
+            font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; 
+            background: url("{{ url_for('static', filename='bg.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+        }
+        /* Add a semi-transparent overlay to make text readable */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(253, 246, 237, 0.90);
+            z-index: -1;
+        }
         .hindi { font-family: 'Noto Sans Devanagari', sans-serif; }
         .saffron-grad { background: linear-gradient(135deg, #FF6B00 0%, #FFB300 100%); }
         .maroon-grad { background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%); }
@@ -36,7 +48,7 @@
 </head>
 <body class="min-h-screen">
 
-{% if session.get('admin') or session.get('teacher_id') or session.get('principal') %}
+{% if session.get('admin') or session.get('teacher_id') or session.get('principal') or session.get('accountant') %}
 <!-- Navbar -->
 <nav class="saffron-grad shadow-lg relative z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -55,6 +67,8 @@
                         <span class="bg-blue-600 text-white text-[9px] px-1.5 rounded-full font-bold uppercase tracking-tighter border border-white/20">Principal</span>
                         {% elif session.get('teacher_id') %}
                         <span class="bg-green-600 text-white text-[9px] px-1.5 rounded-full font-bold uppercase tracking-tighter border border-white/20">Teacher</span>
+                        {% elif session.get('accountant') %}
+                        <span class="bg-teal-600 text-white text-[9px] px-1.5 rounded-full font-bold uppercase tracking-tighter border border-white/20">Accountant</span>
                         {% endif %}
                     </div>
                 </div>
@@ -83,6 +97,20 @@
                     </div>
                 </div>
 
+                <!-- Students Dropdown (Admin) -->
+                <div class="relative group">
+                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
+                        <i class="fas fa-user-graduate text-xs"></i> Students <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    </button>
+                    <div class="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
+                        <a href="{{ url_for('manage_students') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700"><i class="fas fa-users w-5 text-center text-gray-400"></i> Manage Students</a>
+                        <a href="{{ url_for('add_student') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700"><i class="fas fa-user-plus w-5 text-center text-gray-400"></i> Add Student</a>
+                        <a href="{{ url_for('manage_students', fee_status='pending') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700"><i class="fas fa-exclamation-circle w-5 text-center text-gray-400"></i> Pending Fees</a>
+                        <a href="{{ url_for('manage_students', fee_status='fully_paid') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700"><i class="fas fa-check-circle w-5 text-center text-gray-400"></i> Paid Students</a>
+                        <a href="{{ url_for('admin_certificates') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700 border-t border-gray-50 mt-1 pt-2"><i class="fas fa-award w-5 text-center text-gray-400"></i> Manage Certificates</a>
+                    </div>
+                </div>
+
                 <!-- Operations Dropdown -->
                 <div class="relative group">
                     <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
@@ -95,9 +123,22 @@
                     </div>
                 </div>
 
-                <a href="{{ url_for('manage_students') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-user-graduate text-xs"></i> Students
+                {% elif session.get('accountant') %}
+                <a href="{{ url_for('accountant.accountant_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
+                    <i class="fas fa-home text-xs"></i> Dashboard
                 </a>
+
+                <!-- Students/Fee Dropdown -->
+                <div class="relative group">
+                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
+                        <i class="fas fa-user-graduate text-xs"></i> Students <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    </button>
+                    <div class="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
+                        <a href="{{ url_for('accountant.accountant_manage_students') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600"><i class="fas fa-users w-5 text-center text-gray-400"></i> Manage Students</a>
+                        <a href="{{ url_for('accountant.accountant_add_student') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600"><i class="fas fa-user-plus w-5 text-center text-gray-400"></i> Add Student</a>
+                        <a href="{{ url_for('accountant.accountant_manage_students', fee_status='pending') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600 border-t border-gray-50 mt-1 pt-2"><i class="fas fa-exclamation-circle w-5 text-center text-gray-400"></i> Pending Fees</a>
+                    </div>
+                </div>
 
                 {% elif session.get('principal') %}
                 <a href="{{ url_for('principal_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
@@ -118,9 +159,6 @@
                     <i class="fas fa-boxes text-xs"></i> Assets
                 </a>
 
-                <a href="{{ url_for('manage_students') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-user-graduate text-xs"></i> Students
-                </a>
 
                 {% else %}
                 <a href="{{ url_for('teacher_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
@@ -170,10 +208,10 @@
             </div>
             <div>
                 <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">
-                    {% if session.get('admin') %}ADMIN PORTAL{% elif session.get('principal') %}PRINCIPAL PORTAL{% else %}TEACHER PORTAL{% endif %}
+                    {% if session.get('admin') %}ADMIN PORTAL{% elif session.get('principal') %}PRINCIPAL PORTAL{% elif session.get('accountant') %}ACCOUNTANT PORTAL{% else %}TEACHER PORTAL{% endif %}
                 </p>
                 <p class="text-gray-800 font-bold hindi">
-                    {{ session.get('admin_name') or session.get('principal_name') or session.get('teacher_name') }}
+                    {{ session.get('admin_name') or session.get('principal_name') or session.get('accountant_name') or session.get('teacher_name') }}
                 </p>
             </div>
         </div>
@@ -212,8 +250,16 @@
             <a href="{{ url_for('manage_assets') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-boxes w-6 text-center text-orange-500"></i> Assets
             </a>
-            <a href="{{ url_for('manage_students') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-user-graduate w-6 text-center text-orange-500"></i> Students
+            <div class="border-t border-orange-100 my-2"></div>
+            <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Students</p>
+            <a href="{{ url_for('manage_students') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
+                <i class="fas fa-user-graduate w-6 text-center text-teal-500"></i> Manage Students
+            </a>
+            <a href="{{ url_for('add_student') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
+                <i class="fas fa-user-plus w-6 text-center text-teal-500"></i> Add Student
+            </a>
+            <a href="{{ url_for('manage_students', fee_status='pending') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
+                <i class="fas fa-exclamation-circle w-6 text-center text-teal-500"></i> Pending Fees
             </a>
             {% elif session.get('principal') %}
             <a href="{{ url_for('principal_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
@@ -228,8 +274,18 @@
             <a href="{{ url_for('manage_assets') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-boxes w-6 text-center text-orange-500"></i> Assets
             </a>
-            <a href="{{ url_for('manage_students') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-user-graduate w-6 text-center text-orange-500"></i> Students
+            {% elif session.get('accountant') %}
+            <a href="{{ url_for('accountant.accountant_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
+                <i class="fas fa-home w-6 text-center text-teal-600"></i> Dashboard
+            </a>
+            <a href="{{ url_for('accountant.accountant_manage_students') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
+                <i class="fas fa-user-graduate w-6 text-center text-teal-600"></i> Students
+            </a>
+            <a href="{{ url_for('accountant.accountant_add_student') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
+                <i class="fas fa-user-plus w-6 text-center text-teal-600"></i> Add Student
+            </a>
+            <a href="{{ url_for('accountant.accountant_manage_students', fee_status='pending') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
+                <i class="fas fa-exclamation-circle w-6 text-center text-teal-600"></i> Pending Fees
             </a>
             {% else %}
             <a href="{{ url_for('teacher_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
@@ -302,9 +358,57 @@
     {% block content %}{% endblock %}
 </main>
 
-<footer class="text-center text-xs text-gray-400 py-4 mt-8 hindi">
+<footer class="text-center text-xs text-gray-400 py-4 mt-8 hindi relative z-10">
     गायत्री विद्यापीठ, दाउदनगर &mdash; Attendance & Payroll System
+    <div id="player" class="hidden"></div>
 </footer>
+
+<script>
+    // YouTube Player API for Gayatri Mantra Background Chanting
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    var isPlaying = false;
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            height: '0',
+            width: '0',
+            videoId: 'GEVvyIrQZnA',
+            playerVars: {
+                'autoplay': 0,
+                'loop': 1,
+                'playlist': 'GEVvyIrQZnA',
+                'controls': 0,
+                'showinfo': 0,
+                'autohide': 1
+            },
+            events: {
+                'onReady': onPlayerReady
+            }
+        });
+    }
+
+    function onPlayerReady(event) {
+        player.setVolume(15); // Set slow/low volume (15%)
+        // Try to autoplay, though browsers usually block without interaction
+        player.playVideo();
+        
+        // Ensure it plays on first user interaction
+        document.body.addEventListener('click', function() {
+            if (!isPlaying && player && player.getPlayerState) {
+                var state = player.getPlayerState();
+                if (state !== YT.PlayerState.PLAYING) {
+                    player.playVideo();
+                    isPlaying = true;
+                }
+            }
+        }, { once: true });
+    }
+</script>
 
 </body>
 </html>

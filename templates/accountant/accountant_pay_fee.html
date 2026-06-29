@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}Pay Fee - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{{ url_for('accountant.accountant_manage_students') }}" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-green-600 hover:bg-green-50 transition shadow-sm">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-800 hindi">फीस जमा करें (Pay Fee)</h1>
+    </div>
+
+    <!-- Student Info Card -->
+    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-green-500 mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    {{ student.name[0] }}
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800 hindi">{{ student.name }}</h2>
+                    <p class="text-sm text-gray-500">
+                        Class: <span class="font-bold text-gray-700">{{ student.class }}{% if student.get('section') %}-{{ student.section }}{% endif %}</span> | 
+                        Roll: <span class="font-bold text-gray-700">{{ student.roll_no }}</span>
+                        {% if student.get('admission_no') %} | Adm: <span class="font-bold text-gray-700">{{ student.admission_no }}</span>{% endif %}
+                    </p>
+                    {% if student.get('father_name') %}
+                    <p class="text-xs text-gray-400 hindi">पिता: {{ student.father_name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex gap-4 text-center">
+                <div>
+                    <p class="text-xs text-gray-500 hindi">कुल (Total)</p>
+                    <p class="text-lg font-bold text-gray-700">₹{{ "{:,.0f}".format(student.total_fee) }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 hindi">जमा (Paid)</p>
+                    <p class="text-lg font-bold text-green-600">₹{{ "{:,.0f}".format(student.paid_fee) }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 hindi">बाकी (Balance)</p>
+                    <p class="text-xl font-black text-red-600">₹{{ "{:,.0f}".format(student.balance_fee) }}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if student.total_fee > 0 %}
+        <div class="mt-4 pt-3 border-t border-gray-100">
+            <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="bg-green-500 h-3 rounded-full transition-all duration-500" style="width: {{ ((student.paid_fee / student.total_fee) * 100) | round(1) }}%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-1 text-right">{{ ((student.paid_fee / student.total_fee) * 100) | round(1) }}% Paid</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if student.balance_fee <= 0 %}
+    <!-- Fully Paid -->
+    <div class="bg-green-50 rounded-2xl card-shadow p-8 text-center border-2 border-green-200">
+        <i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i>
+        <h3 class="text-xl font-bold text-green-700 hindi">फीस पूरी जमा हो चुकी है! ✅</h3>
+        <p class="text-sm text-green-600 mt-2 hindi">इस छात्र की कोई बकाया फीस नहीं है।</p>
+        <a href="{{ url_for('accountant.accountant_fee_history', student_id=student._id) }}" class="inline-block mt-4 bg-green-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-green-700 transition">
+            <i class="fas fa-history mr-1"></i> Fee History देखें
+        </a>
+    </div>
+    {% else %}
+
+    <form method="POST" class="bg-white rounded-3xl card-shadow p-6 sm:p-8" id="payFeeForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="space-y-5">
+            <!-- 16 Fee Components -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Row 1 -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Registration Fee</label>
+                    <input type="number" name="reg_fee" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Form Charge</label>
+                    <input type="number" name="form_charge" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Previous Dues</label>
+                    <input type="number" name="prev_dues" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <!-- Row 2 -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tuition Fee</label>
+                    <input type="number" name="tuition_fee" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Computer Fee</label>
+                    <input type="number" name="computer_fee" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Admission</label>
+                    <input type="number" name="admission_fee" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <!-- Row 3 -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Term Fee</label>
+                    <input type="number" name="term_fee" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Library Fee</label>
+                    <input type="number" name="library_fee" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Electric Charge</label>
+                    <input type="number" name="electric_charge" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <!-- Row 4 -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Development Charge</label>
+                    <input type="number" name="development_charge" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Security Money</label>
+                    <input type="number" name="security_money" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Conveyance/Transport</label>
+                    <input type="number" name="transport_fee" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <!-- Row 5 -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Exam. Fee</label>
+                    <input type="number" name="exam_fee" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Hostel Charge</label>
+                    <input type="number" name="hostel_charge" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Late Fine</label>
+                    <input type="number" name="late_fine" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+                <!-- Row 6 -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Others</label>
+                    <input type="number" name="others_fee" min="0" step="1" class="fee-input w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500" placeholder="0">
+                </div>
+            </div>
+
+            <!-- Auto Calculated Total -->
+            <div class="mt-4 p-4 bg-green-100 rounded-xl border border-green-300 flex justify-between items-center">
+                <span class="text-green-800 font-bold text-lg">कुल राशि (Total Amount):</span>
+                <span id="totalDisplay" class="text-3xl font-black text-green-700">₹0</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <!-- Month / Fee Period -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 hindi">किस महीने / अवधि के लिए? <span class="text-red-500">*</span></label>
+                    <select name="month" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-gray-800 font-medium">
+                        <option value="">-- चुनें --</option>
+                        <option value="April">April (अप्रैल)</option>
+                        <option value="May">May (मई)</option>
+                        <option value="June">June (जून)</option>
+                        <option value="July">July (जुलाई)</option>
+                        <option value="August">August (अगस्त)</option>
+                        <option value="September">September (सितम्बर)</option>
+                        <option value="October">October (अक्टूबर)</option>
+                        <option value="November">November (नवम्बर)</option>
+                        <option value="December">December (दिसम्बर)</option>
+                        <option value="January">January (जनवरी)</option>
+                        <option value="February">February (फरवरी)</option>
+                        <option value="March">March (मार्च)</option>
+                        <option value="Q1 (Apr-Jun)">Q1 (अप्रैल-जून)</option>
+                        <option value="Q2 (Jul-Sep)">Q2 (जुलाई-सितम्बर)</option>
+                        <option value="Q3 (Oct-Dec)">Q3 (अक्टूबर-दिसम्बर)</option>
+                        <option value="Q4 (Jan-Mar)">Q4 (जनवरी-मार्च)</option>
+                        <option value="Full Year">पूरे साल का (Full Year)</option>
+                        <option value="Admission Fee">प्रवेश शुल्क (Admission Fee)</option>
+                        <option value="Previous Dues">पिछला बकाया (Previous Dues)</option>
+                    </select>
+                </div>
+
+                <!-- Payment Mode -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 hindi">भुगतान का तरीका (Payment Mode) <span class="text-red-500">*</span></label>
+                    <select name="payment_mode" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-gray-800 font-medium">
+                        <option value="Cash" selected>💵 Cash (नकद)</option>
+                        <option value="UPI">📱 UPI</option>
+                        <option value="Bank Transfer">🏦 Bank Transfer</option>
+                        <option value="Cheque">📝 Cheque (चेक)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Remarks -->
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1 hindi">टिप्पणी (Remarks)</label>
+                <input type="text" name="remarks" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-gray-800 font-medium hindi" placeholder="कोई अन्य जानकारी...">
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <button type="submit" id="submitBtn" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 hindi flex items-center justify-center gap-2">
+                <i class="fas fa-check-circle"></i> फीस जमा करें
+            </button>
+        </div>
+    </form>
+
+    <script>
+        // Auto calculate total
+        const inputs = document.querySelectorAll('.fee-input');
+        const totalDisplay = document.getElementById('totalDisplay');
+        let totalAmount = 0;
+        
+        function calculateTotal() {
+            totalAmount = 0;
+            inputs.forEach(input => {
+                const val = parseFloat(input.value);
+                if (!isNaN(val) && val > 0) {
+                    totalAmount += val;
+                }
+            });
+            totalDisplay.innerText = '₹' + totalAmount.toLocaleString('en-IN');
+        }
+        
+        inputs.forEach(input => {
+            input.addEventListener('input', calculateTotal);
+        });
+
+        document.getElementById('payFeeForm').addEventListener('submit', function(e) {
+            if (totalAmount <= 0) {
+                e.preventDefault();
+                alert('⚠️ कुल राशि 0 से अधिक होनी चाहिए!');
+                return false;
+            }
+            // Confirm before submit
+            const confirmMsg = '₹' + totalAmount.toLocaleString('en-IN') + ' जमा करना है?\n\nStudent: {{ student.name }}';
+            if (!confirm(confirmMsg)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+    {% endif %}
+</div>
+
+{% endblock %}

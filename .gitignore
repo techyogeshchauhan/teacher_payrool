@@ -1,0 +1,52 @@
+# ─── Environment & Secrets ────────────────────────────────────────
+.env
+.env.local
+.env.production
+
+# ─── Python ──────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ─── Virtual Environment ─────────────────────────────────────────
+venv/
+.venv/
+env/
+
+# ─── Logs ────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ─── Flask Session Files ─────────────────────────────────────────
+flask_session/
+
+# ─── Uploads (user content) ──────────────────────────────────────
+static/uploads/*
+!static/uploads/.gitkeep
+
+# ─── IDE / Editor ────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS Files ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Sensitive Documents ─────────────────────────────────────────
+*.xlsx
+*.docx
+*.csv
+
+# ─── Temporary Files ─────────────────────────────────────────────
+*.tmp
+*.bak
+temporary_*.html

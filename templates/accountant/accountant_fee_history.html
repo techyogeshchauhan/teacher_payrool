@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Fee History - गायत्री विद्यापीठ{% endblock %}
+{% block content %}
+
+<div class="flex items-center gap-3 mb-6">
+    <a href="{{ url_for('accountant.accountant_manage_students') }}" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition shadow-sm">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800 hindi">फीस हिस्ट्री (Fee History)</h1>
+</div>
+
+<!-- Student Info Card -->
+<div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-purple-500 mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+    <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+            {{ student.name[0] }}
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-gray-800 hindi">{{ student.name }}</h2>
+            <p class="text-sm text-gray-500 mt-1">
+                Class: <span class="font-bold text-gray-700">{{ student.class }}{% if student.get('section') %}-{{ student.section }}{% endif %}</span> | 
+                Roll: <span class="font-bold text-gray-700">{{ student.roll_no }}</span>
+                {% if student.get('admission_no') %} | Adm: <span class="font-bold text-gray-700 font-mono">{{ student.admission_no }}</span>{% endif %}
+            </p>
+        </div>
+    </div>
+    <div class="flex gap-6">
+        <div>
+            <p class="text-xs text-gray-500 hindi uppercase tracking-wide">कुल (Total)</p>
+            <p class="text-lg font-bold text-gray-700">₹{{ "{:,.0f}".format(student.total_fee) }}</p>
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 hindi uppercase tracking-wide">जमा (Paid)</p>
+            <p class="text-lg font-bold text-green-600">₹{{ "{:,.0f}".format(student.paid_fee) }}</p>
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 hindi uppercase tracking-wide">बाकी (Balance)</p>
+            <p class="text-lg font-bold {{ 'text-green-600' if student.balance_fee <= 0 else 'text-red-600' }}">₹{{ "{:,.0f}".format(student.balance_fee) }}</p>
+        </div>
+    </div>
+</div>
+
+{% if student.total_fee > 0 %}
+<div class="bg-white rounded-xl card-shadow p-4 mb-6">
+    <div class="flex items-center justify-between mb-1">
+        <span class="text-xs text-gray-500 font-bold hindi">भुगतान प्रगति</span>
+        <span class="text-xs font-bold text-teal-700">{{ ((student.paid_fee / student.total_fee) * 100) | round(1) }}%</span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-3">
+        <div class="bg-teal-500 h-3 rounded-full transition-all duration-500" style="width: {{ ((student.paid_fee / student.total_fee) * 100) | round(1) }}%"></div>
+    </div>
+</div>
+{% endif %}
+
+{% if history %}
+<!-- Desktop Table -->
+<div class="hidden md:block bg-white rounded-2xl card-shadow p-1 overflow-hidden">
+    <div class="scroll-x">
+        <table class="w-full text-left">
+            <thead class="bg-purple-50 text-purple-900 border-b border-purple-100">
+                <tr>
+                    <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Date & Time</th>
+                    <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Receipt No</th>
+                    <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider hindi">Month/Period</th>
+                    <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-right hindi">Amount</th>
+                    <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Mode</th>
+                    <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider hindi">Remarks</th>
+                    <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Collected By</th>
+                    <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-center">Receipt</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for h in history %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-5 py-4 text-sm text-gray-600 font-medium whitespace-nowrap">{{ h.date }}</td>
+                    <td class="px-5 py-4 text-sm">
+                        <span class="bg-purple-100 text-purple-700 font-mono px-2 py-1 rounded text-xs font-bold">{{ h.receipt_no }}</span>
+                    </td>
+                    <td class="px-5 py-4 text-sm font-semibold text-gray-700 hindi">{{ h.month }}</td>
+                    <td class="px-5 py-4 text-right">
+                        <span class="text-green-600 font-black text-lg">₹{{ "{:,.0f}".format(h.amount) }}</span>
+                    </td>
+                    <td class="px-5 py-4 text-sm">
+                        <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">{{ h.get('payment_mode', 'Cash') }}</span>
+                    </td>
+                    <td class="px-5 py-4 text-sm text-gray-500 hindi">{{ h.remarks or '-' }}</td>
+                    <td class="px-5 py-4 text-sm text-gray-600 font-semibold">{{ h.collected_by }}</td>
+                    <td class="px-5 py-4 text-center">
+                        <a href="{{ url_for('accountant.accountant_fee_receipt', receipt_no=h.receipt_no) }}" 
+                           class="bg-teal-100 text-teal-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-teal-600 hover:text-white transition inline-flex items-center gap-1">
+                            <i class="fas fa-print"></i> View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Mobile Cards -->
+<div class="md:hidden space-y-3">
+    {% for h in history %}
+    <div class="bg-white rounded-xl card-shadow p-4 border-l-4 border-green-400">
+        <div class="flex justify-between items-start mb-2">
+            <div>
+                <p class="text-xs text-gray-400">{{ h.date }}</p>
+                <p class="font-bold text-gray-700 hindi text-sm mt-1">{{ h.month }}</p>
+            </div>
+            <span class="text-green-600 font-black text-xl">₹{{ "{:,.0f}".format(h.amount) }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-gray-500 mt-2 border-t border-gray-100 pt-2">
+            <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-semibold">{{ h.get('payment_mode', 'Cash') }}</span>
+            <span>by {{ h.collected_by }}</span>
+            {% if h.remarks %}
+            <span class="text-gray-400 hindi">| {{ h.remarks }}</span>
+            {% endif %}
+        </div>
+        <a href="{{ url_for('accountant.accountant_fee_receipt', receipt_no=h.receipt_no) }}" 
+           class="mt-3 block text-center bg-teal-50 text-teal-700 py-2 rounded-lg text-xs font-bold hover:bg-teal-600 hover:text-white transition">
+            <i class="fas fa-print mr-1"></i> Receipt: {{ h.receipt_no }}
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="bg-white rounded-2xl card-shadow p-12 text-center mt-6">
+    <i class="fas fa-receipt text-gray-300 text-6xl mb-4"></i>
+    <p class="text-gray-500 hindi text-lg">अभी तक कोई फीस जमा नहीं हुई है।</p>
+    {% if student.balance_fee > 0 %}
+    <a href="{{ url_for('accountant.accountant_pay_fee', student_id=student._id) }}" class="inline-block mt-4 bg-green-500 text-white px-8 py-2.5 rounded-xl hindi font-bold shadow hover:bg-green-600 transition">
+        <i class="fas fa-rupee-sign mr-1"></i> फीस जमा करें
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
