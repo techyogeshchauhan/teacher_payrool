@@ -360,55 +360,7 @@
 
 <footer class="text-center text-xs text-gray-400 py-4 mt-8 hindi relative z-10">
     गायत्री विद्यापीठ, दाउदनगर &mdash; Attendance & Payroll System
-    <div id="player" class="hidden"></div>
 </footer>
-
-<script>
-    // YouTube Player API for Gayatri Mantra Background Chanting
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-    var player;
-    var isPlaying = false;
-
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('player', {
-            height: '0',
-            width: '0',
-            videoId: 'GEVvyIrQZnA',
-            playerVars: {
-                'autoplay': 0,
-                'loop': 1,
-                'playlist': 'GEVvyIrQZnA',
-                'controls': 0,
-                'showinfo': 0,
-                'autohide': 1
-            },
-            events: {
-                'onReady': onPlayerReady
-            }
-        });
-    }
-
-    function onPlayerReady(event) {
-        player.setVolume(15); // Set slow/low volume (15%)
-        // Try to autoplay, though browsers usually block without interaction
-        player.playVideo();
-        
-        // Ensure it plays on first user interaction
-        document.body.addEventListener('click', function() {
-            if (!isPlaying && player && player.getPlayerState) {
-                var state = player.getPlayerState();
-                if (state !== YT.PlayerState.PLAYING) {
-                    player.playVideo();
-                    isPlaying = true;
-                }
-            }
-        }, { once: true });
-    }
-</script>
 
 </body>
 </html>
