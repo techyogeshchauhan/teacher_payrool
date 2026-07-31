@@ -224,7 +224,7 @@ def init_admin():
         admins_col.insert_one({
             'username': admin_username,
             'password': password_manager.hash_password(admin_password),
-            'name': 'Ravindra kumar',
+            'name': 'Yogesh Chauhan',
             'created_at': datetime.now(timezone.utc),
             'must_change_password': True
         })
@@ -334,8 +334,8 @@ def internal_error(e):
 @app.after_request
 def add_security_headers(response):
     """Add security headers to all responses"""
-    # Prevent caching of sensitive pages
-    if 'dashboard' in request.path or 'login' in request.path:
+    # Prevent caching of dynamic pages to avoid back-button after logout issues
+    if request.endpoint != 'static':
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '-1'

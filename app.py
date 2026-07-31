@@ -463,7 +463,7 @@ def init_admin():
         admins_col.insert_one({
             'username': admin_user,
             'password': pm.hash_password(admin_pass),
-            'name': 'Ravindra kumar',
+            'name': 'Yogesh Chauhan',
             'created_at': datetime.now(timezone.utc),
             'must_change_password': True
         })
@@ -475,7 +475,7 @@ def init_admin():
                 {'username': admin_user},
                 {'$set': {
                     'password': pm.hash_password(admin_pass),
-                    'name': 'Ravindra kumar',
+                    'name': 'Yogesh Chauhan',
                     'migrated_at': datetime.now(timezone.utc)
                 }}
             )
@@ -1018,6 +1018,11 @@ def mark_attendance():
 # ═══════════════════════════════════════════════════════════════════════════
 # ROUTES — Payroll
 # ═══════════════════════════════════════════════════════════════════════════
+
+@app.route('/admin/blank-salary-slip')
+@admin_required
+def blank_salary_slip():
+    return render_template('blank_salary_slip.html')
 
 @app.route('/admin/payroll')
 @admin_required
@@ -2039,11 +2044,18 @@ def salary_slip_generator():
                              teacher=teacher,
                              month=month, year=year,
                              month_name=calendar.month_name[month],
+                             present=present_days,
+                             half=0,
+                             medical=paid_leave,
+                             absent=absent_days,
+                             sundays_paid=sunday_count,
+                             holidays_paid=0,
+                             paid_days=paid_days,
+                             leave_taken=absent_days,
                              present_days=present_days,
                              absent_days=absent_days,
                              paid_leave=paid_leave,
                              sunday_count=sunday_count,
-                             paid_days=paid_days,
                              basic_salary=basic_salary,
                              per_day=round(per_day, 2),
                              allowances=0,
@@ -2548,6 +2560,22 @@ def internal_error(e):
     return render_template('error.html',
                          error='500 - Internal Server Error',
                          message='कुछ गलत हो गया। कृपया बाद में पुन: प्रयास करें।'), 500
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECURITY HEADERS
+# ═══════════════════════════════════════════════════════════════════════════
+
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to prevent caching of dynamic pages (Fixes back-button after logout bug)."""
+    if request.endpoint != 'static':
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+    
+    response.headers.pop('Server', None)
+    return response
 
 
 # ═══════════════════════════════════════════════════════════════════════════
