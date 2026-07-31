@@ -92,6 +92,7 @@
                         <a href="{{ url_for('admin_leave_requests') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-envelope-open-text w-5 text-center text-gray-400"></i> Leave Requests</a>
                         <a href="{{ url_for('payroll') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-rupee-sign w-5 text-center text-gray-400"></i> Payroll</a>
                         <a href="{{ url_for('salary_slip_generator') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-file-invoice-dollar w-5 text-center text-gray-400"></i> Slip Generator</a>
+                        <a href="{{ url_for('admin_generated_slips') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-history w-5 text-center text-gray-400"></i> Saved Slips</a>
                         <a href="{{ url_for('salary_increment') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-arrow-trend-up w-5 text-center text-gray-400"></i> Increment</a>
                         <a href="{{ url_for('teacher_logs') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 border-t border-gray-50 mt-1 pt-2"><i class="fas fa-clipboard-list w-5 text-center text-gray-400"></i> Logs</a>
                     </div>
@@ -234,6 +235,9 @@
             </a>
             <a href="{{ url_for('salary_slip_generator') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-file-invoice-dollar w-6 text-center text-orange-500"></i> Slip Generator
+            </a>
+            <a href="{{ url_for('admin_generated_slips') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
+                <i class="fas fa-history w-6 text-center text-orange-500"></i> Saved Slips
             </a>
             <a href="{{ url_for('salary_increment') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
                 <i class="fas fa-arrow-trend-up w-6 text-center text-orange-500"></i> Increment

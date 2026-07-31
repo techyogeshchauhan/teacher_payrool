@@ -117,6 +117,7 @@ students_col = db['students']
 fee_history_col = db['fee_history']
 leave_requests_col = db['leave_requests']
 certificates_col = db['certificates']
+generated_slips_col = db['generated_slips']
 
 # ─── Accountant Blueprint ───────────────────────────────────────────────────
 from accountant_bp import accountant_bp, init_accountant
@@ -2040,6 +2041,26 @@ def salary_slip_generator():
         unique_bill_no = f"GVP-SG-{year}-{month:02d}-{bill_index:03d}"
         slip_date = date.today().strftime('%d/%m/%Y')
 
+        try:
+            generated_slips_col.insert_one({
+                'teacher_id': teacher_id,
+                'teacher_name': teacher.get('name', 'Unknown'),
+                'month': month,
+                'year': year,
+                'present_days': present_days,
+                'absent_days': absent_days,
+                'paid_leave': paid_leave,
+                'sunday_count': sunday_count,
+                'paid_days': paid_days,
+                'basic_salary': basic_salary,
+                'net_salary': net_salary,
+                'bill_no': unique_bill_no,
+                'slip_date': slip_date,
+                'generated_at': datetime.now(timezone(timedelta(hours=5, minutes=30)))
+            })
+        except Exception as e:
+            app.logger.error(f'Error saving generated slip to DB: {e}')
+
         return render_template('salary_slip_generated.html',
                              teacher=teacher,
                              month=month, year=year,
@@ -2069,6 +2090,24 @@ def salary_slip_generator():
                          teachers=teachers,
                          current_month=today.month,
                          current_year=today.year)
+
+
+@app.route('/admin/salary/generated-slips')
+@admin_required
+def admin_generated_slips():
+    slips = list(generated_slips_col.find().sort('generated_at', -1))
+    return render_template('admin_generated_slips.html', slips=slips)
+
+@app.route('/admin/salary/generated-slips/delete/<slip_id>', methods=['POST'])
+@admin_required
+def delete_generated_slip(slip_id):
+    try:
+        generated_slips_col.delete_one({'_id': ObjectId(slip_id)})
+        flash('Slip deleted successfully.', 'success')
+    except Exception as e:
+        app.logger.error(f"Error deleting generated slip: {e}")
+        flash('Failed to delete slip.', 'danger')
+    return redirect(url_for('admin_generated_slips'))
 
 
 # ═══════════════════════════════════════════════════════════════════════════
