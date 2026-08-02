@@ -239,17 +239,6 @@ def teacher_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
-def student_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('student_id'):
-            flash('कृपया लॉगिन करें!')
-            return redirect(url_for('student_login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-
 # ─── Salary Calculation Helpers ─────────────────────────────────────────────
 
 def get_salary_calculation_days(year, month):
@@ -2098,6 +2087,51 @@ def admin_generated_slips():
     slips = list(generated_slips_col.find().sort('generated_at', -1))
     return render_template('admin_generated_slips.html', slips=slips)
 
+@app.route('/admin/salary/generated-slips/view/<slip_id>', methods=['GET'])
+@admin_required
+def view_generated_slip(slip_id):
+    try:
+        slip = generated_slips_col.find_one({'_id': ObjectId(slip_id)})
+        if not slip:
+            flash('Slip not found.', 'danger')
+            return redirect(url_for('admin_generated_slips'))
+
+        teacher = teachers_col.find_one({'teacher_id': slip['teacher_id']})
+        
+        salary_calc_days = 30
+        basic_salary = slip.get('basic_salary', 0)
+        per_day = basic_salary / salary_calc_days if salary_calc_days > 0 else 0
+        deduction = round(basic_salary - slip.get('net_salary', 0), 2)
+        
+        return render_template('salary_slip_generated.html',
+                             teacher=teacher,
+                             month=slip.get('month'),
+                             year=slip.get('year'),
+                             month_name=calendar.month_name[slip.get('month', 1)],
+                             present=slip.get('present_days', 0),
+                             half=0,
+                             medical=slip.get('paid_leave', 0),
+                             absent=slip.get('absent_days', 0),
+                             sundays_paid=slip.get('sunday_count', 0),
+                             holidays_paid=0,
+                             paid_days=slip.get('paid_days', 0),
+                             leave_taken=slip.get('absent_days', 0),
+                             present_days=slip.get('present_days', 0),
+                             absent_days=slip.get('absent_days', 0),
+                             paid_leave=slip.get('paid_leave', 0),
+                             sunday_count=slip.get('sunday_count', 0),
+                             basic_salary=basic_salary,
+                             per_day=round(per_day, 2),
+                             allowances=0,
+                             deduction=deduction,
+                             net_salary=slip.get('net_salary', 0),
+                             bill_no=slip.get('bill_no', ''),
+                             slip_date=slip.get('slip_date', ''))
+    except Exception as e:
+        app.logger.error(f"Error viewing generated slip: {e}")
+        flash('Failed to view slip.', 'danger')
+        return redirect(url_for('admin_generated_slips'))
+
 @app.route('/admin/salary/generated-slips/delete/<slip_id>', methods=['POST'])
 @admin_required
 def delete_generated_slip(slip_id):
@@ -2427,70 +2461,18 @@ def fee_history(student_id):
 # ROUTES — Student Portal & Certificates
 # ═══════════════════════════════════════════════════════════════════════════
 
-@app.route('/student/login', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")
-def student_login():
-    if session.get('student_id'):
-        return redirect(url_for('student_dashboard'))
-
-    if request.method == 'POST':
-        roll_no = safe_str(request.form.get('roll_no', ''), 20).strip()
-        mobile = safe_str(request.form.get('password', ''), 20).strip()
-
-        if not roll_no or not mobile:
-            flash('कृपया Roll No और Mobile Number दर्ज करें!', 'error')
-            return render_template('student_login.html')
-
-        # Secure authentication — match roll_no AND mobile only
-        student = students_col.find_one({
-            'roll_no': roll_no,
-            'mobile': mobile
-        })
-
-        if student:
-            session.clear()
-            session['student_id'] = str(student['_id'])
-            session['student_name'] = student['name']
-            session.permanent = True
-            flash("Login successful", 'success')
-            return redirect(url_for('student_dashboard'))
-        else:
-            flash("Invalid credentials. Use Roll No and Mobile Number.", 'error')
-
-    return render_template('student_login.html')
-
-
-@app.route('/student/dashboard')
-@student_required
-def student_dashboard():
-    student = students_col.find_one({'_id': ObjectId(session['student_id'])})
-    if not student:
-        session.clear()
-        return redirect(url_for('student_login'))
-
-    certificate = certificates_col.find_one({'student_id': session['student_id']})
-    return render_template('student_dashboard.html', student=student, certificate=certificate)
-
-
-@app.route('/student/certificate/<cert_id>')
-@student_required
+@app.route('/admin/certificate/view/<cert_id>')
+@admin_required
 def view_certificate(cert_id):
     valid, _ = SecurityValidator.validate_object_id(cert_id)
     if not valid:
         flash("Invalid certificate ID.", "error")
-        return redirect(url_for('student_dashboard'))
+        return redirect(url_for('admin_certificates'))
 
     cert = certificates_col.find_one({'_id': ObjectId(cert_id)})
     if not cert:
         flash("Certificate not found.", "error")
-        return redirect(url_for('student_dashboard'))
-
-    # IDOR prevention: verify certificate belongs to logged-in student
-    if cert.get('student_id') != session.get('student_id'):
-        log_security_event('IDOR_ATTEMPT', session.get('student_id', 'unknown'),
-                          f'Tried to view cert {cert_id}')
-        flash("Access denied.", "error")
-        return redirect(url_for('student_dashboard'))
+        return redirect(url_for('admin_certificates'))
 
     student = students_col.find_one({'_id': ObjectId(cert['student_id'])})
     return render_template('certificate.html', cert=cert, student=student)
