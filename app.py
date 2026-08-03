@@ -55,7 +55,11 @@ from middleware import SecurityMiddleware
 
 # ─── App Factory ─────────────────────────────────────────────────────────────
 
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 app = Flask(__name__)
+# Add ProxyFix so that Flask-Limiter and request.remote_addr get correct client IPs behind Vercel and Render
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2, x_proto=2, x_host=2, x_prefix=2)
 
 # Load configuration
 env = os.environ.get('FLASK_ENV', 'development')
