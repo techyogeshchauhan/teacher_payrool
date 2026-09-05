@@ -143,6 +143,48 @@ class SecurityValidator:
             return False, f"Invalid {field_name}"
 
     @staticmethod
+    def validate_positive_float(value, field_name="Value", max_val=31.0, enforce_half_day=False):
+        """
+        Validate a non-negative float for fields like working days.
+
+        Parameters:
+            value           — raw input (string or number)
+            field_name      — label used in error messages
+            max_val         — inclusive upper bound (default 31.0)
+            enforce_half_day— when True, only multiples of 0.5 are accepted
+                              (0, 0.5, 1, 1.5, … 23, 23.5, 24 …).
+                              Values like 23.25 or 23.3 are rejected.
+
+        Returns (True, float) on success or (False, error_string) on failure.
+        Floating-point noise is handled by rounding the doubled value, so
+        23.5000001 is treated as 23.5, not rejected.
+        """
+        try:
+            val = float(str(value).strip())
+        except (ValueError, TypeError):
+            return False, f"Invalid {field_name}"
+
+        if val < 0:
+            return False, f"{field_name} cannot be negative"
+        if val > max_val:
+            return False, f"{field_name} exceeds maximum ({max_val})"
+
+        if enforce_half_day:
+            # Multiply by 2 and check it is (very close to) a whole number.
+            # This avoids IEEE-754 issues with direct modulo on floats.
+            doubled = val * 2
+            rounded_doubled = round(doubled)
+            if abs(doubled - rounded_doubled) > 0.001:
+                return False, (
+                    f"{field_name} must be in 0.5-day increments "
+                    f"(e.g. 23 or 23.5)"
+                )
+            # Normalise: 23.5000001 → 23.5
+            val = rounded_doubled / 2
+
+        return True, val
+
+    @staticmethod
     def validate_password(password, min_length=8, require_complexity=True):
         """Validate password strength."""
         if not password:

@@ -439,14 +439,43 @@
                     <tr>
                         <td class="hindi">{{ teacher.name }}</td>
                         <td>Teacher</td>
-                        <td>{{ "{:,.2f}".format(net_salary) }}</td>
+                        <td>{{ "{:,.2f}".format(calculated_salary if calculated_salary is defined else net_salary) }}</td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="2">Sub Total (in Rs.)</td>
-                        <td>{{ "{:,.2f}".format(net_salary) }}</td>
+                        <td colspan="2">Calculated Salary (in Rs.)</td>
+                        <td>{{ "{:,.2f}".format(calculated_salary if calculated_salary is defined else net_salary) }}</td>
                     </tr>
+                    {% set cur_fine = fine if fine is defined else 0.0 %}
+                    {% set cur_assets = assets if assets is defined else 0.0 %}
+                    {% set cur_total_ded = total_deduction if total_deduction is defined else (cur_fine + cur_assets) %}
+
+                    {% if cur_fine > 0 and cur_assets > 0 %}
+                    <tr style="color: #991b1b; background: #fef2f2;">
+                        <td colspan="2"><i class="fas fa-minus-circle" style="margin-right:4px;"></i> Fine Deduction (in Rs.)</td>
+                        <td style="color: #991b1b; font-weight:700;">- {{ "{:,.2f}".format(cur_fine) }}</td>
+                    </tr>
+                    <tr style="color: #b45309; background: #fffbeb;">
+                        <td colspan="2"><i class="fas fa-box-open" style="margin-right:4px;"></i> Assets Deduction (in Rs.)</td>
+                        <td style="color: #b45309; font-weight:700;">- {{ "{:,.2f}".format(cur_assets) }}</td>
+                    </tr>
+                    <tr style="color: #7f1d1d; background: #fee2e2; font-weight:700;">
+                        <td colspan="2"><i class="fas fa-calculator" style="margin-right:4px;"></i> Total Deduction (in Rs.)</td>
+                        <td style="color: #7f1d1d; font-weight:800;">- {{ "{:,.2f}".format(cur_total_ded) }}</td>
+                    </tr>
+                    {% elif cur_fine > 0 %}
+                    <tr style="color: #991b1b; background: #fef2f2;">
+                        <td colspan="2"><i class="fas fa-minus-circle" style="margin-right:4px;"></i> Fine Deduction (in Rs.)</td>
+                        <td style="color: #991b1b; font-weight:700;">- {{ "{:,.2f}".format(cur_fine) }}</td>
+                    </tr>
+                    {% elif cur_assets > 0 %}
+                    <tr style="color: #b45309; background: #fffbeb;">
+                        <td colspan="2"><i class="fas fa-box-open" style="margin-right:4px;"></i> Assets Deduction (in Rs.)</td>
+                        <td style="color: #b45309; font-weight:700;">- {{ "{:,.2f}".format(cur_assets) }}</td>
+                    </tr>
+                    {% endif %}
+
                     <tr>
                         <td colspan="2">CGST (in Rs.)</td>
                         <td>00.0</td>
@@ -455,13 +484,9 @@
                         <td colspan="2">SGST (in Rs.)</td>
                         <td>00.0</td>
                     </tr>
-                    <tr>
-                        <td colspan="2">Total (in Rs.)</td>
-                        <td>{{ "{:,.2f}".format(net_salary) }}</td>
-                    </tr>
                     <tr class="tfoot-net">
-                        <td colspan="2">Net Total (in Rs.)</td>
-                        <td style="font-size:1rem;">{{ "{:,.2f}".format(net_salary) }}</td>
+                        <td colspan="2">Final Payable Salary / Net Total (in Rs.)</td>
+                        <td style="font-size:1rem; font-weight:800;">₹{{ "{:,.2f}".format(net_salary) }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -472,7 +497,8 @@
             </div>
             <div class="att-row">
                 <div class="att-badge att-p">
-                    <span class="av">{{ present if present is defined else present_days }}</span>
+                    {%- set _pv = (present if present is defined else present_days)|float -%}
+                    <span class="av">{{ _pv|int if _pv == _pv|int else _pv }}</span>
                     <span class="al">Present (P)</span>
                 </div>
                 <div class="att-badge att-h">
@@ -504,7 +530,8 @@
                     <span class="di-lbl">Leave (A)</span>
                 </div>
                 <div class="di" style="background:#064e3b;color:#fff;border-radius:8px;padding:4px 6px;">
-                    <span class="di-val" style="color:#fff;">{{ paid_days }}</span>
+                    {%- set _pd = paid_days|float -%}
+                    <span class="di-val" style="color:#fff;">{{ _pd|int if _pd == _pd|int else _pd }}</span>
                     <span class="di-lbl" style="color:#d1fae5;">Paid Days</span>
                 </div>
             </div>

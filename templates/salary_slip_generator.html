@@ -214,9 +214,9 @@
                             Present Days <span class="required">*</span>
                         </label>
                         <input type="number" name="present_days" id="presentDays"
-                               class="form-input" min="0" max="31" value="0" required
+                               class="form-input" min="0" max="31" step="0.5" value="0" required
                                oninput="updateSummary()">
-                        <p class="hint-text">School में उपस्थित दिन (P + H + M सभी)</p>
+                        <p class="hint-text">उपस्थित दिन &mdash; पूरे या आधे दिन (जैसे 23 या 23.5) &nbsp;<span style="background:#eef2ff;color:#4338ca;border-radius:4px;padding:1px 6px;font-size:0.68rem;font-weight:700;">&#189; दिन = 0.5</span></p>
                     </div>
                     <div>
                         <label class="form-label">
@@ -250,6 +250,58 @@
                                oninput="updateSummary()">
                         <p class="hint-text">Default: 4 (paid Sundays per month)</p>
                     </div>
+
+                    <!-- Row 5: Deduction Type Dropdown -->
+                    <div class="form-full">
+                        <label class="form-label">
+                            <i class="fas fa-tags" style="margin-right:4px; color:#7B1C1C;"></i>
+                            Deduction Type
+                        </label>
+                        <select name="deduction_type" id="deductionType" class="form-input" onchange="handleDeductionTypeChange()">
+                            <option value="none" selected>None</option>
+                            <option value="fine">Fine</option>
+                            <option value="assets">Assets</option>
+                            <option value="fine_assets">Fine + Assets</option>
+                        </select>
+                        <p class="hint-text">Select deduction type to apply to salary</p>
+                    </div>
+
+                    <!-- Row 6: Conditional Deduction Inputs -->
+                    <div id="fineInputGroup" class="form-group-item" style="display:none;">
+                        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>
+                                <i class="fas fa-minus-circle" style="margin-right:4px; color:#991b1b;"></i>
+                                Fine Amount (₹)
+                            </span>
+                            <span style="font-size:0.72rem; color:#888; font-weight:normal; text-transform:none;">Default: ₹0</span>
+                        </label>
+                        <div style="position:relative;">
+                            <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:700; color:#888; font-size:0.95rem;">₹</span>
+                            <input type="number" name="fine" id="fineAmount"
+                                   class="form-input" min="0" step="any" value="0"
+                                   placeholder="0" style="padding-left:30px;"
+                                   oninput="updateSummary()">
+                        </div>
+                        <p class="hint-text">Fine amount to deduct from calculated salary</p>
+                    </div>
+
+                    <div id="assetsInputGroup" class="form-group-item" style="display:none;">
+                        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>
+                                <i class="fas fa-box-open" style="margin-right:4px; color:#d97706;"></i>
+                                Assets Amount (₹)
+                            </span>
+                            <span style="font-size:0.72rem; color:#888; font-weight:normal; text-transform:none;">Default: ₹0</span>
+                        </label>
+                        <div style="position:relative;">
+                            <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:700; color:#888; font-size:0.95rem;">₹</span>
+                            <input type="number" name="assets" id="assetsAmount"
+                                   class="form-input" min="0" step="any" value="0"
+                                   placeholder="0" style="padding-left:30px;"
+                                   oninput="updateSummary()">
+                        </div>
+                        <p class="hint-text">Assets recovery/deduction amount from calculated salary</p>
+                    </div>
                 </div>
 
                 <!-- Live Summary -->
@@ -278,9 +330,25 @@
                             <span class="ds-val" style="color:#fff;" id="sumPaid">4</span>
                             <span class="ds-lbl" style="color:#d1fae5;">Paid Days</span>
                         </div>
+                        <div class="ds-item" style="background:#f3f4f6;border-radius:8px;padding:6px 10px;border:1px solid #e5e7eb;">
+                            <span class="ds-val" style="color:#374151;font-size:1.15rem;" id="sumCalculatedSalary">₹0</span>
+                            <span class="ds-lbl" style="color:#6b7280;">Calculated Sal.</span>
+                        </div>
+                        <div class="ds-item" id="sumFineBox" style="background:#fef2f2;border-radius:8px;padding:6px 10px;border:1px solid #fecaca;display:none;">
+                            <span class="ds-val" style="color:#991b1b;font-size:1.15rem;" id="sumFine">-₹0</span>
+                            <span class="ds-lbl" style="color:#991b1b;">Fine (-)</span>
+                        </div>
+                        <div class="ds-item" id="sumAssetsBox" style="background:#fffbeb;border-radius:8px;padding:6px 10px;border:1px solid #fde68a;display:none;">
+                            <span class="ds-val" style="color:#b45309;font-size:1.15rem;" id="sumAssets">-₹0</span>
+                            <span class="ds-lbl" style="color:#b45309;">Assets (-)</span>
+                        </div>
+                        <div class="ds-item" id="sumTotalDedBox" style="background:#fee2e2;border-radius:8px;padding:6px 10px;border:1px solid #f87171;display:none;">
+                            <span class="ds-val" style="color:#7f1d1d;font-size:1.15rem;" id="sumTotalDed">-₹0</span>
+                            <span class="ds-lbl" style="color:#7f1d1d;">Total Ded. (-)</span>
+                        </div>
                         <div class="ds-item" style="background:#7B1C1C;color:#fff;border-radius:8px;padding:6px 10px;">
-                            <span class="ds-val" style="color:#fff;" id="sumSalary">₹0</span>
-                            <span class="ds-lbl" style="color:#fecaca;">Est. Salary</span>
+                            <span class="ds-val" style="color:#fff;font-size:1.25rem;" id="sumFinalSalary">₹0</span>
+                            <span class="ds-lbl" style="color:#fecaca;">Final Payable</span>
                         </div>
                     </div>
                 </div>
@@ -306,13 +374,66 @@
 </div>
 
 <script>
+function handleDeductionTypeChange() {
+    const dtype = document.getElementById('deductionType').value;
+    const fineGroup = document.getElementById('fineInputGroup');
+    const assetsGroup = document.getElementById('assetsInputGroup');
+    const fineInput = document.getElementById('fineAmount');
+    const assetsInput = document.getElementById('assetsAmount');
+
+    if (dtype === 'none') {
+        fineGroup.style.display = 'none';
+        assetsGroup.style.display = 'none';
+        fineGroup.className = 'form-group-item';
+        assetsGroup.className = 'form-group-item';
+        if (fineInput) fineInput.value = '0';
+        if (assetsInput) assetsInput.value = '0';
+    } else if (dtype === 'fine') {
+        fineGroup.style.display = 'block';
+        fineGroup.className = 'form-full';
+        assetsGroup.style.display = 'none';
+        assetsGroup.className = 'form-group-item';
+        if (assetsInput) assetsInput.value = '0';
+    } else if (dtype === 'assets') {
+        fineGroup.style.display = 'none';
+        fineGroup.className = 'form-group-item';
+        assetsGroup.style.display = 'block';
+        assetsGroup.className = 'form-full';
+        if (fineInput) fineInput.value = '0';
+    } else if (dtype === 'fine_assets') {
+        fineGroup.style.display = 'block';
+        fineGroup.className = '';
+        assetsGroup.style.display = 'block';
+        assetsGroup.className = '';
+    }
+    updateSummary();
+}
+
 function updateSummary() {
-    const present = parseInt(document.getElementById('presentDays').value) || 0;
+    // present_days supports decimals in 0.5 increments (e.g. 23.5 = 23 full + 1 half day)
+    const present = parseFloat(document.getElementById('presentDays').value) || 0;
     const absent  = parseInt(document.getElementById('absentDays').value) || 0;
     const leave   = parseInt(document.getElementById('paidLeave').value) || 0;
     const sunday  = parseInt(document.getElementById('sundayCount').value) || 0;
 
-    const paidDays = Math.min(present + leave + sunday, 30);
+    const dtype = document.getElementById('deductionType') ? document.getElementById('deductionType').value : 'none';
+    const fineInput = document.getElementById('fineAmount');
+    const assetsInput = document.getElementById('assetsAmount');
+
+    let fine = 0;
+    let assets = 0;
+    if (dtype === 'fine' || dtype === 'fine_assets') {
+        fine = Math.max(0, parseFloat(fineInput ? fineInput.value : 0) || 0);
+    }
+    if (dtype === 'assets' || dtype === 'fine_assets') {
+        assets = Math.max(0, parseFloat(assetsInput ? assetsInput.value : 0) || 0);
+    }
+    const totalDed = fine + assets;
+
+    // paid_days: fractional-safe (23.5 present + 4 sundays = 27.5 paid)
+    const rawPaid = Math.min(present + leave + sunday, 30);
+    // Round to 2 decimal places to eliminate JS float noise
+    const paidDays = Math.round(rawPaid * 100) / 100;
 
     document.getElementById('sumPresent').textContent = present;
     document.getElementById('sumAbsent').textContent  = absent;
@@ -324,20 +445,81 @@ function updateSummary() {
     const sel = document.getElementById('teacherSelect');
     const opt = sel.options[sel.selectedIndex];
     const salary = parseFloat(opt?.dataset?.salary) || 0;
-    const perDay = salary / 30;
-    const estSalary = Math.round(perDay * paidDays);
+    const perDay = salary / 30;  // divisor always 30, never calendar days
+    // Round to nearest paisa (2dp) — mirrors backend round(per_day * paid_days, 2)
+    const calculatedSalary = Math.round(perDay * paidDays * 100) / 100;
+    const finalSalary = Math.max(0, Math.round((calculatedSalary - totalDed) * 100) / 100);
 
-    document.getElementById('sumSalary').textContent = '₹' + estSalary.toLocaleString('en-IN');
+    document.getElementById('sumCalculatedSalary').textContent = '₹' + calculatedSalary.toLocaleString('en-IN');
+    document.getElementById('sumFinalSalary').textContent = '₹' + finalSalary.toLocaleString('en-IN');
 
-    // Validation
+    const fineBox = document.getElementById('sumFineBox');
+    const assetsBox = document.getElementById('sumAssetsBox');
+    const totalDedBox = document.getElementById('sumTotalDedBox');
+
+    if (dtype === 'fine') {
+        fineBox.style.display = 'flex';
+        assetsBox.style.display = 'none';
+        totalDedBox.style.display = 'none';
+        document.getElementById('sumFine').textContent = (fine > 0 ? '-₹' : '₹') + fine.toLocaleString('en-IN');
+    } else if (dtype === 'assets') {
+        fineBox.style.display = 'none';
+        assetsBox.style.display = 'flex';
+        totalDedBox.style.display = 'none';
+        document.getElementById('sumAssets').textContent = (assets > 0 ? '-₹' : '₹') + assets.toLocaleString('en-IN');
+    } else if (dtype === 'fine_assets') {
+        fineBox.style.display = 'flex';
+        assetsBox.style.display = 'flex';
+        totalDedBox.style.display = 'flex';
+        document.getElementById('sumFine').textContent = (fine > 0 ? '-₹' : '₹') + fine.toLocaleString('en-IN');
+        document.getElementById('sumAssets').textContent = (assets > 0 ? '-₹' : '₹') + assets.toLocaleString('en-IN');
+        document.getElementById('sumTotalDed').textContent = (totalDed > 0 ? '-₹' : '₹') + totalDed.toLocaleString('en-IN');
+    } else {
+        fineBox.style.display = 'none';
+        assetsBox.style.display = 'none';
+        totalDedBox.style.display = 'none';
+    }
+
+    // ── Validation ─────────────────────────────────────────────────────────────
     const total = present + absent + leave + sunday;
     const msgBox = document.getElementById('validationMsg');
     const msgText = document.getElementById('validationText');
     const btn = document.getElementById('submitBtn');
 
-    if (total > 31) {
+    let hasError = false;
+    let errorMsg = '';
+
+    // 1. Negative deduction amounts
+    if ((dtype === 'fine' || dtype === 'fine_assets') && fineInput && parseFloat(fineInput.value) < 0) {
+        hasError = true;
+        errorMsg = 'Fine amount cannot be negative!';
+    } else if ((dtype === 'assets' || dtype === 'fine_assets') && assetsInput && parseFloat(assetsInput.value) < 0) {
+        hasError = true;
+        errorMsg = 'Assets amount cannot be negative!';
+    }
+
+    // 2. Present Days — must be a multiple of 0.5 (frontend mirror of backend rule)
+    if (!hasError) {
+        const presentRaw = parseFloat(document.getElementById('presentDays').value);
+        if (!isNaN(presentRaw)) {
+            const doubled = presentRaw * 2;
+            const roundedDoubled = Math.round(doubled);
+            if (Math.abs(doubled - roundedDoubled) > 0.001) {
+                hasError = true;
+                errorMsg = 'Present Days must be in 0.5-day increments (e.g. 23 or 23.5)';
+            }
+        }
+    }
+
+    // 3. Total days sanity check
+    if (!hasError && total > 31) {
+        hasError = true;
+        errorMsg = 'कुल दिन (Present + Absent + Leave + Sunday) 31 से ज़्यादा नहीं हो सकते!';
+    }
+
+    if (hasError) {
         msgBox.style.display = 'block';
-        msgText.textContent = 'कुल दिन (Present + Absent + Leave + Sunday) 31 से ज़्यादा नहीं हो सकते!';
+        msgText.textContent = errorMsg;
         btn.disabled = true;
         btn.style.opacity = '0.5';
     } else if (sel.value === '') {
@@ -352,6 +534,8 @@ function updateSummary() {
 }
 
 document.getElementById('teacherSelect').addEventListener('change', updateSummary);
-document.addEventListener('DOMContentLoaded', updateSummary);
+document.addEventListener('DOMContentLoaded', function() {
+    handleDeductionTypeChange();
+});
 </script>
 {% endblock %}

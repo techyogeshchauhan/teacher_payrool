@@ -19,37 +19,62 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-800 text-white">
                 <tr>
-                    <th class="text-left px-4 py-3">S.No.</th>
-                    <th class="text-left px-4 py-3">Date Generated</th>
-                    <th class="text-left px-4 py-3">Bill No</th>
-                    <th class="text-left px-4 py-3">Teacher ID</th>
-                    <th class="text-left px-4 py-3 hindi">Name</th>
-                    <th class="text-center px-4 py-3">Month</th>
-                    <th class="text-center px-4 py-3">Paid Days</th>
-                    <th class="text-center px-4 py-3 hindi">Basic Salary</th>
-                    <th class="text-center px-4 py-3 text-yellow-300 font-bold hindi">Net Salary</th>
-                    <th class="text-center px-4 py-3">Actions</th>
+                    <th class="text-left px-3 py-3">S.No.</th>
+                    <th class="text-left px-3 py-3">Date Generated</th>
+                    <th class="text-left px-3 py-3">Bill No</th>
+                    <th class="text-left px-3 py-3">Teacher ID</th>
+                    <th class="text-left px-3 py-3 hindi">Name</th>
+                    <th class="text-center px-3 py-3">Month</th>
+                    <th class="text-center px-3 py-3">Paid Days</th>
+                    <th class="text-center px-3 py-3">Calculated Sal.</th>
+                    <th class="text-center px-3 py-3 text-red-300 font-bold">Fine</th>
+                    <th class="text-center px-3 py-3 text-amber-300 font-bold">Assets</th>
+                    <th class="text-center px-3 py-3 text-red-400 font-bold">Total Ded.</th>
+                    <th class="text-center px-3 py-3 text-yellow-300 font-bold">Final Payable</th>
+                    <th class="text-center px-3 py-3">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 {% for slip in slips %}
                 <tr class="hover:bg-orange-50 transition">
-                    <td class="px-4 py-3 font-bold text-gray-600">{{ loop.index }}</td>
-                    <td class="px-4 py-3 text-gray-500">{{ slip.generated_at.strftime('%d %b %Y, %I:%M %p') if slip.generated_at else slip.slip_date }}</td>
-                    <td class="px-4 py-3 font-mono font-bold text-gray-600">{{ slip.bill_no }}</td>
-                    <td class="px-4 py-3">
-                        <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-mono font-bold">{{ slip.teacher_id }}</span>
+                    <td class="px-3 py-3 font-bold text-gray-600">{{ loop.index }}</td>
+                    <td class="px-3 py-3 text-gray-500 text-xs">{{ slip.generated_at.strftime('%d %b %Y, %I:%M %p') if slip.generated_at else slip.slip_date }}</td>
+                    <td class="px-3 py-3 font-mono font-bold text-gray-600 text-xs">{{ slip.bill_no }}</td>
+                    <td class="px-3 py-3">
+                        <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-mono font-bold text-xs">{{ slip.teacher_id }}</span>
                     </td>
-                    <td class="px-4 py-3 font-semibold text-gray-800 hindi">{{ slip.teacher_name }}</td>
-                    <td class="px-4 py-3 text-center font-semibold text-gray-700">{{ slip.month }}/{{ slip.year }}</td>
-                    <td class="px-4 py-3 text-center font-bold text-blue-700 bg-blue-50">{{ slip.paid_days }}</td>
-                    <td class="px-4 py-3 text-center text-gray-600">₹{{ "{:,.2f}".format(slip.basic_salary) }}</td>
-                    <td class="px-4 py-3 text-center">
-                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-xl font-bold">
+                    <td class="px-3 py-3 font-semibold text-gray-800 hindi text-xs">{{ slip.teacher_name }}</td>
+                    <td class="px-3 py-3 text-center font-semibold text-gray-700 text-xs">{{ slip.month }}/{{ slip.year }}</td>
+                    <td class="px-3 py-3 text-center font-bold text-blue-700 bg-blue-50 text-xs">{{ slip.paid_days }}</td>
+                    <td class="px-3 py-3 text-center text-gray-700 text-xs">₹{{ "{:,.2f}".format(slip.get('calculated_salary', slip.get('net_salary', 0) + slip.get('fine', 0) + slip.get('assets', 0))) }}</td>
+                    <td class="px-3 py-3 text-center">
+                        {% if slip.get('fine') and slip.fine > 0 %}
+                            <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-lg font-bold font-mono text-xs">-₹{{ "{:,.2f}".format(slip.fine) }}</span>
+                        {% else %}
+                            <span class="text-gray-400 text-xs">₹0.00</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-3 text-center">
+                        {% if slip.get('assets') and slip.assets > 0 %}
+                            <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-lg font-bold font-mono text-xs">-₹{{ "{:,.2f}".format(slip.assets) }}</span>
+                        {% else %}
+                            <span class="text-gray-400 text-xs">₹0.00</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-3 text-center">
+                        {% set s_tot_ded = slip.get('total_deduction', (slip.get('fine', 0) + slip.get('assets', 0))) %}
+                        {% if s_tot_ded > 0 %}
+                            <span class="bg-red-50 text-red-800 px-2 py-0.5 rounded-lg font-bold font-mono text-xs">-₹{{ "{:,.2f}".format(s_tot_ded) }}</span>
+                        {% else %}
+                            <span class="text-gray-400 text-xs">₹0.00</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-3 text-center">
+                        <span class="bg-green-100 text-green-800 px-2.5 py-1 rounded-xl font-bold text-xs">
                             ₹{{ "{:,.2f}".format(slip.net_salary) }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-center flex justify-center gap-2">
+                    <td class="px-3 py-3 text-center flex justify-center gap-2">
                         <a href="{{ url_for('view_generated_slip', slip_id=slip._id) }}" target="_blank" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition" title="View Slip">
                             <i class="fas fa-eye"></i>
                         </a>
@@ -62,7 +87,7 @@
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="10" class="text-center py-12 text-gray-400 hindi">No generated slips found in history.</td></tr>
+                <tr><td colspan="13" class="text-center py-12 text-gray-400 hindi">No generated slips found in history.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

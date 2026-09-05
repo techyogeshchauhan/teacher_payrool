@@ -1986,8 +1986,9 @@ def salary_slip_generator():
         year = int(safe_str(request.form.get('year', 2026), 4) or 2026)
         month = max(1, min(12, month))
 
-        valid, present_days = SecurityValidator.validate_positive_int(
-            request.form.get('present_days', 0), 'Present Days', 31
+        valid, present_days = SecurityValidator.validate_positive_float(
+            request.form.get('present_days', 0), 'Present Days',
+            max_val=31.0, enforce_half_day=True
         )
         if not valid:
             flash(f'⚠️ {present_days}')
@@ -2003,14 +2004,40 @@ def salary_slip_generator():
             request.form.get('sunday_count', 4), 'Sunday Count', 10
         )
 
+        deduction_type = safe_str(request.form.get('deduction_type', 'none'), 20).strip().lower()
+        fine_raw = request.form.get('fine', '0')
+        assets_raw = request.form.get('assets', '0')
+
+        fine = 0.0
+        assets = 0.0
+
+        if deduction_type in ('fine', 'fine_assets'):
+            if fine_raw is not None and str(fine_raw).strip() != '':
+                valid_fine, fine_val = SecurityValidator.validate_amount(str(fine_raw).strip())
+                if not valid_fine or fine_val < 0:
+                    flash('⚠️ Invalid Fine amount entered. Must be a non-negative number.')
+                    return redirect(url_for('salary_slip_generator'))
+                fine = round(float(fine_val), 2)
+
+        if deduction_type in ('assets', 'fine_assets'):
+            if assets_raw is not None and str(assets_raw).strip() != '':
+                valid_assets, assets_val = SecurityValidator.validate_amount(str(assets_raw).strip())
+                if not valid_assets or assets_val < 0:
+                    flash('⚠️ Invalid Assets amount entered. Must be a non-negative number.')
+                    return redirect(url_for('salary_slip_generator'))
+                assets = round(float(assets_val), 2)
+
+        total_deduction = round(fine + assets, 2)
+
         teacher = teachers_col.find_one({'teacher_id': teacher_id})
         if not teacher:
             flash('Teacher नहीं मिले!')
             return redirect(url_for('salary_slip_generator'))
 
         basic_salary = teacher['basic_salary']
-        salary_calc_days = 30
-        paid_days = min(present_days + paid_leave + sunday_count, salary_calc_days)
+        salary_calc_days = 30  # ALWAYS 30 — fixed divisor, never changes
+        # present_days may be fractional (e.g. 23.5); round to 2dp to eliminate noise
+        paid_days = round(min(present_days + paid_leave + sunday_count, salary_calc_days), 2)
 
         att = {
             'present': present_days,
@@ -2023,9 +2050,12 @@ def salary_slip_generator():
             'leave_taken': absent_days,
         }
 
-        net_salary, deduction, per_day = compute_net_salary(
+        calculated_salary, deduction, per_day = compute_net_salary(
             basic_salary, att, salary_calc_days
         )
+
+        # Fine and Assets deductions applied strictly after existing calculated salary
+        final_salary = max(0.0, round(calculated_salary - total_deduction, 2))
 
         all_teachers = list(teachers_col.find({'active': True}, {'teacher_id': 1}).sort('_id', 1))
         bill_index = next(
@@ -2046,7 +2076,12 @@ def salary_slip_generator():
                 'sunday_count': sunday_count,
                 'paid_days': paid_days,
                 'basic_salary': basic_salary,
-                'net_salary': net_salary,
+                'calculated_salary': calculated_salary,
+                'deduction_type': deduction_type,
+                'fine': fine,
+                'assets': assets,
+                'total_deduction': total_deduction,
+                'net_salary': final_salary,
                 'bill_no': unique_bill_no,
                 'slip_date': slip_date,
                 'generated_at': datetime.now(timezone(timedelta(hours=5, minutes=30)))
@@ -2074,7 +2109,12 @@ def salary_slip_generator():
                              per_day=round(per_day, 2),
                              allowances=0,
                              deduction=deduction,
-                             net_salary=net_salary,
+                             calculated_salary=calculated_salary,
+                             deduction_type=deduction_type,
+                             fine=fine,
+                             assets=assets,
+                             total_deduction=total_deduction,
+                             net_salary=final_salary,
                              bill_no=unique_bill_no,
                              slip_date=slip_date)
 
@@ -2105,7 +2145,14 @@ def view_generated_slip(slip_id):
         salary_calc_days = 30
         basic_salary = slip.get('basic_salary', 0)
         per_day = basic_salary / salary_calc_days if salary_calc_days > 0 else 0
-        deduction = round(basic_salary - slip.get('net_salary', 0), 2)
+        
+        fine = float(slip.get('fine', 0.0) or 0.0)
+        assets = float(slip.get('assets', 0.0) or 0.0)
+        total_deduction = float(slip.get('total_deduction', round(fine + assets, 2)) or 0.0)
+        net_salary = float(slip.get('net_salary', 0.0) or 0.0)
+        calculated_salary = float(slip.get('calculated_salary', round(net_salary + total_deduction, 2)))
+        deduction = round(basic_salary - calculated_salary, 2)
+        deduction_type = slip.get('deduction_type', 'none')
         
         return render_template('salary_slip_generated.html',
                              teacher=teacher,
@@ -2128,7 +2175,12 @@ def view_generated_slip(slip_id):
                              per_day=round(per_day, 2),
                              allowances=0,
                              deduction=deduction,
-                             net_salary=slip.get('net_salary', 0),
+                             calculated_salary=calculated_salary,
+                             deduction_type=deduction_type,
+                             fine=fine,
+                             assets=assets,
+                             total_deduction=total_deduction,
+                             net_salary=net_salary,
                              bill_no=slip.get('bill_no', ''),
                              slip_date=slip.get('slip_date', ''))
     except Exception as e:
@@ -2608,11 +2660,33 @@ def add_security_headers(response):
 # ═══════════════════════════════════════════════════════════════════════════
 
 if __name__ == '__main__':
+    import socket
+
     init_admin()
     init_accountant(db)  # Pass shared DB connection
 
+    default_port = int(os.environ.get('PORT', 5000))
+    host = os.environ.get('HOST', '0.0.0.0')
+
+    # Detect if requested port is available, or fallback gracefully on Windows
+    def get_bindable_port(h, initial_port):
+        for p in [initial_port, 5001, 8000, 8080]:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                s.bind((h, p))
+                s.close()
+                return p
+            except Exception:
+                continue
+        return initial_port
+
+    target_port = get_bindable_port(host, default_port)
+    if target_port != default_port:
+        print(f"\n[INFO] Port {default_port} is busy or restricted by Windows. Auto-binding to port {target_port} instead.")
+        print(f"[INFO] Server running at: http://localhost:{target_port}\n")
+
     app.run(
-        host='0.0.0.0',
-        port=int(os.environ.get('PORT', 5000)),
+        host=host,
+        port=target_port,
         debug=app.config.get('DEBUG', False)
     )
