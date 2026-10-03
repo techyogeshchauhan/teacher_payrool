@@ -44,6 +44,11 @@ from bson.objectid import ObjectId
 from pymongo import MongoClient, UpdateOne, DeleteOne
 from dotenv import load_dotenv
 
+try:
+    import dns.resolver
+except ImportError:
+    dns = None
+
 # Load environment variables FIRST
 load_dotenv()
 
@@ -101,13 +106,12 @@ app.logger.info('School Management System starting up')
 
 # ─── MongoDB Connection ─────────────────────────────────────────────────────
 mongo_uri = app.config['MONGO_URI']
-try:
-    import dns.resolver
-    _dns_res = dns.resolver.Resolver()
-    _dns_res.nameservers = ['8.8.8.8', '1.1.1.1']
-    dns.resolver.default_resolver = _dns_res
-except Exception:
-    pass
+if dns is not None:
+    try:
+        _dns_res = dns.resolver.get_default_resolver()
+        _dns_res.nameservers = ['8.8.8.8', '1.1.1.1']
+    except Exception:
+        pass
 
 try:
     client = MongoClient(
