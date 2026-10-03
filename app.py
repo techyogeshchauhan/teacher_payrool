@@ -33,13 +33,15 @@ import secrets
 import pandas as pd
 import io
 import calendar
+import math
 import uuid
 import os
 import logging
+import threading
 from logging.handlers import RotatingFileHandler
 
 from bson.objectid import ObjectId
-from pymongo import MongoClient
+from pymongo import MongoClient, UpdateOne, DeleteOne
 from dotenv import load_dotenv
 
 # Load environment variables FIRST
@@ -100,10 +102,27 @@ app.logger.info('School Management System starting up')
 # ─── MongoDB Connection ─────────────────────────────────────────────────────
 mongo_uri = app.config['MONGO_URI']
 try:
-    client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
-    client.server_info()  # Test connection
+    import dns.resolver
+    _dns_res = dns.resolver.Resolver()
+    _dns_res.nameservers = ['8.8.8.8', '1.1.1.1']
+    dns.resolver.default_resolver = _dns_res
+except Exception:
+    pass
+
+try:
+    client = MongoClient(
+        mongo_uri,
+        serverSelectionTimeoutMS=5000,
+        connect=False,                  # Prevents connection socket sharing across forked Gunicorn workers on Render
+        maxPoolSize=50,
+        minPoolSize=5,
+        maxIdleTimeMS=45000,
+        connectTimeoutMS=5000,
+        socketTimeoutMS=10000,
+        retryWrites=True
+    )
     db = client['gayatri_school']
-    app.logger.info('MongoDB connection successful')
+    app.logger.info('MongoDB connection initialized (fork-safe pool)')
 except Exception as e:
     app.logger.critical(f'MongoDB connection failed: {e}')
     raise
@@ -117,18 +136,92 @@ increment_col = db['increments']
 holidays_col = db['govt_holidays']
 logs_col = db['activity_logs']
 assets_col = db['assets']
-students_col = db['students']
-fee_history_col = db['fee_history']
 leave_requests_col = db['leave_requests']
-certificates_col = db['certificates']
 generated_slips_col = db['generated_slips']
 
-# ─── Accountant Blueprint ───────────────────────────────────────────────────
-from accountant_bp import accountant_bp, init_accountant
-app.register_blueprint(accountant_bp)
-
-# ─── Flask-Mail ─────────────────────────────────────────────────────────────
+# ─── Flask-Mail & Asynchronous Messaging Service ───────────────────────────
 mail = Mail(app)
+
+def send_async_email(app_instance, message):
+    """
+    Dispatches Flask-Mail Message in a background thread to prevent
+    blocking the web request worker (critical on single-worker Render tiers).
+    """
+    def _send(app_ctx, msg):
+        with app_ctx.app_context():
+            try:
+                mail.send(msg)
+                app.logger.info(f"Async email sent to {msg.recipients}")
+            except Exception as e:
+                app.logger.error(f"Async email failed for {msg.recipients}: {e}")
+
+    thread = threading.Thread(target=_send, args=(app_instance._get_current_object(), message))
+    thread.daemon = True
+    thread.start()
+
+
+class BulkMessageService:
+    """
+    High-performance, fault-tolerant bulk messaging and notification service.
+    Features:
+      - Automatic recipient deduplication
+      - Batch chunking (default chunk size: 25)
+      - Concurrency & rate-limiting protection
+      - Partial failure tracking (tracks succeeded, failed, and skipped recipients)
+      - Non-blocking asynchronous delivery support
+    """
+    def __init__(self, batch_size=25):
+        self.batch_size = batch_size
+
+    def deduplicate_recipients(self, raw_recipients):
+        """Deduplicates recipients by ID, email, or phone while preserving order."""
+        seen = set()
+        deduped = []
+        for r in raw_recipients:
+            key = None
+            if isinstance(r, dict):
+                key = r.get('teacher_id') or r.get('email') or r.get('phone') or r.get('id')
+            else:
+                key = str(r)
+            if key and key not in seen:
+                seen.add(key)
+                deduped.append(r)
+        return deduped
+
+    def dispatch_batch(self, recipients, send_fn, *args, **kwargs):
+        """
+        Dispatches messages in controlled batches to prevent API socket exhaustion.
+        Handles partial failures gracefully without terminating entire batch.
+        """
+        deduped = self.deduplicate_recipients(recipients)
+        total = len(deduped)
+        sent_count = 0
+        failed_count = 0
+        failures = []
+
+        for i in range(0, total, self.batch_size):
+            chunk = deduped[i:i + self.batch_size]
+            for recipient in chunk:
+                try:
+                    res = send_fn(recipient, *args, **kwargs)
+                    if res is not False:
+                        sent_count += 1
+                    else:
+                        failed_count += 1
+                        failures.append({'recipient': recipient, 'error': 'Delivery returned false'})
+                except Exception as ex:
+                    failed_count += 1
+                    failures.append({'recipient': recipient, 'error': str(ex)})
+
+        return {
+            'total_attempted': total,
+            'successful': sent_count,
+            'failed': failed_count,
+            'skipped_duplicates': len(recipients) - total,
+            'failures': failures
+        }
+
+bulk_message_service = BulkMessageService(batch_size=25)
 
 # ─── Login Attempt Tracker ──────────────────────────────────────────────────
 login_tracker = LoginAttemptTracker(
@@ -154,13 +247,18 @@ try:
     teachers_col.create_index('teacher_id', unique=True)
     teachers_col.create_index('phone')
     attendance_col.create_index([('teacher_id', 1), ('date', -1)])
-    students_col.create_index('admission_no')
-    students_col.create_index([('class', 1), ('section', 1)])
-    fee_history_col.create_index([('student_id', 1), ('date', -1)])
-    fee_history_col.create_index('receipt_no', unique=True)
+    attendance_col.create_index([('date', 1), ('status', 1)])
+    attendance_col.create_index([('date', 1), ('teacher_id', 1)])
     logs_col.create_index([('teacher_id', 1), ('timestamp', -1)])
+    logs_col.create_index([('action', 1), ('date', 1)])
+    logs_col.create_index([('timestamp', -1)])
     holidays_col.create_index('date', unique=True)
     leave_requests_col.create_index([('teacher_id', 1), ('applied_on', -1)])
+    leave_requests_col.create_index([('status', 1), ('start_date', 1), ('end_date', 1)])
+    generated_slips_col.create_index([('generated_at', -1)])
+    generated_slips_col.create_index([('teacher_id', 1), ('year', 1), ('month', 1)])
+    assets_col.create_index([('teacher_id', 1), ('timestamp', -1)])
+    db['salary_adjustments'].create_index([('year', 1), ('month', 1), ('teacher_id', 1)])
     app.logger.info('Database indexes created/verified')
 except Exception as e:
     app.logger.warning(f'Index creation warning: {e}')
@@ -216,7 +314,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not session.get('admin'):
             log_security_event('UNAUTH_ACCESS', 'anonymous', f'Path: {request.path}')
-            flash('कृपया लॉगिन करें!')
+            flash('Please log in!')
             return redirect(url_for('admin_login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -227,7 +325,7 @@ def principal_required(f):
     def decorated_function(*args, **kwargs):
         if not session.get('principal') and not session.get('admin'):
             log_security_event('UNAUTH_ACCESS', 'anonymous', f'Path: {request.path}')
-            flash('कृपया लॉगिन करें!')
+            flash('Please log in!')
             return redirect(url_for('principal_login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -238,7 +336,7 @@ def teacher_required(f):
     def decorated_function(*args, **kwargs):
         if not session.get('teacher_id'):
             log_security_event('UNAUTH_ACCESS', 'anonymous', f'Path: {request.path}')
-            flash('कृपया लॉगिन करें!')
+            flash('Please log in!')
             return redirect(url_for('teacher_login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -296,10 +394,11 @@ def get_working_days(year, month):
     return get_month_summary(year, month)['working_days']
 
 
-def detect_continuous_leave_periods(tid, year, month, sunday_days=None):
+def detect_continuous_leave_periods(tid, year, month, sunday_days=None, preloaded_absents=None):
     """
     Detect continuous leave periods (3+ consecutive absent days).
     Sundays are automatically included if they fall between absent days.
+    Supports preloaded_absents for in-memory batch processing.
     """
     month_str = f"{year}-{month:02d}"
     days_in_month = calendar.monthrange(year, month)[1]
@@ -307,13 +406,15 @@ def detect_continuous_leave_periods(tid, year, month, sunday_days=None):
     if sunday_days is None:
         sunday_days = set()
 
-    absent_records = list(attendance_col.find({
-        'teacher_id': tid,
-        'date': {'$regex': f'^{re.escape(month_str)}'},
-        'status': {'$in': ['absent', 'A']}
-    }).sort('date', 1))
-
-    absent_days = sorted([int(rec['date'].split('-')[2]) for rec in absent_records])
+    if preloaded_absents is not None:
+        absent_days = sorted([int(d.split('-')[2]) for d in preloaded_absents if d.startswith(month_str)])
+    else:
+        absent_records = list(attendance_col.find({
+            'teacher_id': tid,
+            'date': {'$gte': f"{month_str}-01", '$lte': f"{month_str}-{days_in_month:02d}"},
+            'status': {'$in': ['absent', 'A']}
+        }).sort('date', 1))
+        absent_days = sorted([int(rec['date'].split('-')[2]) for rec in absent_records])
 
     if not absent_days:
         return []
@@ -347,48 +448,80 @@ def detect_continuous_leave_periods(tid, year, month, sunday_days=None):
     return continuous_periods
 
 
-def calculate_paid_days(tid, year, month, summary):
+def calculate_paid_days(tid, year, month, summary, preloaded_attendance=None, preloaded_adjustment=None):
     """
     Attendance-based paid days calculation with Continuous Leave Rule.
+    Supports preloaded_attendance and preloaded_adjustment to eliminate N+1 DB queries.
     """
     month_str = f"{year}-{month:02d}"
     salary_calc_days = summary.get('salary_calc_days', 30)
-    escaped_month = re.escape(month_str)
 
-    present = attendance_col.count_documents({
-        'teacher_id': tid, 'date': {'$regex': f'^{escaped_month}'},
-        'status': {'$in': ['present', 'P']}
-    })
-    half = attendance_col.count_documents({
-        'teacher_id': tid, 'date': {'$regex': f'^{escaped_month}'},
-        'status': {'$in': ['half_day', 'H']}
-    })
-    medical = attendance_col.count_documents({
-        'teacher_id': tid, 'date': {'$regex': f'^{escaped_month}'},
-        'status': 'M'
-    })
-    absent = attendance_col.count_documents({
-        'teacher_id': tid, 'date': {'$regex': f'^{escaped_month}'},
-        'status': {'$in': ['absent', 'A']}
-    })
+    if preloaded_attendance is not None:
+        present = 0
+        half = 0
+        medical = 0
+        absent = 0
+        absent_dates = []
+        for rec in preloaded_attendance:
+            st = rec.get('status')
+            dt = rec.get('date', '')
+            if st in ['present', 'P']:
+                present += 1
+            elif st in ['half_day', 'H']:
+                half += 1
+            elif st == 'M':
+                medical += 1
+            elif st in ['absent', 'A']:
+                absent += 1
+                if dt:
+                    absent_dates.append(dt)
+        continuous_leave_periods = detect_continuous_leave_periods(
+            tid, year, month, summary.get('sunday_days', set()), preloaded_absents=absent_dates
+        )
+    else:
+        days_in_month = calendar.monthrange(year, month)[1]
+        date_query = {'$gte': f"{month_str}-01", '$lte': f"{month_str}-{days_in_month:02d}"}
+
+        present = attendance_col.count_documents({
+            'teacher_id': tid, 'date': date_query,
+            'status': {'$in': ['present', 'P']}
+        })
+        half = attendance_col.count_documents({
+            'teacher_id': tid, 'date': date_query,
+            'status': {'$in': ['half_day', 'H']}
+        })
+        medical = attendance_col.count_documents({
+            'teacher_id': tid, 'date': date_query,
+            'status': 'M'
+        })
+        absent = attendance_col.count_documents({
+            'teacher_id': tid, 'date': date_query,
+            'status': {'$in': ['absent', 'A']}
+        })
+        continuous_leave_periods = detect_continuous_leave_periods(
+            tid, year, month, summary.get('sunday_days', set())
+        )
 
     has_any_attendance = (present + half + medical) > 0
 
     if has_any_attendance:
         sunday_days = summary.get('sunday_days', set())
         holiday_days = summary.get('holiday_days', set())
-        continuous_leave_periods = detect_continuous_leave_periods(
-            tid, year, month, sunday_days
-        )
 
         sundays_paid = 4
         holidays_paid = len(holiday_days)
         sundays_in_attendance = False
 
-        # Check for salary adjustments in database
-        salary_adj = db['salary_adjustments'].find_one({
-            'teacher_id': tid, 'year': year, 'month': month
-        })
+        # Check for salary adjustments in database or preloaded dictionary
+        if preloaded_adjustment is not None:
+            salary_adj = preloaded_adjustment
+        elif preloaded_attendance is not None and preloaded_adjustment is None:
+            salary_adj = None
+        else:
+            salary_adj = db['salary_adjustments'].find_one({
+                'teacher_id': tid, 'year': year, 'month': month
+            })
+
         if salary_adj:
             sundays_paid = salary_adj.get('sundays_paid', sundays_paid)
             sundays_in_attendance = salary_adj.get('sundays_in_attendance', False)
@@ -534,13 +667,13 @@ def admin_login():
         password = safe_str(request.form.get('password', ''), 128)
 
         if not username or not password:
-            flash('कृपया username और password दर्ज करें!')
+            flash('Please enter username and password!')
             return render_template('admin_login.html')
 
         # Check lockout
         if login_tracker.is_locked(username):
             log_security_event('LOCKED_ACCOUNT', username, 'Login attempt on locked account')
-            flash('बहुत अधिक असफल प्रयास! 15 मिनट बाद प्रयास करें।')
+            flash('Too many failed attempts! Please try again after 15 minutes.')
             return render_template('admin_login.html')
 
         admin = admins_col.find_one({'username': username})
@@ -569,7 +702,7 @@ def admin_login():
         login_tracker.record_attempt(username, success=False)
         remaining = login_tracker.get_remaining_attempts(username)
         log_security_event('FAILED_LOGIN', username, f'Admin login failed. Remaining: {remaining}')
-        flash('गलत username या password!')
+        flash('Invalid username or password!')
 
     return render_template('admin_login.html')
 
@@ -585,11 +718,11 @@ def principal_login():
         password = safe_str(request.form.get('password', ''), 128)
 
         if not username or not password:
-            flash('कृपया username और password दर्ज करें!')
+            flash('Please enter username and password!')
             return render_template('principal_login.html')
 
         if login_tracker.is_locked(username):
-            flash('बहुत अधिक असफल प्रयास! 15 मिनट बाद प्रयास करें।')
+            flash('Too many failed attempts! Please try again after 15 minutes.')
             return render_template('principal_login.html')
 
         principal = principals_col.find_one({'username': username})
@@ -613,7 +746,7 @@ def principal_login():
             return redirect(url_for('principal_dashboard'))
 
         login_tracker.record_attempt(username, success=False)
-        flash('गलत username या password!')
+        flash('Invalid username or password!')
 
     return render_template('principal_login.html')
 
@@ -629,18 +762,18 @@ def teacher_login():
         password = safe_str(request.form.get('password', ''), 128)
 
         if not teacher_id or not password:
-            flash('कृपया ID और password दर्ज करें!')
+            flash('Please enter ID and password!')
             return render_template('teacher_login.html')
 
         # Validate teacher_id format
         valid, result = SecurityValidator.validate_teacher_id(teacher_id)
         if not valid:
-            flash('गलत ID format!')
+            flash('Invalid ID format!')
             return render_template('teacher_login.html')
         teacher_id = result
 
         if login_tracker.is_locked(teacher_id):
-            flash('बहुत अधिक असफल प्रयास! 15 मिनट बाद प्रयास करें।')
+            flash('Too many failed attempts! Please try again after 15 minutes.')
             return render_template('teacher_login.html')
 
         teacher = teachers_col.find_one({'teacher_id': teacher_id})
@@ -663,12 +796,12 @@ def teacher_login():
             log_activity(teacher_id, teacher['name'], 'LOGIN', 'Teacher logged in')
 
             if teacher.get('must_change_password'):
-                flash('सुरक्षा के लिए कृपया अपना पासवर्ड बदलें।')
+                flash('For security purposes, please change your password.')
                 return redirect(url_for('teacher_change_password'))
             return redirect(url_for('teacher_dashboard'))
 
         login_tracker.record_attempt(teacher_id, success=False)
-        flash('गलत ID या password!')
+        flash('Invalid ID or password!')
 
     return render_template('teacher_login.html')
 
@@ -686,34 +819,49 @@ def logout():
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    total_teachers = teachers_col.count_documents({'active': True})
     today_date = date.today()
     today_str = today_date.strftime('%Y-%m-%d')
-    today_attendance = attendance_col.count_documents({
-        'date': today_str, 'status': {'$in': ['present', 'P']}
-    })
-    absent_today = attendance_col.count_documents({
-        'date': today_str, 'status': {'$in': ['absent', 'A']}
-    })
-    teachers = list(teachers_col.find({'active': True}))
+    seven_days_ago = (today_date - timedelta(days=6)).strftime('%Y-%m-%d')
 
-    # Chart Data
+    total_teachers = teachers_col.count_documents({'active': True})
+
+    # Fetch last 7 days of attendance in A SINGLE QUERY instead of 14 separate queries
+    trend_records = list(attendance_col.find(
+        {'date': {'$gte': seven_days_ago, '$lte': today_str}},
+        {'date': 1, 'status': 1}
+    ))
+
+    daily_stats = {}
+    for rec in trend_records:
+        r_date = rec.get('date')
+        r_status = rec.get('status')
+        if r_date:
+            if r_date not in daily_stats:
+                daily_stats[r_date] = {'present': 0, 'absent': 0}
+            if r_status in ['present', 'P']:
+                daily_stats[r_date]['present'] += 1
+            elif r_status in ['absent', 'A']:
+                daily_stats[r_date]['absent'] += 1
+
+    today_attendance = daily_stats.get(today_str, {}).get('present', 0)
+    absent_today = daily_stats.get(today_str, {}).get('absent', 0)
+
     trend_labels = []
     trend_presents = []
     trend_absents = []
-
     for i in range(6, -1, -1):
         d = today_date - timedelta(days=i)
         d_str = d.strftime('%Y-%m-%d')
         trend_labels.append(d.strftime('%d %b'))
-        p = attendance_col.count_documents({
-            'date': d_str, 'status': {'$in': ['present', 'P']}
-        })
-        a = attendance_col.count_documents({
-            'date': d_str, 'status': {'$in': ['absent', 'A']}
-        })
-        trend_presents.append(p)
-        trend_absents.append(a)
+        stats = daily_stats.get(d_str, {'present': 0, 'absent': 0})
+        trend_presents.append(stats['present'])
+        trend_absents.append(stats['absent'])
+
+    # Targeted projection of faculty fields (avoids fetching sensitive/heavy fields)
+    teachers = list(teachers_col.find(
+        {'active': True},
+        {'teacher_id': 1, 'name': 1, 'subject': 1, 'phone': 1, 'basic_salary': 1}
+    ))
 
     subject_counts = {}
     for t in teachers:
@@ -734,11 +882,7 @@ def admin_dashboard():
                          trend_presents=trend_presents,
                          trend_absents=trend_absents,
                          pie_labels=pie_labels,
-                         pie_data=pie_data,
-                         total_students=students_col.count_documents({}),
-                         total_balance=next(iter(students_col.aggregate([
-                             {'$group': {'_id': None, 'bal': {'$sum': '$balance_fee'}}}
-                         ])), {}).get('bal', 0))
+                         pie_data=pie_data)
 
 
 @app.route('/principal/dashboard')
@@ -780,7 +924,7 @@ def add_teacher():
 
         # Validate required fields
         if not name:
-            flash('⚠️ नाम अनिवार्य है!')
+            flash('⚠️ Name is required!')
             return redirect(url_for('add_teacher'))
 
         valid, phone_result = SecurityValidator.validate_phone(phone)
@@ -849,7 +993,7 @@ def add_teacher():
         }
         teachers_col.insert_one(teacher)
         app.logger.info(f'Teacher added: {teacher_id} by admin')
-        flash(f'Teacher {name} सफलतापूर्वक जोड़े गए! ID: {teacher_id}')
+        flash(f'Teacher {name} added successfully! ID: {teacher_id}')
         return redirect(url_for('manage_teachers'))
 
     return render_template('add_teacher.html')
@@ -867,7 +1011,7 @@ def delete_teacher(teacher_id):
 
     teachers_col.update_one({'teacher_id': teacher_id}, {'$set': {'active': False}})
     app.logger.info(f'Teacher deactivated: {teacher_id}')
-    flash('Teacher हटा दिए गए!')
+    flash('Teacher removed successfully!')
     return redirect(url_for('manage_teachers'))
 
 
@@ -877,7 +1021,7 @@ def edit_teacher(teacher_id):
     teacher_id = safe_str(teacher_id, 20).strip()
     teacher = teachers_col.find_one({'teacher_id': teacher_id})
     if not teacher:
-        flash('Teacher नहीं मिले!')
+        flash('Teacher not found!')
         return redirect(url_for('manage_teachers'))
 
     if request.method == 'POST':
@@ -913,7 +1057,7 @@ def edit_teacher(teacher_id):
             'pan_no': safe_str(request.form.get('pan_no', ''), 10).upper()
         }
         teachers_col.update_one({'teacher_id': teacher_id}, {'$set': updates})
-        flash(f'✅ {updates["name"]} की जानकारी सफलतापूर्वक अपडेट हो गई!')
+        flash(f'✅ {updates["name"]} details updated successfully!')
         return redirect(url_for('manage_teachers'))
 
     return render_template('edit_teacher.html', teacher=teacher)
@@ -926,7 +1070,7 @@ def admin_reset_teacher_password(teacher_id):
     teacher_id = safe_str(teacher_id, 20).strip()
     teacher = teachers_col.find_one({'teacher_id': teacher_id})
     if not teacher:
-        flash('Teacher नहीं मिले!')
+        flash('Teacher not found!')
         return redirect(url_for('manage_teachers'))
 
     default_password = app.config.get('DEFAULT_TEACHER_PASSWORD', 'GVP@2026')
@@ -938,7 +1082,7 @@ def admin_reset_teacher_password(teacher_id):
         }}
     )
     app.logger.info(f'Teacher password reset: {teacher_id}')
-    flash(f'🔑 {teacher["name"]} का Password Reset हो गया! Default Password: {default_password}')
+    flash(f'🔑 Password reset for {teacher["name"]}! Default Password: {default_password}')
     return redirect(url_for('manage_teachers'))
 
 
@@ -976,6 +1120,10 @@ def mark_attendance():
             flash('⚠️ Invalid date!')
             return redirect(url_for('mark_attendance'))
 
+        bulk_ops = []
+        now_utc = datetime.now(timezone.utc)
+        marked_by = 'Admin' if session.get('admin') else 'Principal'
+
         for teacher in teachers:
             tid = teacher['teacher_id']
             status = safe_str(request.form.get(f'status_{tid}', 'none'), 20)
@@ -985,21 +1133,25 @@ def mark_attendance():
                 continue
 
             if status == 'none':
-                attendance_col.delete_one({'teacher_id': tid, 'date': att_date})
+                bulk_ops.append(DeleteOne({'teacher_id': tid, 'date': att_date}))
             else:
-                attendance_col.update_one(
+                bulk_ops.append(UpdateOne(
                     {'teacher_id': tid, 'date': att_date},
                     {'$set': {
                         'teacher_id': tid,
                         'teacher_name': teacher['name'],
                         'date': att_date,
                         'status': status,
-                        'marked_by': 'Admin' if session.get('admin') else 'Principal',
-                        'marked_at': datetime.now(timezone.utc)
+                        'marked_by': marked_by,
+                        'marked_at': now_utc
                     }},
                     upsert=True
-                )
-        flash(f'{att_date} की attendance सफलतापूर्वक save हो गई!')
+                ))
+
+        if bulk_ops:
+            attendance_col.bulk_write(bulk_ops, ordered=False)
+
+        flash(f'Attendance for {att_date} saved successfully!')
         return redirect(url_for('mark_attendance', date=att_date))
 
     return render_template('mark_attendance.html',
@@ -1032,12 +1184,32 @@ def payroll():
     summary = get_month_summary(year, month)
     working_days = summary['working_days']
 
+    # Preload month attendance and salary adjustments in 2 batch queries instead of 300+ round-trips
+    days_in_month = calendar.monthrange(year, month)[1]
+    month_start = f"{year}-{month:02d}-01"
+    month_end = f"{year}-{month:02d}-{days_in_month:02d}"
+
+    month_attendance = list(attendance_col.find(
+        {'date': {'$gte': month_start, '$lte': month_end}},
+        {'_id': 0, 'teacher_id': 1, 'date': 1, 'status': 1}
+    ))
+    attendance_by_teacher = {}
+    for rec in month_attendance:
+        attendance_by_teacher.setdefault(rec.get('teacher_id'), []).append(rec)
+
+    adjustments = list(db['salary_adjustments'].find({'year': year, 'month': month}))
+    adj_by_teacher = {adj['teacher_id']: adj for adj in adjustments if 'teacher_id' in adj}
+
     payroll_data = []
     total_payable = 0
 
     for teacher in teachers:
         tid = teacher['teacher_id']
-        att = calculate_paid_days(tid, year, month, summary)
+        att = calculate_paid_days(
+            tid, year, month, summary,
+            preloaded_attendance=attendance_by_teacher.get(tid, []),
+            preloaded_adjustment=adj_by_teacher.get(tid)
+        )
         salary_calc_days = summary.get('salary_calc_days', 30)
         net_salary, deduction, per_day_salary = compute_net_salary(
             teacher['basic_salary'], att, salary_calc_days
@@ -1088,32 +1260,40 @@ def attendance_report():
     year = max(2020, min(2100, year))
 
     month_str = f"{year}-{month:02d}"
-    escaped_month = re.escape(month_str)
-    teachers = list(teachers_col.find({'active': True}))
     days_in_month = calendar.monthrange(year, month)[1]
+    start_date = f"{month_str}-01"
+    end_date = f"{month_str}-{days_in_month:02d}"
+    teachers = list(teachers_col.find({'active': True}))
 
     sundays = set()
     for d in range(1, days_in_month + 1):
         if calendar.weekday(year, month, d) == 6:
             sundays.add(d)
 
+    # Fetch all attendance records for this month in ONE indexed range query
+    all_recs = list(attendance_col.find(
+        {'date': {'$gte': start_date, '$lte': end_date}},
+        {'_id': 0, 'teacher_id': 1, 'date': 1, 'status': 1}
+    ))
+    att_by_teacher = {}
+    for rec in all_recs:
+        try:
+            day = int(rec['date'].split('-')[2])
+            att_by_teacher.setdefault(rec.get('teacher_id'), {})[day] = rec.get('status')
+        except (ValueError, IndexError):
+            continue
+
     report = []
     for teacher in teachers:
         tid = teacher['teacher_id']
-        att_map = {}
-        for rec in attendance_col.find({
-            'teacher_id': tid, 'date': {'$regex': f'^{escaped_month}'}
-        }):
-            day = int(rec['date'].split('-')[2])
-            att_map[day] = rec['status']
         report.append({
             'name': teacher['name'],
             'teacher_id': tid,
-            'att_map': att_map
+            'att_map': att_by_teacher.get(tid, {})
         })
 
     submission_logs = list(attendance_col.find(
-        {'date': {'$regex': f'^{escaped_month}'}}
+        {'date': {'$gte': start_date, '$lte': end_date}}
     ).sort('marked_at', -1).limit(30))
 
     return render_template('attendance_report.html',
@@ -1152,9 +1332,9 @@ def manage_holidays():
                 'added_by': session.get('admin_name'),
                 'added_at': datetime.now(timezone.utc)
             })
-            flash(f'✅ {hdate} — "{hname}" छुट्टी add हो गई!')
+            flash(f'✅ {hdate} — "{hname}" holiday added successfully!')
         else:
-            flash('⚠️ यह date पहले से registered है!')
+            flash('⚠️ This date is already registered!')
         return redirect(url_for('manage_holidays'))
 
     year = int(safe_str(request.args.get('year', date.today().year), 4) or date.today().year)
@@ -1174,7 +1354,7 @@ def delete_holiday(holiday_id):
         flash('Invalid ID!')
         return redirect(url_for('manage_holidays'))
     holidays_col.delete_one({'_id': ObjectId(holiday_id)})
-    flash('छुट्टी हटा दी गई!')
+    flash('Holiday removed successfully!')
     return redirect(url_for('manage_holidays'))
 
 
@@ -1207,7 +1387,7 @@ def salary_increment():
 
         teacher = teachers_col.find_one({'teacher_id': teacher_id})
         if not teacher:
-            flash('Teacher नहीं मिले!')
+            flash('Teacher not found!')
             return redirect(url_for('salary_increment'))
 
         old_salary = teacher['basic_salary']
@@ -1236,7 +1416,7 @@ def salary_increment():
             f'Salary increment: {teacher_id} {old_salary} -> {new_salary} by {session.get("admin_name")}'
         )
         diff = new_salary - old_salary
-        flash(f'✅ {teacher["name"]} की Salary ₹{old_salary:,.0f} → ₹{new_salary:,.0f} (+₹{diff:,.0f})')
+        flash(f'✅ {teacher["name"]} salary updated: ₹{old_salary:,.0f} → ₹{new_salary:,.0f} (+₹{diff:,.0f})')
         return redirect(url_for('salary_increment'))
 
     history = list(increment_col.find().sort('date', -1).limit(30))
@@ -1285,9 +1465,9 @@ def manage_assets():
                 'date': ist_now.strftime('%Y-%m-%d'),
                 'timestamp': ist_now
             })
-            flash(f'✅ {teacher["name"]} को {quantity}x {item_name} असाइन किया गया!')
+            flash(f'✅ Assigned {quantity}x {item_name} to {teacher["name"]}!')
         else:
-            flash('⚠️ Teacher नहीं मिला!')
+            flash('⚠️ Teacher not found!')
         return redirect(url_for('manage_assets'))
 
     all_assets = list(assets_col.find().sort('timestamp', -1))
@@ -1303,7 +1483,7 @@ def delete_asset(asset_id):
         flash('Invalid ID!')
         return redirect(url_for('manage_assets'))
     assets_col.delete_one({'_id': ObjectId(asset_id)})
-    flash('असाइनमेंट सफलतापूर्वक हटा दिया गया!')
+    flash('Assignment removed successfully!')
     return redirect(url_for('manage_assets'))
 
 
@@ -1385,11 +1565,13 @@ def teacher_salary():
 
     summary = get_month_summary(year, month)
     month_str = f"{year}-{month:02d}"
-    escaped_month = re.escape(month_str)
+    days_in_month = calendar.monthrange(year, month)[1]
+    start_date = f"{month_str}-01"
+    end_date = f"{month_str}-{days_in_month:02d}"
 
     today = date.today()
     total_any = attendance_col.count_documents({
-        'teacher_id': tid, 'date': {'$regex': f'^{escaped_month}'}
+        'teacher_id': tid, 'date': {'$gte': start_date, '$lte': end_date}
     })
     no_att_data = total_any == 0
     is_current_month = (year == today.year and month == today.month)
@@ -1442,7 +1624,7 @@ def admin_salary_slip(teacher_id):
     teacher_id = safe_str(teacher_id, 20).strip()
     teacher = teachers_col.find_one({'teacher_id': teacher_id})
     if not teacher:
-        flash('Teacher नहीं मिले!')
+        flash('Teacher not found!')
         return redirect(url_for('payroll'))
 
     month = int(safe_str(request.args.get('month', date.today().month), 2) or date.today().month)
@@ -1523,7 +1705,7 @@ def teacher_leave():
             return redirect(url_for('teacher_leave'))
 
         if not reason:
-            flash('⚠️ कारण अनिवार्य है!')
+            flash('⚠️ Reason is required!')
             return redirect(url_for('teacher_leave'))
 
         teacher = teachers_col.find_one({'teacher_id': tid})
@@ -1537,7 +1719,7 @@ def teacher_leave():
             'status': 'Pending',
             'applied_on': datetime.now(timezone.utc)
         })
-        flash('छुट्टी का आवेदन सफलतापूर्वक भेज दिया गया है!')
+        flash('Leave request submitted successfully!')
         return redirect(url_for('teacher_leave'))
 
     leaves = list(leave_requests_col.find({'teacher_id': tid}).sort('applied_on', -1))
@@ -1560,15 +1742,19 @@ def teacher_attendance_report():
     year = max(2020, min(2100, year))
 
     month_str = f"{year}-{month:02d}"
-    escaped_month = re.escape(month_str)
     days_in_month = calendar.monthrange(year, month)[1]
+    start_date = f"{month_str}-01"
+    end_date = f"{month_str}-{days_in_month:02d}"
 
     att_map = {}
     for rec in attendance_col.find({
-        'teacher_id': tid, 'date': {'$regex': f'^{escaped_month}'}
+        'teacher_id': tid, 'date': {'$gte': start_date, '$lte': end_date}
     }):
-        day = int(rec['date'].split('-')[2])
-        att_map[day] = rec['status']
+        try:
+            day = int(rec['date'].split('-')[2])
+            att_map[day] = rec['status']
+        except (ValueError, IndexError):
+            continue
 
     sundays = set()
     for d in range(1, days_in_month + 1):
@@ -1604,12 +1790,12 @@ def teacher_profile():
 
     if request.method == 'POST':
         if 'photo' not in request.files:
-            flash('कोई फ़ाइल नहीं चुनी!')
+            flash('No file selected!')
             return redirect(url_for('teacher_profile'))
 
         file = request.files['photo']
         if file.filename == '':
-            flash('कोई फ़ाइल नहीं चुनी!')
+            flash('No file selected!')
             return redirect(url_for('teacher_profile'))
 
         # Use secure file validation with random filename
@@ -1620,7 +1806,7 @@ def teacher_profile():
                 {'teacher_id': tid}, {'$set': {'photo': result}}
             )
             log_activity(tid, teacher['name'], 'PHOTO_UPLOAD', 'Updated profile photo')
-            flash('✅ Profile photo सफलतापूर्वक update हो गई!')
+            flash('✅ Profile photo updated successfully!')
         else:
             flash(f'❌ {result}')
         return redirect(url_for('teacher_profile'))
@@ -1643,7 +1829,7 @@ def teacher_forgot_password():
         # Validate inputs
         valid, result = SecurityValidator.validate_teacher_id(teacher_id)
         if not valid:
-            flash('गलत ID format!')
+            flash('Invalid ID format!')
             return redirect(url_for('teacher_forgot_password'))
         teacher_id = result
 
@@ -1651,7 +1837,7 @@ def teacher_forgot_password():
 
         if teacher:
             if not teacher.get('email'):
-                flash('आपका Email रजिस्टर्ड नहीं है! कृपया एडमिन से ईमेल अपडेट करवाएं।')
+                flash('Your email is not registered! Please contact admin to update your email.')
                 return redirect(url_for('teacher_forgot_password'))
 
             # Generate cryptographically secure OTP
@@ -1672,15 +1858,15 @@ def teacher_forgot_password():
                     f"This OTP expires in {app.config.get('OTP_EXPIRY_MINUTES', 10)} minutes.\n"
                     f"Do not share this with anyone."
                 )
-                mail.send(msg)
-                flash(f'एक OTP आपकी ईमेल पर भेज दिया गया है।')
+                send_async_email(app, msg)
+                flash('An OTP has been sent to your registered email.')
                 return redirect(url_for('teacher_verify_otp'))
             except Exception as e:
                 app.logger.error(f'Mail error: {e}')
-                flash('ईमेल भेजने में गड़बड़ हुई! कृपया बाद में प्रयास करें।')
+                flash('Error sending email! Please try again later.')
         else:
             # Generic message — prevents account/phone enumeration
-            flash('गलत ID या Phone Number!')
+            flash('Invalid ID or Phone Number!')
 
     return render_template('teacher_forgot_password.html')
 
@@ -1702,7 +1888,7 @@ def teacher_verify_otp():
             if datetime.now(timezone.utc) - created_time > expiry:
                 session.pop('otp', None)
                 session.pop('reset_teacher_id', None)
-                flash('OTP expired! कृपया नया OTP प्राप्त करें।')
+                flash('OTP expired! Please request a new OTP.')
                 return redirect(url_for('teacher_forgot_password'))
 
         # Check attempt limit
@@ -1711,18 +1897,18 @@ def teacher_verify_otp():
         if otp_attempts >= max_attempts:
             session.pop('otp', None)
             session.pop('reset_teacher_id', None)
-            flash('बहुत अधिक गलत प्रयास! कृपया नया OTP प्राप्त करें।')
+            flash('Too many incorrect attempts! Please request a new OTP.')
             return redirect(url_for('teacher_forgot_password'))
 
         # Timing-safe comparison
         import hmac
         if hmac.compare_digest(entered_otp, session.get('otp', '')):
             session['otp_verified'] = True
-            flash('OTP सत्यापित! अब अपना नया पासवर्ड सेट करें।')
+            flash('OTP verified! Please set your new password.')
             return redirect(url_for('teacher_reset_password'))
 
         session['otp_attempts'] = otp_attempts + 1
-        flash('गलत OTP! कृपया फिर से चेक करें।')
+        flash('Invalid OTP! Please check and try again.')
 
     return render_template('teacher_verify_otp.html')
 
@@ -1743,7 +1929,7 @@ def teacher_reset_password():
             return render_template('teacher_reset_password.html')
 
         if new_password != confirm_password:
-            flash('पासवर्ड मेल नहीं खाते!')
+            flash('Passwords do not match!')
             return render_template('teacher_reset_password.html')
 
         teachers_col.update_one(
@@ -1761,7 +1947,7 @@ def teacher_reset_password():
         session.pop('otp_created', None)
 
         app.logger.info(f'Password reset for teacher via OTP')
-        flash('पासवर्ड सफलतापूर्वक बदल दिया गया है! अब आप लॉगिन कर सकते हैं।')
+        flash('Password changed successfully! You can now log in.')
         return redirect(url_for('teacher_login'))
 
     return render_template('teacher_reset_password.html')
@@ -1780,11 +1966,11 @@ def teacher_change_password():
         if not teacher or not PasswordManager.verify_password(
             old_password, teacher.get('password', '')
         ):
-            flash('पुराना पासवर्ड गलत है!')
+            flash('Incorrect old password!')
             return render_template('teacher_change_password.html')
 
         if new_password != confirm_password:
-            flash('नया पासवर्ड मेल नहीं खाता!')
+            flash('New passwords do not match!')
             return render_template('teacher_change_password.html')
 
         # Validate new password strength
@@ -1800,7 +1986,7 @@ def teacher_change_password():
                 'must_change_password': False
             }}
         )
-        flash('पासवर्ड सफलतापूर्वक बदल दिया गया है!')
+        flash('Password changed successfully!')
         return redirect(url_for('teacher_dashboard'))
 
     return render_template('teacher_change_password.html')
@@ -1860,9 +2046,9 @@ def clear_logs():
     before_date = (ist_now - timedelta(days=2)).strftime('%Y-%m-%d')
     deleted_info = logs_col.delete_many({'date': {'$lt': before_date}})
     if deleted_info.deleted_count > 0:
-        flash(f'✅ {before_date} से पहले के {deleted_info.deleted_count} logs delete हो गए!')
+        flash(f'✅ Deleted {deleted_info.deleted_count} logs prior to {before_date}!')
     else:
-        flash(f'ℹ️ {before_date} से पहले के कोई logs मौजूद नहीं हैं।')
+        flash(f'ℹ️ No logs found prior to {before_date}.')
     return redirect(url_for('teacher_logs'))
 
 
@@ -1879,19 +2065,28 @@ def export_attendance():
     year = max(2020, min(2100, year))
 
     month_str = f"{year}-{month:02d}"
-    escaped_month = re.escape(month_str)
-    teachers = list(teachers_col.find({'active': True}))
     days_in_month = calendar.monthrange(year, month)[1]
+    start_date = f"{month_str}-01"
+    end_date = f"{month_str}-{days_in_month:02d}"
+    teachers = list(teachers_col.find({'active': True}))
+
+    # Single batch indexed range query for all teachers in month
+    all_recs = list(attendance_col.find(
+        {'date': {'$gte': start_date, '$lte': end_date}},
+        {'_id': 0, 'teacher_id': 1, 'date': 1, 'status': 1}
+    ))
+    att_by_teacher = {}
+    for rec in all_recs:
+        try:
+            day = int(rec['date'].split('-')[2])
+            att_by_teacher.setdefault(rec.get('teacher_id'), {})[day] = rec.get('status')
+        except (ValueError, IndexError):
+            continue
 
     data = []
     for teacher in teachers:
         tid = teacher['teacher_id']
-        att_map = {}
-        for rec in attendance_col.find({
-            'teacher_id': tid, 'date': {'$regex': f'^{escaped_month}'}
-        }):
-            day = int(rec['date'].split('-')[2])
-            att_map[day] = rec['status']
+        att_map = att_by_teacher.get(tid, {})
 
         row = {"Teacher Name": teacher['name'], "ID": tid}
         counts = {'P': 0, 'H': 0, 'M': 0, 'A': 0}
@@ -1940,7 +2135,7 @@ def export_attendance():
 
         last_col = chr(ord("A") + min(days_in_month + 5, 25))
         worksheet.merge_cells(f'A1:{last_col}1')
-        worksheet['A1'] = "गायत्री विद्यापीठ, दाउदनगर"
+        worksheet['A1'] = "Gayatri Vidyapeeth, Daudnagar"
         worksheet['A1'].font = header_font
         worksheet['A1'].alignment = center_align
         worksheet['A1'].fill = header_fill
@@ -2031,7 +2226,7 @@ def salary_slip_generator():
 
         teacher = teachers_col.find_one({'teacher_id': teacher_id})
         if not teacher:
-            flash('Teacher नहीं मिले!')
+            flash('Teacher not found!')
             return redirect(url_for('salary_slip_generator'))
 
         basic_salary = teacher['basic_salary']
@@ -2128,8 +2323,47 @@ def salary_slip_generator():
 @app.route('/admin/salary/generated-slips')
 @admin_required
 def admin_generated_slips():
-    slips = list(generated_slips_col.find().sort('generated_at', -1))
-    return render_template('admin_generated_slips.html', slips=slips)
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    if page < 1:
+        page = 1
+    if per_page not in [10, 25, 50, 100]:
+        per_page = 10
+
+    total_slips = generated_slips_col.count_documents({})
+    total_pages = max(1, math.ceil(total_slips / per_page))
+    if page > total_pages and total_slips > 0:
+        page = total_pages
+
+    skip = (page - 1) * per_page
+    slips = list(generated_slips_col.find().sort('generated_at', -1).skip(skip).limit(per_page))
+
+    # Pagination range helper for UI display (with ellipsis support)
+    def get_pagination_range(curr, total, window=1):
+        if total <= 7:
+            return list(range(1, total + 1))
+        pages_set = {1, total}
+        for p in range(max(1, curr - window), min(total, curr + window) + 1):
+            pages_set.add(p)
+        sorted_p = sorted(list(pages_set))
+        res = []
+        prev = 0
+        for p in sorted_p:
+            if p - prev > 1:
+                res.append('...')
+            res.append(p)
+            prev = p
+        return res
+
+    pagination_items = get_pagination_range(page, total_pages, window=1)
+
+    return render_template('admin_generated_slips.html',
+                           slips=slips,
+                           page=page,
+                           per_page=per_page,
+                           total_slips=total_slips,
+                           total_pages=total_pages,
+                           pagination_items=pagination_items)
 
 @app.route('/admin/salary/generated-slips/view/<slip_id>', methods=['GET'])
 @admin_required
@@ -2197,7 +2431,9 @@ def delete_generated_slip(slip_id):
     except Exception as e:
         app.logger.error(f"Error deleting generated slip: {e}")
         flash('Failed to delete slip.', 'danger')
-    return redirect(url_for('admin_generated_slips'))
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    return redirect(url_for('admin_generated_slips', page=page, per_page=per_page))
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2234,367 +2470,6 @@ def admin_leave_requests():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# ROUTES — Student Fee Management (Admin)
-# ═══════════════════════════════════════════════════════════════════════════
-
-def get_ist_now_admin():
-    return datetime.now(timezone(timedelta(hours=5, minutes=30)))
-
-
-@app.route('/admin/students')
-@admin_required
-def manage_students():
-    filter_class = safe_str(request.args.get('class', '')).strip()
-    filter_section = safe_str(request.args.get('section', '')).strip()
-    filter_search = safe_str(request.args.get('search', '')).strip()
-    filter_fee_status = safe_str(request.args.get('fee_status', '')).strip()
-
-    query = {}
-    if filter_class:
-        query['class'] = filter_class
-    if filter_section:
-        query['section'] = filter_section
-    if filter_search:
-        escaped = SecurityValidator.sanitize_search(filter_search)
-        query['$or'] = [
-            {'name': {'$regex': escaped, '$options': 'i'}},
-            {'roll_no': {'$regex': escaped, '$options': 'i'}},
-            {'admission_no': {'$regex': escaped, '$options': 'i'}},
-        ]
-
-    students = list(students_col.find(query).sort(
-        [('class', 1), ('section', 1), ('roll_no', 1)]
-    ))
-
-    if filter_fee_status == 'fully_paid':
-        students = [s for s in students if s.get('balance_fee', 0) <= 0]
-    elif filter_fee_status == 'pending':
-        students = [s for s in students
-                    if s.get('paid_fee', 0) == 0 and s.get('total_fee', 0) > 0]
-    elif filter_fee_status == 'partial':
-        students = [s for s in students
-                    if s.get('paid_fee', 0) > 0 and s.get('balance_fee', 0) > 0]
-
-    all_classes = sorted([c for c in students_col.distinct('class') if c])
-    all_sections = sorted([s for s in students_col.distinct('section') if s])
-
-    return render_template('manage_students.html',
-                         students=students,
-                         all_classes=all_classes,
-                         all_sections=all_sections,
-                         filter_class=filter_class,
-                         filter_section=filter_section,
-                         filter_search=filter_search,
-                         filter_fee_status=filter_fee_status)
-
-
-@app.route('/admin/student/add', methods=['GET', 'POST'])
-@admin_required
-def add_student():
-    if request.method == 'POST':
-        name = SecurityValidator.sanitize_string(request.form.get('name', ''), 100)
-        admission_no = SecurityValidator.sanitize_string(request.form.get('admission_no', ''), 20)
-        roll_no = SecurityValidator.sanitize_string(request.form.get('roll_no', ''), 20)
-        student_class = SecurityValidator.sanitize_string(request.form.get('class', ''), 20)
-        section = SecurityValidator.sanitize_string(request.form.get('section', ''), 10)
-        father_name = SecurityValidator.sanitize_string(request.form.get('father_name', ''), 100)
-        mother_name = SecurityValidator.sanitize_string(request.form.get('mother_name', ''), 100)
-        mobile = SecurityValidator.sanitize_string(request.form.get('mobile', ''), 15)
-        address = SecurityValidator.sanitize_string(request.form.get('address', ''), 500)
-        status = request.form.get('status', 'Active')
-
-        if not name or not roll_no or not student_class:
-            flash('⚠️ नाम, रोल नंबर और कक्षा अनिवार्य हैं!')
-            return redirect(url_for('add_student'))
-
-        valid, total_fee = SecurityValidator.validate_amount(request.form.get('total_fee', 0))
-        if not valid:
-            flash(f'⚠️ {total_fee}')
-            return redirect(url_for('add_student'))
-
-        if status not in ('Active', 'Inactive'):
-            status = 'Active'
-
-        student = {
-            'name': name, 'admission_no': admission_no, 'roll_no': roll_no,
-            'class': student_class, 'section': section,
-            'father_name': father_name, 'mother_name': mother_name,
-            'mobile': mobile, 'address': address,
-            'total_fee': total_fee, 'paid_fee': 0, 'balance_fee': total_fee,
-            'status': status,
-            'added_at': get_ist_now_admin(),
-            'added_by': session.get('admin_name', 'Admin')
-        }
-        students_col.insert_one(student)
-        flash(f'✅ Student {name} सफलतापूर्वक जोड़ा गया!')
-        return redirect(url_for('manage_students'))
-
-    return render_template('add_student.html')
-
-
-@app.route('/admin/student/edit/<student_id>', methods=['GET', 'POST'])
-@admin_required
-def edit_student(student_id):
-    valid, _ = SecurityValidator.validate_object_id(student_id)
-    if not valid:
-        flash('Invalid student ID!')
-        return redirect(url_for('manage_students'))
-
-    student = students_col.find_one({'_id': ObjectId(student_id)})
-    if not student:
-        flash('Student नहीं मिला!')
-        return redirect(url_for('manage_students'))
-
-    if request.method == 'POST':
-        valid, total_fee = SecurityValidator.validate_amount(request.form.get('total_fee', 0))
-        if not valid:
-            flash(f'⚠️ {total_fee}')
-            return redirect(url_for('edit_student', student_id=student_id))
-
-        paid_fee = student.get('paid_fee', 0)
-        status = request.form.get('status', 'Active')
-        if status not in ('Active', 'Inactive'):
-            status = 'Active'
-
-        updates = {
-            'name': SecurityValidator.sanitize_string(request.form.get('name', ''), 100),
-            'admission_no': SecurityValidator.sanitize_string(request.form.get('admission_no', ''), 20),
-            'roll_no': SecurityValidator.sanitize_string(request.form.get('roll_no', ''), 20),
-            'class': SecurityValidator.sanitize_string(request.form.get('class', ''), 20),
-            'section': SecurityValidator.sanitize_string(request.form.get('section', ''), 10),
-            'father_name': SecurityValidator.sanitize_string(request.form.get('father_name', ''), 100),
-            'mother_name': SecurityValidator.sanitize_string(request.form.get('mother_name', ''), 100),
-            'mobile': SecurityValidator.sanitize_string(request.form.get('mobile', ''), 15),
-            'address': SecurityValidator.sanitize_string(request.form.get('address', ''), 500),
-            'total_fee': total_fee,
-            'balance_fee': total_fee - paid_fee,
-            'status': status,
-        }
-        students_col.update_one({'_id': ObjectId(student_id)}, {'$set': updates})
-        flash(f'✅ {updates["name"]} की जानकारी अपडेट हो गई!')
-        return redirect(url_for('manage_students'))
-
-    return render_template('edit_student.html', student=student)
-
-
-@app.route('/admin/student/delete/<student_id>', methods=['POST'])
-@admin_required
-def delete_student(student_id):
-    """Delete student — POST only."""
-    valid, _ = SecurityValidator.validate_object_id(student_id)
-    if not valid:
-        flash('Invalid student ID!')
-        return redirect(url_for('manage_students'))
-
-    student = students_col.find_one({'_id': ObjectId(student_id)})
-    if student:
-        students_col.delete_one({'_id': ObjectId(student_id)})
-        fee_history_col.delete_many({'student_id': str(student_id)})
-        flash(f'🗑️ {student["name"]} और उनकी फीस हिस्ट्री हटा दी गई!')
-    else:
-        flash('Student नहीं मिला!')
-    return redirect(url_for('manage_students'))
-
-
-@app.route('/admin/student/pay/<student_id>', methods=['GET', 'POST'])
-@admin_required
-def pay_fee(student_id):
-    valid, _ = SecurityValidator.validate_object_id(student_id)
-    if not valid:
-        flash('Invalid student ID!')
-        return redirect(url_for('manage_students'))
-
-    student = students_col.find_one({'_id': ObjectId(student_id)})
-    if not student:
-        flash('Student नहीं मिला!')
-        return redirect(url_for('manage_students'))
-
-    if request.method == 'POST':
-        fee_fields = [
-            ('reg_fee', 'Registration Fee'), ('form_charge', 'Form Charge'),
-            ('prev_dues', 'Previous Dues'), ('tuition_fee', 'Tuition Fee'),
-            ('computer_fee', 'Computer Fee'), ('admission_fee', 'Admission'),
-            ('term_fee', 'Term Fee'), ('library_fee', 'Library Fee'),
-            ('electric_charge', 'Electric Charge'),
-            ('development_charge', 'Development Charge'),
-            ('security_money', 'Security Money'),
-            ('transport_fee', 'Conveyance/Transportation Fee'),
-            ('exam_fee', 'Exam. Fee'), ('hostel_charge', 'Hostel Charge'),
-            ('late_fine', 'Late Fine'), ('others_fee', 'Others'),
-        ]
-
-        breakdown = {}
-        for field_name, label in fee_fields:
-            raw = request.form.get(field_name, 0) or 0
-            try:
-                val = float(raw)
-                if val < 0:
-                    flash(f'⚠️ {label} negative नहीं हो सकती!')
-                    return redirect(url_for('pay_fee', student_id=student_id))
-                breakdown[label] = val
-            except (ValueError, TypeError):
-                breakdown[label] = 0.0
-
-        amount = sum(breakdown.values())
-        month = SecurityValidator.sanitize_string(request.form.get('month', ''), 50)
-        payment_mode = SecurityValidator.sanitize_string(request.form.get('payment_mode', 'Cash'), 20)
-        remarks = SecurityValidator.sanitize_string(request.form.get('remarks', ''), 500)
-
-        if amount <= 0:
-            flash('⚠️ कुल राशि 0 से अधिक होनी चाहिए!')
-            return redirect(url_for('pay_fee', student_id=student_id))
-
-        new_paid = student.get('paid_fee', 0) + amount
-        new_balance = student.get('total_fee', 0) - new_paid
-
-        students_col.update_one(
-            {'_id': ObjectId(student_id)},
-            {'$set': {'paid_fee': new_paid, 'balance_fee': new_balance}}
-        )
-
-        ist_now = get_ist_now_admin()
-        receipt_no = f"GVP-FEE-{ist_now.strftime('%Y%m%d%H%M%S')}-{str(student_id)[-4:]}"
-
-        fee_history_col.insert_one({
-            'student_id': str(student_id),
-            'student_name': student['name'],
-            'class': student.get('class', ''),
-            'section': student.get('section', ''),
-            'roll_no': student.get('roll_no', ''),
-            'admission_no': student.get('admission_no', ''),
-            'amount': amount,
-            'breakdown': breakdown,
-            'month': month,
-            'payment_mode': payment_mode,
-            'remarks': remarks,
-            'receipt_no': receipt_no,
-            'date': ist_now.strftime('%Y-%m-%d %H:%M:%S'),
-            'collected_by': session.get('admin_name', 'Admin'),
-            'total_fee': student.get('total_fee', 0),
-            'total_paid_after': new_paid,
-            'balance_after': new_balance,
-        })
-
-        flash(f'✅ ₹{amount:,.0f} की फीस {student["name"]} के लिए जमा हो गई!')
-        return redirect(url_for('fee_receipt', receipt_no=receipt_no))
-
-    return render_template('pay_fee.html', student=student)
-
-
-@app.route('/admin/student/receipt/<receipt_no>')
-@admin_required
-def fee_receipt(receipt_no):
-    receipt_no = SecurityValidator.sanitize_string(receipt_no, 50)
-    receipt = fee_history_col.find_one({'receipt_no': receipt_no})
-    if not receipt:
-        flash('Receipt नहीं मिली!')
-        return redirect(url_for('manage_students'))
-
-    student = None
-    valid, _ = SecurityValidator.validate_object_id(receipt.get('student_id', ''))
-    if valid:
-        student = students_col.find_one({'_id': ObjectId(receipt['student_id'])})
-    return render_template('fee_receipt.html', receipt=receipt, student=student)
-
-
-@app.route('/admin/student/fee-history/<student_id>')
-@admin_required
-def fee_history(student_id):
-    valid, _ = SecurityValidator.validate_object_id(student_id)
-    if not valid:
-        flash('Invalid student ID!')
-        return redirect(url_for('manage_students'))
-
-    student = students_col.find_one({'_id': ObjectId(student_id)})
-    if not student:
-        flash('Student नहीं मिला!')
-        return redirect(url_for('manage_students'))
-    history = list(fee_history_col.find({'student_id': str(student_id)}).sort('date', -1))
-    return render_template('student_fee_history.html', student=student, history=history)
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# ROUTES — Student Portal & Certificates
-# ═══════════════════════════════════════════════════════════════════════════
-
-@app.route('/admin/certificate/view/<cert_id>')
-@admin_required
-def view_certificate(cert_id):
-    valid, _ = SecurityValidator.validate_object_id(cert_id)
-    if not valid:
-        flash("Invalid certificate ID.", "error")
-        return redirect(url_for('admin_certificates'))
-
-    cert = certificates_col.find_one({'_id': ObjectId(cert_id)})
-    if not cert:
-        flash("Certificate not found.", "error")
-        return redirect(url_for('admin_certificates'))
-
-    student = students_col.find_one({'_id': ObjectId(cert['student_id'])})
-    return render_template('certificate.html', cert=cert, student=student)
-
-
-@app.route('/admin/certificates')
-@admin_required
-def admin_certificates():
-    students = list(students_col.find().sort("name", 1))
-    all_certs = list(certificates_col.find())
-    cert_map = {c['student_id']: c for c in all_certs}
-    return render_template('admin_certificates.html', students=students, cert_map=cert_map)
-
-
-@app.route('/admin/certificate/generate/<student_id>', methods=['POST'])
-@admin_required
-def generate_certificate(student_id):
-    valid, _ = SecurityValidator.validate_object_id(student_id)
-    if not valid:
-        flash("Invalid student ID", "error")
-        return redirect(url_for('admin_certificates'))
-
-    student = students_col.find_one({'_id': ObjectId(student_id)})
-    if not student:
-        flash("Student not found", "error")
-        return redirect(url_for('admin_certificates'))
-
-    course_name = SecurityValidator.sanitize_string(
-        request.form.get('course_name', 'Annual Curriculum'), 100
-    )
-    grade = SecurityValidator.sanitize_string(request.form.get('grade', 'A+'), 10)
-
-    # Cryptographically secure certificate number
-    cert_no = f"CERT-{secrets.token_hex(4).upper()}"
-
-    cert_data = {
-        'student_id': str(student['_id']),
-        'student_name': student['name'],
-        'course': course_name,
-        'grade': grade,
-        'issue_date': datetime.now(timezone.utc).strftime("%d-%m-%Y"),
-        'certificate_no': cert_no,
-        'issued_by': session.get('admin_name', 'Administrator')
-    }
-
-    certificates_col.update_one(
-        {'student_id': str(student['_id'])},
-        {'$set': cert_data},
-        upsert=True
-    )
-
-    flash(f"Certificate generated for {student['name']}", "success")
-    return redirect(url_for('admin_certificates'))
-
-
-@app.route('/admin/certificate/delete/<student_id>', methods=['POST'])
-@admin_required
-def delete_certificate(student_id):
-    """Delete certificate — POST only."""
-    student_id = SecurityValidator.sanitize_string(student_id, 30)
-    certificates_col.delete_one({'student_id': student_id})
-    flash("Certificate revoked successfully.", "success")
-    return redirect(url_for('admin_certificates'))
-
-
-# ═══════════════════════════════════════════════════════════════════════════
 # ROUTES — Health Check
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -2617,26 +2492,26 @@ def health_check():
 def forbidden(e):
     return render_template('error.html',
                          error='403 - Access Forbidden',
-                         message='आपके पास इस पेज को देखने की अनुमति नहीं है।'), 403
+                         message='You do not have permission to view this page.'), 403
 
 @app.errorhandler(404)
 def not_found(e):
     return render_template('error.html',
                          error='404 - Page Not Found',
-                         message='यह पेज मौजूद नहीं है।'), 404
+                         message='This page does not exist.'), 404
 
 @app.errorhandler(429)
 def ratelimit_exceeded(e):
     return render_template('error.html',
                          error='429 - Too Many Requests',
-                         message='बहुत अधिक अनुरोध! कृपया कुछ समय बाद प्रयास करें।'), 429
+                         message='Too many requests! Please try again later.'), 429
 
 @app.errorhandler(500)
 def internal_error(e):
     app.logger.error(f'Internal error: {e}')
     return render_template('error.html',
                          error='500 - Internal Server Error',
-                         message='कुछ गलत हो गया। कृपया बाद में पुन: प्रयास करें।'), 500
+                         message='Something went wrong. Please try again later.'), 500
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2663,7 +2538,6 @@ if __name__ == '__main__':
     import socket
 
     init_admin()
-    init_accountant(db)  # Pass shared DB connection
 
     default_port = int(os.environ.get('PORT', 5000))
     host = os.environ.get('HOST', '0.0.0.0')

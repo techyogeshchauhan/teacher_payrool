@@ -1,80 +1,93 @@
 {% extends "base.html" %}
-{% block title %}Attendance Report - गायत्री विद्यापीठ{% endblock %}
+{% block title %}Attendance Report - Gayatri Vidyapeeth{% endblock %}
 {% block content %}
 
-<div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
-        <i class="fas fa-chart-bar text-orange-500"></i> Attendance Report
-    </h1>
-    <div class="flex items-center gap-2">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+        <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-3 py-0.5 rounded-full border border-amber-200">
+                Institutional Audits
+            </span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 font-serif flex items-center gap-3">
+            <i class="fas fa-chart-bar text-amber-600"></i> Monthly Attendance Report
+        </h1>
+        <p class="text-xs sm:text-sm text-gray-500 mt-1">Review faculty attendance records, Sunday holidays, and monthly totals</p>
+    </div>
+    <div class="flex items-center gap-2.5 no-print">
         <a href="{{ url_for('export_attendance', month=month, year=year) }}" 
-           class="bg-green-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-green-700 transition text-sm no-print">
+           class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 transition text-xs sm:text-sm shadow-md">
             <i class="fas fa-file-excel"></i> Export Excel
         </a>
-        <button onclick="window.print()" class="bg-gray-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-gray-800 transition text-sm no-print">
+        <button onclick="window.print()" class="bg-stone-800 hover:bg-stone-900 text-amber-200 border border-stone-700 px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 transition text-xs sm:text-sm shadow-md">
             <i class="fas fa-print"></i> Print
         </button>
     </div>
-
 </div>
 
 <!-- Month Selector -->
-<div class="bg-white rounded-2xl card-shadow p-4 mb-6 flex flex-wrap items-center gap-4 no-print">
+<div class="bg-white rounded-3xl card-shadow p-5 mb-6 flex flex-wrap items-center justify-between gap-4 no-print border border-amber-100">
     <form method="GET" class="flex items-center gap-3 flex-wrap">
-        <label class="font-semibold text-gray-700 hindi">महीना:</label>
-        <select name="month" class="px-3 py-2 border-2 border-orange-300 rounded-xl focus:outline-none">
+        <label class="font-bold text-xs uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+            <i class="fas fa-calendar-alt text-amber-600"></i> Report Month:
+        </label>
+        <select name="month" class="px-4 py-2 border-2 border-amber-200 rounded-xl focus:outline-none focus:border-amber-500 font-bold text-xs sm:text-sm text-gray-800">
             {% for m in range(1, 13) %}
             <option value="{{ m }}" {% if m == month %}selected{% endif %}>
                 {{ ['','January','February','March','April','May','June','July','August','September','October','November','December'][m] }}
             </option>
             {% endfor %}
         </select>
-        <select name="year" class="px-3 py-2 border-2 border-orange-300 rounded-xl focus:outline-none">
-            {% for y in range(2023, 2027) %}
+        <select name="year" class="px-4 py-2 border-2 border-amber-200 rounded-xl focus:outline-none focus:border-amber-500 font-bold text-xs sm:text-sm text-gray-800">
+            {% for y in range(2023, 2028) %}
             <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
             {% endfor %}
         </select>
-        <button type="submit" class="saffron-grad text-white px-5 py-2 rounded-xl font-semibold">
-            <i class="fas fa-search"></i> देखें
+        <button type="submit" class="gold-saffron-grad text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:opacity-95 transition">
+            <i class="fas fa-search"></i> View Sheet
         </button>
     </form>
+    <div class="text-xs text-amber-900 font-serif font-bold bg-amber-50 px-3.5 py-1.5 rounded-xl border border-amber-200">
+        {{ month_name }} {{ year }} &bull; Total Days: {{ days }}
+    </div>
 </div>
 
 <!-- Legend -->
-<div class="flex gap-3 mb-4 flex-wrap no-print">
-    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-semibold">P = Present</span>
-    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-semibold">A = Absent</span>
-    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-xs font-semibold">H = Half Day</span>
-    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-semibold">M = Medical</span>
-    <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-lg text-xs font-semibold">SUN = Sunday (Holiday)</span>
-    <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg text-xs">– = Not Marked</span>
+<div class="flex gap-2 sm:gap-3 mb-4 flex-wrap no-print text-xs">
+    <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-lg font-bold">P = Present</span>
+    <span class="bg-rose-50 text-rose-800 border border-rose-200 px-3 py-1 rounded-lg font-bold">A = Absent</span>
+    <span class="bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded-lg font-bold">H = Half Day</span>
+    <span class="bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1 rounded-lg font-bold">M = Medical</span>
+    <span class="bg-purple-50 text-purple-800 border border-purple-200 px-3 py-1 rounded-lg font-bold">SUN = Sunday (Paid)</span>
+    <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg font-semibold">– = Not Marked</span>
 </div>
 
-<div class="bg-white rounded-2xl card-shadow overflow-hidden">
-    <div class="px-6 py-4 saffron-grad hidden print:block text-center">
-        <h2 class="text-white font-bold text-xl hindi">गायत्री विद्यापीठ, दाउदनगर</h2>
-        <p class="text-orange-100 hindi">Attendance Report — {{ month_name }} {{ year }}</p>
+<div class="bg-white rounded-3xl card-shadow overflow-hidden border border-amber-100 mb-8">
+    <div class="px-6 py-4 gold-saffron-grad hidden print:block text-center text-white">
+        <h2 class="text-xl font-bold font-serif">Gayatri Vidyapeeth, Daudnagar</h2>
+        <p class="text-amber-100 text-xs">Faculty Attendance Register &bull; {{ month_name }} {{ year }}</p>
     </div>
-    <div class="px-6 py-3 bg-orange-50 border-b">
-        <h2 class="font-bold text-gray-800 hindi">{{ month_name }} {{ year }} — Attendance Sheet</h2>
+    <div class="px-6 py-4 bg-amber-50/70 border-b border-amber-100 flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 font-serif text-base">{{ month_name }} {{ year }} &bull; Attendance Matrix</h2>
+        <span class="text-xs text-gray-500 font-medium">Scroll horizontally to inspect daily entries</span>
     </div>
     <div class="scroll-x">
         <table class="w-full text-xs">
             <thead>
-                <tr class="bg-gray-800 text-white">
-                    <th class="text-left px-3 py-3 sticky left-0 bg-gray-800 min-w-[160px] hindi">शिक्षक नाम</th>
-                    <th class="px-2 py-3 text-center text-gray-400">ID</th>
+                <tr class="bg-gradient-to-r from-amber-900 via-amber-950 to-stone-950 text-amber-200 border-b border-amber-600/30">
+                    <th class="text-left px-4 py-3.5 sticky left-0 bg-stone-950 min-w-[170px] z-10 font-bold uppercase tracking-wider">Teacher Name</th>
+                    <th class="px-2 py-3.5 text-center text-amber-300 font-bold">ID</th>
                     {% for d in range(1, days+1) %}
                     {% if d in sundays %}
-                    <th class="px-1.5 py-3 text-center min-w-[32px] bg-purple-800 text-purple-200">{{ d }}<br><span class="text-[8px] font-normal">SUN</span></th>
+                    <th class="px-1.5 py-3.5 text-center min-w-[32px] bg-purple-900/90 text-purple-200 font-bold">{{ d }}<br><span class="text-[8px] font-normal">SUN</span></th>
                     {% else %}
-                    <th class="px-1.5 py-3 text-center min-w-[28px]">{{ d }}</th>
+                    <th class="px-1.5 py-3.5 text-center min-w-[28px] font-semibold">{{ d }}</th>
                     {% endif %}
                     {% endfor %}  
-                    <th class="px-3 py-3 text-center text-green-400 hindi">P</th>
-                    <th class="px-3 py-3 text-center text-yellow-400 hindi">H</th>
-                    <th class="px-3 py-3 text-center text-blue-400 hindi">M</th>
-                    <th class="px-3 py-3 text-center text-red-400 hindi">A</th>
+                    <th class="px-3 py-3.5 text-center text-emerald-300 font-bold bg-stone-900">P</th>
+                    <th class="px-3 py-3.5 text-center text-amber-300 font-bold bg-stone-900">H</th>
+                    <th class="px-3 py-3.5 text-center text-blue-300 font-bold bg-stone-900">M</th>
+                    <th class="px-3 py-3.5 text-center text-rose-300 font-bold bg-stone-900">A</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -83,89 +96,89 @@
                 {% set h_count = r.att_map.values()|list|select('in', ['half_day', 'H'])|list|length %}
                 {% set m_count = r.att_map.values()|list|select('equalto','M')|list|length %}
                 {% set a_count = r.att_map.values()|list|select('in', ['absent', 'A'])|list|length %}
-                <tr class="hover:bg-orange-50">
-                    <td class="px-3 py-2 font-semibold text-gray-800 sticky left-0 bg-white hindi">{{ r.name }}</td>
-                    <td class="px-2 py-2 text-center">
-                        <span class="bg-orange-100 text-orange-600 px-1 py-0.5 rounded font-mono">{{ r.teacher_id }}</span>
+                <tr class="hover:bg-amber-50/40 transition">
+                    <td class="px-4 py-2.5 font-bold text-gray-900 sticky left-0 bg-white font-serif z-10">{{ r.name }}</td>
+                    <td class="px-2 py-2.5 text-center">
+                        <span class="bg-amber-100 text-amber-900 border border-amber-200 px-1.5 py-0.5 rounded font-mono text-[11px] font-bold">{{ r.teacher_id }}</span>
                     </td>
                     {% for d in range(1, days+1) %}
                     {% if d in sundays %}
-                    <td class="px-0.5 py-2 text-center bg-purple-50">
-                        <span class="text-purple-400 font-bold text-[10px]">SUN</span>
+                    <td class="px-0.5 py-2.5 text-center bg-purple-50/60">
+                        <span class="text-purple-600 font-bold text-[10px]">SUN</span>
                     </td>
                     {% else %}
-                    <td class="px-0.5 py-2 text-center">
+                    <td class="px-0.5 py-2.5 text-center">
                         {% set s = r.att_map.get(d) %}
                         {% if s in ['present', 'P'] %}
-                        <span class="text-green-600 font-bold">P</span>
+                        <span class="text-emerald-700 font-extrabold">P</span>
                         {% elif s in ['half_day', 'H'] %}
-                        <span class="text-yellow-600 font-bold">H</span>
+                        <span class="text-amber-600 font-extrabold">H</span>
                         {% elif s in ['absent', 'A'] %}
-                        <span class="text-red-500 font-bold">A</span>
+                        <span class="text-rose-600 font-extrabold">A</span>
                         {% elif s == 'M' %}
-                        <span class="text-blue-600 font-bold">M</span>
+                        <span class="text-blue-600 font-extrabold">M</span>
                         {% else %}
                         <span class="text-gray-300">–</span>
                         {% endif %}
                     </td>
                     {% endif %}
                     {% endfor %}
-                    <td class="px-3 py-2 text-center font-bold text-green-700 bg-green-50">{{ p_count }}</td>
-                    <td class="px-3 py-2 text-center font-bold text-yellow-700 bg-yellow-50">{{ h_count }}</td>
-                    <td class="px-3 py-2 text-center font-bold text-blue-700 bg-blue-50">{{ m_count }}</td>
-                    <td class="px-3 py-2 text-center font-bold text-red-600 bg-red-50">{{ a_count }}</td>
+                    <td class="px-3 py-2.5 text-center font-bold text-emerald-800 bg-emerald-50/50">{{ p_count }}</td>
+                    <td class="px-3 py-2.5 text-center font-bold text-amber-800 bg-amber-50/50">{{ h_count }}</td>
+                    <td class="px-3 py-2.5 text-center font-bold text-blue-800 bg-blue-50/50">{{ m_count }}</td>
+                    <td class="px-3 py-2.5 text-center font-bold text-rose-700 bg-rose-50/50">{{ a_count }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="{{ days + 6 }}" class="text-center py-12 text-gray-400 hindi">कोई data नहीं मिला।</td></tr>
+                <tr><td colspan="{{ days + 6 }}" class="text-center py-12 text-gray-400">No attendance records found for this period.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
 
-
 {% if session.get('admin') %}
 <!-- Submission History (Admin Only) -->
-<div class="mt-8 bg-white rounded-2xl card-shadow overflow-hidden no-print">
-    <div class="px-6 py-4 bg-gray-50 border-b">
-        <h2 class="font-bold text-gray-800 hindi flex items-center gap-2">
-            <i class="fas fa-history text-orange-500"></i> Attendance Submission History
+<div class="mt-8 bg-white rounded-3xl card-shadow overflow-hidden no-print border border-amber-100">
+    <div class="px-6 py-4 bg-amber-50/60 border-b border-amber-100 flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 font-serif flex items-center gap-2">
+            <i class="fas fa-history text-amber-600"></i> Attendance Submission History
         </h2>
+        <span class="text-xs text-gray-500 font-medium">Audit logs</span>
     </div>
     <div class="scroll-x">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50">
+        <table class="w-full text-sm text-left">
+            <thead class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
                 <tr>
-                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600 hindi">शिक्षक</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 hindi">Attendance Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 hindi">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 hindi">Marked By</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 hindi">Submission Time</th>
+                    <th class="px-6 py-3 font-bold">Faculty Member</th>
+                    <th class="px-6 py-3 font-bold">Attendance Date</th>
+                    <th class="px-6 py-3 font-bold">Recorded Status</th>
+                    <th class="px-6 py-3 font-bold">Marked By</th>
+                    <th class="px-6 py-3 font-bold">Submission Timestamp</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
+            <tbody class="divide-y divide-gray-100 text-xs sm:text-sm">
                 {% for log in submission_logs %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-3 font-medium text-gray-800 hindi">{{ log.teacher_name }}</td>
-                    <td class="px-6 py-3 font-mono text-gray-600">{{ log.date }}</td>
-                    <td class="px-6 py-3">
+                <tr class="hover:bg-amber-50/30 transition">
+                    <td class="px-6 py-3.5 font-bold text-gray-900 font-serif">{{ log.teacher_name }}</td>
+                    <td class="px-6 py-3.5 font-mono text-gray-600">{{ log.date }}</td>
+                    <td class="px-6 py-3.5">
                         {% if log.status in ['present', 'P'] %}
-                        <span class="status-present px-2 py-0.5 rounded text-xs font-bold">Present</span>
+                        <span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-lg text-xs font-bold">Present</span>
                         {% elif log.status in ['absent', 'A'] %}
-                        <span class="status-absent px-2 py-0.5 rounded text-xs font-bold">Absent</span>
+                        <span class="bg-rose-100 text-rose-800 border border-rose-200 px-2.5 py-0.5 rounded-lg text-xs font-bold">Absent</span>
                         {% else %}
-                        <span class="px-2 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-600 uppercase">{{ log.status }}</span>
+                        <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 uppercase">{{ log.status }}</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-3 font-semibold text-orange-600 hindi">
-                        <i class="fas fa-user-circle mr-1"></i> {{ log.marked_by or 'System' }}
+                    <td class="px-6 py-3.5 font-bold text-amber-800">
+                        <i class="fas fa-user-circle mr-1 text-amber-600"></i> {{ log.marked_by or 'System' }}
                     </td>
-                    <td class="px-6 py-3 text-gray-500 text-xs">
+                    <td class="px-6 py-3.5 text-gray-500 font-mono text-xs">
                         {{ log.marked_at.strftime('%d %b %Y, %I:%M %p') if log.marked_at else 'N/A' }}
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="5" class="text-center py-6 text-gray-400 hindi">कोई submission history नहीं मिली।</td></tr>
+                <tr><td colspan="5" class="text-center py-6 text-gray-400">No submission history found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

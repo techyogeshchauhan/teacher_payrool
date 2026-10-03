@@ -1,28 +1,30 @@
 {% extends "base.html" %}
-{% block title %}Salary Slip Generator — गायत्री विद्यापीठ{% endblock %}
+{% block title %}Salary Slip Generator — Gayatri Vidyapeeth{% endblock %}
 
 {% block extra_head %}
 <style>
     .gen-card {
         background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+        border-radius: 20px;
+        box-shadow: 0 10px 35px rgba(180, 83, 9, 0.08), 0 4px 12px rgba(0,0,0,0.04);
+        border: 1px solid rgba(245, 158, 11, 0.25);
         overflow: hidden;
     }
     .gen-header {
-        background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);
+        background: linear-gradient(135deg, #78350F 0%, #B45309 50%, #D97706 100%);
         color: #fff;
         padding: 24px 30px;
     }
     .gen-header h1 {
-        font-size: 1.4rem;
+        font-size: 1.35rem;
         font-weight: 800;
         margin: 0 0 4px;
-        font-family: 'Noto Sans Devanagari', sans-serif;
+        font-family: 'Cinzel', 'Marcellus', serif;
+        letter-spacing: 0.5px;
     }
     .gen-header p {
         font-size: 0.82rem;
-        color: rgba(255,255,255,0.8);
+        color: rgba(254, 243, 199, 0.9);
         margin: 0;
     }
     .gen-body {
@@ -30,31 +32,32 @@
     }
     .form-label {
         display: block;
-        font-size: 0.78rem;
+        font-size: 0.75rem;
         font-weight: 700;
-        color: #555;
+        color: #44403c;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.6px;
         margin-bottom: 6px;
     }
-    .form-label .required { color: #B22222; }
+    .form-label .required { color: #dc2626; }
     .form-input {
         width: 100%;
         padding: 10px 14px;
-        border: 2px solid #e0d5c5;
-        border-radius: 10px;
+        border: 1.5px solid #fde68a;
+        border-radius: 12px;
         font-size: 0.9rem;
-        color: #333;
-        background: #fffaf4;
+        color: #1c1917;
+        background: #fffdfa;
         transition: border-color 0.2s, box-shadow 0.2s;
-        font-family: 'Poppins', sans-serif;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .form-input:focus {
         outline: none;
-        border-color: #B22222;
-        box-shadow: 0 0 0 3px rgba(178,34,34,0.12);
+        border-color: #d97706;
+        box-shadow: 0 0 0 3.5px rgba(217, 119, 6, 0.15);
+        background: #fff;
     }
-    .form-input:hover { border-color: #c9b89e; }
+    .form-input:hover { border-color: #f59e0b; }
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -63,11 +66,11 @@
     .form-full { grid-column: span 2; }
     .hint-text {
         font-size: 0.72rem;
-        color: #999;
-        margin-top: 4px;
+        color: #78716c;
+        margin-top: 5px;
     }
     .submit-btn {
-        background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 60%, #EA580C 100%);
         color: #fff;
         padding: 12px 32px;
         border: none;
@@ -76,22 +79,23 @@
         font-weight: 700;
         cursor: pointer;
         transition: transform 0.15s, box-shadow 0.2s;
-        font-family: 'Poppins', sans-serif;
+        font-family: 'Plus Jakarta Sans', sans-serif;
         letter-spacing: 0.3px;
+        box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25);
     }
     .submit-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(123,28,28,0.3);
+        box-shadow: 0 6px 20px rgba(217, 119, 6, 0.35);
     }
     .submit-btn:active { transform: translateY(0); }
     .submit-btn i { margin-right: 6px; }
     .days-summary {
-        background: #f0f7ff;
-        border: 1.5px solid #c8dff0;
-        border-radius: 10px;
-        padding: 14px 20px;
+        background: #fffbeb;
+        border: 1.5px solid #fde68a;
+        border-radius: 14px;
+        padding: 16px 20px;
         display: flex;
-        gap: 24px;
+        gap: 20px;
         flex-wrap: wrap;
         align-items: center;
     }
@@ -101,23 +105,25 @@
         align-items: center;
     }
     .ds-val {
-        font-size: 1.5rem;
+        font-size: 1.45rem;
         font-weight: 800;
-        color: #1A5C2E;
+        color: #1e3a8a;
+        font-family: monospace;
     }
     .ds-lbl {
         font-size: 0.65rem;
-        color: #666;
+        color: #78716c;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.6px;
+        font-weight: 700;
     }
-    .ds-val.warn { color: #B22222; }
+    .ds-val.warn { color: #dc2626; }
     .validation-msg {
-        background: #fee2e2;
+        background: #fef2f2;
         border: 1.5px solid #fca5a5;
         color: #991b1b;
-        border-radius: 8px;
-        padding: 10px 14px;
+        border-radius: 10px;
+        padding: 12px 16px;
         font-size: 0.82rem;
         font-weight: 600;
         display: none;
@@ -131,44 +137,52 @@
         .gen-body { padding: 20px 16px 24px; }
         .gen-header { padding: 18px 16px; }
         .gen-header h1 { font-size: 1.15rem; }
-        .days-summary { gap: 12px 16px; justify-content: center; }
+        .days-summary { gap: 12px 14px; justify-content: center; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="max-width:720px; margin:0 auto;">
+<div style="max-width:760px; margin:0 auto;">
 
-    <!-- Page Title -->
-    <div class="flex items-center gap-3 mb-5">
-        <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-700">
-            <i class="fas fa-file-invoice text-lg"></i>
+    <!-- Page Title Banner -->
+    <div class="mb-5 bg-gradient-to-r from-amber-50 via-yellow-50/50 to-orange-50 border border-amber-200/70 rounded-2xl p-5 card-shadow flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 gold-grad rounded-xl flex items-center justify-center text-amber-950 shadow-sm shrink-0">
+                <i class="fas fa-file-invoice-dollar text-xl"></i>
+            </div>
+            <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-300">
+                    Faculty Compensation Module
+                </span>
+                <h1 class="text-xl sm:text-2xl font-extrabold text-stone-900 font-serif mt-0.5">Salary Slip Generator</h1>
+                <p class="text-xs text-stone-500">Configure attendance days, evaluate deductions, and issue authorized salary slips</p>
+            </div>
         </div>
-        <div>
-            <h1 class="text-xl font-bold text-gray-800 hindi">Salary Slip Generator</h1>
-            <p class="text-xs text-gray-500">Attendance details भरें और Salary Slip generate करें</p>
-        </div>
+        <a href="{{ url_for('admin_generated_slips') }}" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-amber-900 bg-white border border-amber-300 hover:bg-amber-50 transition card-shadow">
+            <i class="fas fa-clock-rotate-left text-amber-600"></i> Slips History
+        </a>
     </div>
 
     <div class="gen-card">
         <div class="gen-header">
-            <h1><i class="fas fa-calculator" style="margin-right:8px; font-size:1.1rem;"></i>Attendance & Salary Details</h1>
-            <p>Employee चुनें, attendance भरें — salary automatically calculate होगी</p>
+            <h1><i class="fas fa-calculator" style="margin-right:8px; font-size:1.1rem; color:#fde68a;"></i>Attendance & Compensation Calculation</h1>
+            <p>Select faculty employee, specify period, and review real-time net disbursable salary</p>
         </div>
 
         <div class="gen-body">
             <form method="POST" id="slipForm" action="{{ url_for('salary_slip_generator') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <!-- Row 1: Employee Selection (full width) -->
                 <div class="form-grid">
                     <div class="form-full">
                         <label class="form-label">
-                            <i class="fas fa-user-tie" style="margin-right:4px; color:#7B1C1C;"></i>
-                            Employee <span class="required">*</span>
+                            <i class="fas fa-user-tie" style="margin-right:4px; color:#b45309;"></i>
+                            Employee / Faculty <span class="required">*</span>
                         </label>
                         <select name="teacher_id" id="teacherSelect" class="form-input" required>
-                            <option value="">— Employee चुनें —</option>
+                            <option value="">— Select Faculty Member —</option>
                             {% for t in teachers %}
                             <option value="{{ t.teacher_id }}"
                                 data-name="{{ t.name }}"
@@ -183,7 +197,7 @@
                     <!-- Row 2: Month & Year -->
                     <div>
                         <label class="form-label">
-                            <i class="fas fa-calendar-alt" style="margin-right:4px; color:#7B1C1C;"></i>
+                            <i class="fas fa-calendar-alt" style="margin-right:4px; color:#b45309;"></i>
                             Month <span class="required">*</span>
                         </label>
                         <select name="month" id="monthSelect" class="form-input" required>
@@ -197,12 +211,12 @@
                     </div>
                     <div>
                         <label class="form-label">
-                            <i class="fas fa-calendar" style="margin-right:4px; color:#7B1C1C;"></i>
+                            <i class="fas fa-calendar" style="margin-right:4px; color:#b45309;"></i>
                             Year <span class="required">*</span>
                         </label>
                         <select name="year" id="yearSelect" class="form-input" required>
                             {% for y in range(2023, 2028) %}
-                            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>Year {{ y }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -210,104 +224,104 @@
                     <!-- Row 3: Present & Absent -->
                     <div>
                         <label class="form-label">
-                            <i class="fas fa-check-circle" style="margin-right:4px; color:#065f46;"></i>
+                            <i class="fas fa-check-circle" style="margin-right:4px; color:#047857;"></i>
                             Present Days <span class="required">*</span>
                         </label>
                         <input type="number" name="present_days" id="presentDays"
                                class="form-input" min="0" max="31" step="0.5" value="0" required
                                oninput="updateSummary()">
-                        <p class="hint-text">उपस्थित दिन &mdash; पूरे या आधे दिन (जैसे 23 या 23.5) &nbsp;<span style="background:#eef2ff;color:#4338ca;border-radius:4px;padding:1px 6px;font-size:0.68rem;font-weight:700;">&#189; दिन = 0.5</span></p>
+                        <p class="hint-text">Full or half days (e.g. 23 or 23.5) &nbsp;<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:0.68rem;font-weight:700;">&#189; day = 0.5</span></p>
                     </div>
                     <div>
                         <label class="form-label">
-                            <i class="fas fa-times-circle" style="margin-right:4px; color:#991b1b;"></i>
+                            <i class="fas fa-times-circle" style="margin-right:4px; color:#dc2626;"></i>
                             Absent Days <span class="required">*</span>
                         </label>
                         <input type="number" name="absent_days" id="absentDays"
                                class="form-input" min="0" max="31" value="0" required
                                oninput="updateSummary()">
-                        <p class="hint-text">अनुपस्थित दिन (बिना छुट्टी)</p>
+                        <p class="hint-text">Unsanctioned absent days (subject to deduction)</p>
                     </div>
 
                     <!-- Row 4: Paid Leave & Sunday -->
                     <div>
                         <label class="form-label">
-                            <i class="fas fa-calendar-check" style="margin-right:4px; color:#1e40af;"></i>
-                            Paid Leave / Advance Leave
+                            <i class="fas fa-calendar-check" style="margin-right:4px; color:#2563eb;"></i>
+                            Paid Leave / Gazetted Holidays
                         </label>
                         <input type="number" name="paid_leave" id="paidLeave"
                                class="form-input" min="0" max="30" value="0"
                                oninput="updateSummary()">
-                        <p class="hint-text">Approved paid छुट्टी / Medical leave</p>
+                        <p class="hint-text">Sanctioned medical / official paid days</p>
                     </div>
                     <div>
                         <label class="form-label">
-                            <i class="fas fa-sun" style="margin-right:4px; color:#6d28d9;"></i>
+                            <i class="fas fa-sun" style="margin-right:4px; color:#7c3aed;"></i>
                             Sunday Count (Paid Sundays)
                         </label>
                         <input type="number" name="sunday_count" id="sundayCount"
                                class="form-input" min="0" max="5" value="4"
                                oninput="updateSummary()">
-                        <p class="hint-text">Default: 4 (paid Sundays per month)</p>
+                        <p class="hint-text">Default: 4 paid rest days per month</p>
                     </div>
 
                     <!-- Row 5: Deduction Type Dropdown -->
                     <div class="form-full">
                         <label class="form-label">
-                            <i class="fas fa-tags" style="margin-right:4px; color:#7B1C1C;"></i>
+                            <i class="fas fa-tags" style="margin-right:4px; color:#b45309;"></i>
                             Deduction Type
                         </label>
                         <select name="deduction_type" id="deductionType" class="form-input" onchange="handleDeductionTypeChange()">
-                            <option value="none" selected>None</option>
-                            <option value="fine">Fine</option>
-                            <option value="assets">Assets</option>
-                            <option value="fine_assets">Fine + Assets</option>
+                            <option value="none" selected>None (No Extra Deductions)</option>
+                            <option value="fine">Disciplinary Fine</option>
+                            <option value="assets">Asset / Equipment Recovery</option>
+                            <option value="fine_assets">Fine + Asset Recovery Combined</option>
                         </select>
-                        <p class="hint-text">Select deduction type to apply to salary</p>
+                        <p class="hint-text">Specify additional institutional deductions</p>
                     </div>
 
                     <!-- Row 6: Conditional Deduction Inputs -->
                     <div id="fineInputGroup" class="form-group-item" style="display:none;">
                         <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
                             <span>
-                                <i class="fas fa-minus-circle" style="margin-right:4px; color:#991b1b;"></i>
+                                <i class="fas fa-minus-circle" style="margin-right:4px; color:#dc2626;"></i>
                                 Fine Amount (₹)
                             </span>
-                            <span style="font-size:0.72rem; color:#888; font-weight:normal; text-transform:none;">Default: ₹0</span>
+                            <span style="font-size:0.72rem; color:#78716c; font-weight:normal; text-transform:none;">Default: ₹0</span>
                         </label>
                         <div style="position:relative;">
-                            <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:700; color:#888; font-size:0.95rem;">₹</span>
+                            <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:700; color:#78716c; font-size:0.95rem;">₹</span>
                             <input type="number" name="fine" id="fineAmount"
                                    class="form-input" min="0" step="any" value="0"
                                    placeholder="0" style="padding-left:30px;"
                                    oninput="updateSummary()">
                         </div>
-                        <p class="hint-text">Fine amount to deduct from calculated salary</p>
+                        <p class="hint-text">Fine amount deducted from calculated earnings</p>
                     </div>
 
                     <div id="assetsInputGroup" class="form-group-item" style="display:none;">
                         <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
                             <span>
                                 <i class="fas fa-box-open" style="margin-right:4px; color:#d97706;"></i>
-                                Assets Amount (₹)
+                                Assets Recovery (₹)
                             </span>
-                            <span style="font-size:0.72rem; color:#888; font-weight:normal; text-transform:none;">Default: ₹0</span>
+                            <span style="font-size:0.72rem; color:#78716c; font-weight:normal; text-transform:none;">Default: ₹0</span>
                         </label>
                         <div style="position:relative;">
-                            <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:700; color:#888; font-size:0.95rem;">₹</span>
+                            <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:700; color:#78716c; font-size:0.95rem;">₹</span>
                             <input type="number" name="assets" id="assetsAmount"
                                    class="form-input" min="0" step="any" value="0"
                                    placeholder="0" style="padding-left:30px;"
                                    oninput="updateSummary()">
                         </div>
-                        <p class="hint-text">Assets recovery/deduction amount from calculated salary</p>
+                        <p class="hint-text">Material replacement or unreturned item cost</p>
                     </div>
                 </div>
 
                 <!-- Live Summary -->
                 <div style="margin-top:24px;">
-                    <div style="font-size:0.72rem; color:#777; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
-                        <i class="fas fa-chart-pie" style="margin-right:4px;"></i> Live Calculation Preview
+                    <div style="font-size:0.75rem; color:#78716c; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
+                        <i class="fas fa-chart-pie" style="margin-right:4px; color:#d97706;"></i> Live Calculation Preview
                     </div>
                     <div class="days-summary" id="liveSummary">
                         <div class="ds-item">
@@ -315,40 +329,40 @@
                             <span class="ds-lbl">Present</span>
                         </div>
                         <div class="ds-item">
-                            <span class="ds-val" style="color:#991b1b;" id="sumAbsent">0</span>
+                            <span class="ds-val" style="color:#dc2626;" id="sumAbsent">0</span>
                             <span class="ds-lbl">Absent</span>
                         </div>
                         <div class="ds-item">
-                            <span class="ds-val" style="color:#1e40af;" id="sumLeave">0</span>
+                            <span class="ds-val" style="color:#2563eb;" id="sumLeave">0</span>
                             <span class="ds-lbl">Paid Leave</span>
                         </div>
                         <div class="ds-item">
-                            <span class="ds-val" style="color:#6d28d9;" id="sumSunday">4</span>
+                            <span class="ds-val" style="color:#7c3aed;" id="sumSunday">4</span>
                             <span class="ds-lbl">Sundays</span>
                         </div>
-                        <div class="ds-item" style="background:#064e3b;color:#fff;border-radius:8px;padding:6px 10px;">
+                        <div class="ds-item" style="background:#047857;color:#fff;border-radius:10px;padding:6px 12px;box-shadow:0 2px 8px rgba(4,120,87,0.2);">
                             <span class="ds-val" style="color:#fff;" id="sumPaid">4</span>
                             <span class="ds-lbl" style="color:#d1fae5;">Paid Days</span>
                         </div>
-                        <div class="ds-item" style="background:#f3f4f6;border-radius:8px;padding:6px 10px;border:1px solid #e5e7eb;">
-                            <span class="ds-val" style="color:#374151;font-size:1.15rem;" id="sumCalculatedSalary">₹0</span>
-                            <span class="ds-lbl" style="color:#6b7280;">Calculated Sal.</span>
+                        <div class="ds-item" style="background:#fff;border-radius:10px;padding:6px 12px;border:1px solid #e7e5e4;">
+                            <span class="ds-val" style="color:#292524;font-size:1.15rem;" id="sumCalculatedSalary">₹0</span>
+                            <span class="ds-lbl" style="color:#78716c;">Calculated Sal.</span>
                         </div>
-                        <div class="ds-item" id="sumFineBox" style="background:#fef2f2;border-radius:8px;padding:6px 10px;border:1px solid #fecaca;display:none;">
-                            <span class="ds-val" style="color:#991b1b;font-size:1.15rem;" id="sumFine">-₹0</span>
-                            <span class="ds-lbl" style="color:#991b1b;">Fine (-)</span>
+                        <div class="ds-item" id="sumFineBox" style="background:#fef2f2;border-radius:10px;padding:6px 12px;border:1px solid #fecaca;display:none;">
+                            <span class="ds-val" style="color:#dc2626;font-size:1.15rem;" id="sumFine">-₹0</span>
+                            <span class="ds-lbl" style="color:#dc2626;">Fine (-)</span>
                         </div>
-                        <div class="ds-item" id="sumAssetsBox" style="background:#fffbeb;border-radius:8px;padding:6px 10px;border:1px solid #fde68a;display:none;">
+                        <div class="ds-item" id="sumAssetsBox" style="background:#fffbeb;border-radius:10px;padding:6px 12px;border:1px solid #fde68a;display:none;">
                             <span class="ds-val" style="color:#b45309;font-size:1.15rem;" id="sumAssets">-₹0</span>
                             <span class="ds-lbl" style="color:#b45309;">Assets (-)</span>
                         </div>
-                        <div class="ds-item" id="sumTotalDedBox" style="background:#fee2e2;border-radius:8px;padding:6px 10px;border:1px solid #f87171;display:none;">
-                            <span class="ds-val" style="color:#7f1d1d;font-size:1.15rem;" id="sumTotalDed">-₹0</span>
-                            <span class="ds-lbl" style="color:#7f1d1d;">Total Ded. (-)</span>
+                        <div class="ds-item" id="sumTotalDedBox" style="background:#fee2e2;border-radius:10px;padding:6px 12px;border:1px solid #fca5a5;display:none;">
+                            <span class="ds-val" style="color:#991b1b;font-size:1.15rem;" id="sumTotalDed">-₹0</span>
+                            <span class="ds-lbl" style="color:#991b1b;">Total Ded. (-)</span>
                         </div>
-                        <div class="ds-item" style="background:#7B1C1C;color:#fff;border-radius:8px;padding:6px 10px;">
+                        <div class="ds-item" style="background:linear-gradient(135deg, #78350F 0%, #B45309 100%);color:#fff;border-radius:10px;padding:6px 14px;box-shadow:0 4px 12px rgba(180,83,9,0.25);">
                             <span class="ds-val" style="color:#fff;font-size:1.25rem;" id="sumFinalSalary">₹0</span>
-                            <span class="ds-lbl" style="color:#fecaca;">Final Payable</span>
+                            <span class="ds-lbl" style="color:#fde68a;">Final Payable</span>
                         </div>
                     </div>
                 </div>
@@ -359,10 +373,10 @@
                     <span id="validationText"></span>
                 </div>
 
-                <!-- Submit -->
+                <!-- Submit Action Buttons -->
                 <div style="margin-top:28px; display:flex; gap:12px; flex-wrap:wrap; justify-content:flex-end;">
-                    <a href="{{ url_for('payroll') }}" class="bg-gray-100 text-gray-600 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition flex items-center gap-2">
-                        <i class="fas fa-arrow-left"></i> Payroll
+                    <a href="{{ url_for('payroll') }}" class="bg-stone-100 text-stone-700 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-stone-200 transition flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Back to Payroll
                     </a>
                     <button type="submit" class="submit-btn" id="submitBtn">
                         <i class="fas fa-file-invoice-dollar"></i> Generate Salary Slip
@@ -410,7 +424,6 @@ function handleDeductionTypeChange() {
 }
 
 function updateSummary() {
-    // present_days supports decimals in 0.5 increments (e.g. 23.5 = 23 full + 1 half day)
     const present = parseFloat(document.getElementById('presentDays').value) || 0;
     const absent  = parseInt(document.getElementById('absentDays').value) || 0;
     const leave   = parseInt(document.getElementById('paidLeave').value) || 0;
@@ -430,9 +443,7 @@ function updateSummary() {
     }
     const totalDed = fine + assets;
 
-    // paid_days: fractional-safe (23.5 present + 4 sundays = 27.5 paid)
     const rawPaid = Math.min(present + leave + sunday, 30);
-    // Round to 2 decimal places to eliminate JS float noise
     const paidDays = Math.round(rawPaid * 100) / 100;
 
     document.getElementById('sumPresent').textContent = present;
@@ -441,12 +452,10 @@ function updateSummary() {
     document.getElementById('sumSunday').textContent  = sunday;
     document.getElementById('sumPaid').textContent    = paidDays;
 
-    // Estimate salary from selected teacher
     const sel = document.getElementById('teacherSelect');
     const opt = sel.options[sel.selectedIndex];
     const salary = parseFloat(opt?.dataset?.salary) || 0;
-    const perDay = salary / 30;  // divisor always 30, never calendar days
-    // Round to nearest paisa (2dp) — mirrors backend round(per_day * paid_days, 2)
+    const perDay = salary / 30;
     const calculatedSalary = Math.round(perDay * paidDays * 100) / 100;
     const finalSalary = Math.max(0, Math.round((calculatedSalary - totalDed) * 100) / 100);
 
@@ -480,7 +489,6 @@ function updateSummary() {
         totalDedBox.style.display = 'none';
     }
 
-    // ── Validation ─────────────────────────────────────────────────────────────
     const total = present + absent + leave + sunday;
     const msgBox = document.getElementById('validationMsg');
     const msgText = document.getElementById('validationText');
@@ -489,7 +497,6 @@ function updateSummary() {
     let hasError = false;
     let errorMsg = '';
 
-    // 1. Negative deduction amounts
     if ((dtype === 'fine' || dtype === 'fine_assets') && fineInput && parseFloat(fineInput.value) < 0) {
         hasError = true;
         errorMsg = 'Fine amount cannot be negative!';
@@ -498,7 +505,6 @@ function updateSummary() {
         errorMsg = 'Assets amount cannot be negative!';
     }
 
-    // 2. Present Days — must be a multiple of 0.5 (frontend mirror of backend rule)
     if (!hasError) {
         const presentRaw = parseFloat(document.getElementById('presentDays').value);
         if (!isNaN(presentRaw)) {
@@ -511,10 +517,9 @@ function updateSummary() {
         }
     }
 
-    // 3. Total days sanity check
     if (!hasError && total > 31) {
         hasError = true;
-        errorMsg = 'कुल दिन (Present + Absent + Leave + Sunday) 31 से ज़्यादा नहीं हो सकते!';
+        errorMsg = 'Total days (Present + Absent + Leave + Sunday) cannot exceed 31!';
     }
 
     if (hasError) {

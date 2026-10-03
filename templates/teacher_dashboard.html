@@ -1,97 +1,121 @@
 {% extends "base.html" %}
-{% block title %}Teacher Dashboard - गायत्री विद्यापीठ{% endblock %}
+{% block title %}Teacher Portal - Gayatri Vidyapeeth{% endblock %}
 {% block content %}
 
-<!-- Welcome Header -->
-<div class="green-grad rounded-2xl p-6 mb-6 text-white card-shadow">
-    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
-        {% if teacher.photo %}
-        <img src="{{ url_for('static', filename='uploads/' + teacher.photo) }}"
-             class="w-16 h-16 rounded-full object-cover border-3 border-white shadow-lg shrink-0"
-             style="border: 3px solid white;">
-        {% else %}
-        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center text-green-700 font-bold text-2xl shrink-0">
-            {{ teacher.name[0] }}
+<!-- Welcome Hero Header -->
+<div class="gold-saffron-grad rounded-3xl p-6 sm:p-8 mb-8 text-white card-shadow relative overflow-hidden">
+    <div class="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+    <div class="absolute right-12 top-6 opacity-15 hidden lg:block pointer-events-none">
+        <i class="fas fa-chalkboard-teacher text-9xl"></i>
+    </div>
+
+    <div class="relative z-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 text-center md:text-left">
+        <div class="flex flex-col sm:flex-row items-center gap-5">
+            {% if teacher.photo %}
+            <img src="{{ url_for('static', filename='uploads/' + teacher.photo) }}"
+                 class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-4 border-amber-200/90 shadow-2xl shrink-0 ring-4 ring-white/20">
+            {% else %}
+            <div class="w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white font-serif font-extrabold text-3xl shrink-0 border-4 border-amber-200/90 shadow-2xl ring-4 ring-white/20">
+                {{ teacher.name[0] }}
+            </div>
+            {% endif %}
+            <div>
+                <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1.5">
+                    <span class="px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 text-white backdrop-blur-sm border border-white/30">
+                        Faculty Member
+                    </span>
+                    <span class="text-amber-100 text-xs font-serif italic tracking-wide hidden sm:inline">सा प्रथमा संस्कृति विश्ववारा</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold font-serif tracking-tight">{{ teacher.name }}</h1>
+                <p class="text-amber-100 text-sm mt-1 flex flex-wrap items-center justify-center md:justify-start gap-2">
+                    <span class="font-medium">{{ teacher.subject }}</span>
+                    <span>&bull;</span>
+                    <span class="font-mono bg-amber-950/40 text-amber-200 px-2.5 py-0.5 rounded-lg border border-amber-300/30 text-xs">{{ teacher.teacher_id }}</span>
+                </p>
+            </div>
         </div>
-        {% endif %}
-        <div>
-            <p class="text-green-200 text-sm hindi">नमस्ते 🙏</p>
-            <h1 class="text-2xl font-bold hindi">{{ teacher.name }}</h1>
-            <p class="text-green-200 text-sm hindi">{{ teacher.subject }} | <span class="font-mono bg-green-700 px-2 py-0.5 rounded">{{ teacher.teacher_id }}</span></p>
-        </div>
-        <div class="sm:ml-auto sm:text-right mt-4 sm:mt-0 w-full sm:w-auto bg-white/10 sm:bg-transparent rounded-xl p-3 sm:p-0">
-            <p class="text-green-100 text-xs text-center sm:text-right">Basic Salary</p>
-            <p class="text-3xl font-bold text-center sm:text-right">₹{{ "{:,.2f}".format(teacher.basic_salary) }}</p>
-            <p class="text-green-200 text-xs hindi">प्रति माह</p>
+
+        <div class="w-full md:w-auto bg-white/15 backdrop-blur-md rounded-2xl p-4 sm:px-6 border border-white/25 text-center md:text-right shrink-0">
+            <p class="text-amber-100 text-xs uppercase tracking-wider font-semibold">Monthly Basic Pay</p>
+            <p class="text-3xl sm:text-4xl font-extrabold text-white mt-0.5">₹{{ "{:,.2f}".format(teacher.basic_salary) }}</p>
+            <p class="text-amber-200/80 text-[11px] mt-0.5">Approved Institutional Scale</p>
         </div>
     </div>
 </div>
 
 <!-- This Month Stats -->
-<h2 class="font-bold text-gray-700 hindi mb-3 flex items-center gap-2">
-    <i class="fas fa-calendar text-green-600"></i> {{ month_name }} {{ year }} — Attendance
-</h2>
+<div class="flex items-center justify-between mb-4">
+    <h2 class="font-bold text-gray-800 font-serif text-lg sm:text-xl flex items-center gap-2">
+        <i class="fas fa-calendar-alt text-amber-600"></i> {{ month_name }} {{ year }} &bull; Attendance Overview
+    </h2>
+    <span class="text-xs text-gray-500 font-medium">Updated in real-time</span>
+</div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-green-500 text-center">
-        <p class="text-gray-500 text-xs hindi mb-1">उपस्थित दिन</p>
-        <p class="text-4xl font-bold text-green-600">{{ present }}</p>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-2xl p-5 card-shadow card-shadow-hover transition border-t-4 border-emerald-500 text-center">
+        <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Present Days</p>
+        <p class="text-3xl sm:text-4xl font-extrabold text-emerald-600">{{ present }}</p>
+        <p class="text-[11px] text-emerald-700/70 font-medium mt-1">Full Working Days</p>
     </div>
-    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-yellow-400 text-center">
-        <p class="text-gray-500 text-xs hindi mb-1">Half Day</p>
-        <p class="text-4xl font-bold text-yellow-500">{{ half }}</p>
+    <div class="bg-white rounded-2xl p-5 card-shadow card-shadow-hover transition border-t-4 border-amber-500 text-center">
+        <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Half Days</p>
+        <p class="text-3xl sm:text-4xl font-extrabold text-amber-600">{{ half }}</p>
+        <p class="text-[11px] text-amber-700/70 font-medium mt-1">0.5 Day Calculated</p>
     </div>
-    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-red-400 text-center">
-        <p class="text-gray-500 text-xs hindi mb-1">अनुपस्थित</p>
-        <p class="text-4xl font-bold text-red-500">{{ absent }}</p>
+    <div class="bg-white rounded-2xl p-5 card-shadow card-shadow-hover transition border-t-4 border-rose-500 text-center">
+        <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Absent Days</p>
+        <p class="text-3xl sm:text-4xl font-extrabold text-rose-500">{{ absent }}</p>
+        <p class="text-[11px] text-rose-700/70 font-medium mt-1">Unrecorded</p>
     </div>
-    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-blue-400 text-center">
-        <p class="text-gray-500 text-xs hindi mb-1">कुल दिन</p>
-        <p class="text-4xl font-bold text-blue-600">{{ total_days }}</p>
+    <div class="bg-white rounded-2xl p-5 card-shadow card-shadow-hover transition border-t-4 border-amber-700 text-center">
+        <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Days</p>
+        <p class="text-3xl sm:text-4xl font-extrabold text-amber-900">{{ total_days }}</p>
+        <p class="text-[11px] text-gray-400 font-medium mt-1">Month Days to Date</p>
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+<!-- Salary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
     <!-- Previous Month Salary Card -->
-    <div class="bg-white rounded-2xl card-shadow overflow-hidden flex flex-col">
-        <div class="bg-gray-100 px-6 py-4">
-            <h2 class="text-gray-700 font-bold hindi flex items-center gap-2">
-                <i class="fas fa-calendar-check text-gray-500"></i> {{ prev_month_name }} {{ prev_year }} — पिछली Salary
+    <div class="bg-white rounded-3xl card-shadow overflow-hidden flex flex-col border border-gray-100 hover:border-amber-200 transition">
+        <div class="bg-gradient-to-r from-gray-100 to-amber-50/50 px-6 py-4 border-b border-gray-100">
+            <h2 class="text-gray-800 font-bold font-serif flex items-center gap-2">
+                <i class="fas fa-file-invoice text-amber-600"></i> {{ prev_month_name }} {{ prev_year }} &bull; Previous Salary
             </h2>
         </div>
         <div class="p-6 flex flex-col justify-between flex-grow">
             <div class="mb-5 text-center md:text-left">
-                <p class="text-gray-500 text-sm hindi">कुल बनी Salary</p>
-                <p class="text-4xl font-bold text-gray-700 mt-2">₹{{ "{:,.2f}".format(prev_estimated_salary) }}</p>
-                <p class="text-gray-400 text-sm hindi mt-1">
-                    ({{ prev_paid_days }} Paid Days) × ₹{{ "{:,.2f}".format(prev_per_day) }}/दिन
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Net Disbursed Amount</p>
+                <p class="text-3xl sm:text-4xl font-extrabold text-gray-800 mt-2">₹{{ "{:,.2f}".format(prev_estimated_salary) }}</p>
+                <p class="text-gray-500 text-xs mt-1">
+                    ({{ prev_paid_days }} Paid Days) &bull; Scale: ₹{{ "{:,.2f}".format(prev_per_day) }}/day
                 </p>
             </div>
             <a href="{{ url_for('teacher_salary', month=prev_month, year=prev_year) }}" 
-               class="bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-200 transition flex items-center justify-center gap-2 hindi w-full text-sm">
-                <i class="fas fa-file-invoice"></i> {{ prev_month_name }} की Slip देखें
+               class="bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 px-4 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 w-full text-sm">
+                <i class="fas fa-file-invoice"></i> View {{ prev_month_name }} Statement
             </a>
         </div>
     </div>
 
     <!-- Estimated Salary Card -->
-    <div class="bg-white rounded-2xl card-shadow overflow-hidden flex flex-col">
-        <div class="green-grad px-6 py-4">
-            <h2 class="text-white font-bold hindi flex items-center gap-2">
-                <i class="fas fa-rupee-sign"></i> {{ month_name }} {{ year }} — अनुमानित Salary
+    <div class="bg-white rounded-3xl card-shadow overflow-hidden flex flex-col border border-amber-200 hover:border-amber-400 transition">
+        <div class="gold-saffron-grad px-6 py-4 text-white">
+            <h2 class="font-bold font-serif flex items-center gap-2">
+                <i class="fas fa-coins text-amber-200"></i> {{ month_name }} {{ year }} &bull; Estimated Salary
             </h2>
         </div>
         <div class="p-6 flex flex-col justify-between flex-grow">
             <div class="mb-5 text-center md:text-left">
-                <p class="text-gray-500 text-sm hindi">अब तक की उपस्थिति के आधार पर</p>
-                <p class="text-4xl font-bold text-green-700 mt-2">₹{{ "{:,.2f}".format(estimated_salary) }}</p>
-                <p class="text-gray-400 text-sm hindi mt-1">
-                    ({{ paid_days }} Paid Days) × ₹{{ "{:,.2f}".format(per_day) }}/दिन
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Estimated Earned to Date</p>
+                <p class="text-3xl sm:text-4xl font-extrabold text-amber-900 mt-2">₹{{ "{:,.2f}".format(estimated_salary) }}</p>
+                <p class="text-gray-500 text-xs mt-1">
+                    ({{ paid_days }} Paid Days Recorded) &bull; Scale: ₹{{ "{:,.2f}".format(per_day) }}/day
                 </p>
             </div>
             <a href="{{ url_for('teacher_salary') }}" 
-               class="green-grad text-white px-4 py-3 rounded-xl font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 hindi w-full text-sm">
-                <i class="fas fa-file-invoice-dollar"></i> {{ month_name }} की Details
+               class="gold-saffron-grad text-white px-4 py-3 rounded-xl font-bold hover:opacity-95 transition flex items-center justify-center gap-2 w-full text-sm shadow-md">
+                <i class="fas fa-calculator"></i> View {{ month_name }} Breakdown
             </a>
         </div>
     </div>
@@ -99,29 +123,35 @@
 
 <!-- Assigned Stationaries / Assets -->
 {% if assets %}
-<div class="bg-white rounded-2xl card-shadow overflow-hidden mb-6">
-    <div class="px-4 sm:px-6 py-4 border-b border-gray-100 bg-orange-50">
-        <h2 class="font-bold text-gray-800 hindi flex items-center gap-2 text-sm sm:text-base">
-            <i class="fas fa-boxes text-orange-600 shrink-0"></i> आपको असाइन की गई सामग्री
+<div class="bg-white rounded-3xl card-shadow overflow-hidden mb-8 border border-amber-100">
+    <div class="px-6 py-4 border-b border-amber-100 bg-amber-50/60 flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 font-serif flex items-center gap-2 text-sm sm:text-base">
+            <i class="fas fa-boxes text-amber-600"></i> Assigned Teaching Materials & Assets
         </h2>
+        <span class="text-xs bg-amber-200/60 text-amber-900 px-3 py-0.5 rounded-full font-bold">
+            {{ assets|length }} Items
+        </span>
     </div>
     <div class="divide-y divide-gray-50">
         {% for a in assets %}
-        <div class="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-amber-50/30 transition">
             <div class="flex items-start gap-4">
-                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shrink-0">
-                    <i class="fas fa-pen-fancy"></i>
+                <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-700 shrink-0">
+                    <i class="fas fa-pen-nib"></i>
                 </div>
                 <div>
-                    <p class="font-bold text-gray-800 text-sm hindi">{{ a.item_name }} <span class="bg-gray-100 px-2 rounded-full text-xs ml-1">x{{ a.quantity }}</span></p>
-                    <p class="text-xs text-gray-500 mt-1 hindi">असाइनमेंट डेट: {{ a.date }}</p>
+                    <p class="font-bold text-gray-800 text-sm">
+                        {{ a.item_name }} 
+                        <span class="bg-amber-100 text-amber-900 border border-amber-200 px-2 py-0.5 rounded-full text-xs font-bold ml-1.5">Qty: {{ a.quantity }}</span>
+                    </p>
+                    <p class="text-xs text-gray-500 mt-0.5">Assigned Date: {{ a.date }}</p>
                     {% if a.remarks %}
-                    <p class="text-xs text-gray-600 mt-1 italic hindi">नोट: {{ a.remarks }}</p>
+                    <p class="text-xs text-gray-600 mt-1 italic">Note: {{ a.remarks }}</p>
                     {% endif %}
                 </div>
             </div>
-            <div class="text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-lg self-start sm:self-center shrink-0">
-                असाइन किया: {{ a.assigned_by }}
+            <div class="text-xs text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 self-start sm:self-center shrink-0">
+                Assigned by: <span class="font-semibold text-gray-700">{{ a.assigned_by }}</span>
             </div>
         </div>
         {% endfor %}
@@ -130,30 +160,34 @@
 {% endif %}
 
 <!-- Recent Attendance -->
-<div class="bg-white rounded-2xl card-shadow overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-100">
-        <h2 class="font-bold text-gray-800 hindi flex items-center gap-2">
-            <i class="fas fa-history text-green-600"></i> हाल की Attendance
+<div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
+    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/70 flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 font-serif flex items-center gap-2">
+            <i class="fas fa-history text-amber-600"></i> Recent Attendance Records
         </h2>
+        <a href="{{ url_for('teacher_attendance_report') }}" class="text-xs font-bold text-amber-700 hover:text-amber-900 flex items-center gap-1">
+            <span>Full Report</span>
+            <i class="fas fa-arrow-right text-[10px]"></i>
+        </a>
     </div>
     <div class="divide-y divide-gray-50">
         {% for r in recent %}
-        <div class="px-6 py-3 flex items-center justify-between">
-            <span class="text-gray-700 text-sm">{{ r.date }}</span>
+        <div class="px-6 py-3.5 flex items-center justify-between hover:bg-gray-50/50 transition">
+            <span class="text-gray-700 text-sm font-medium">{{ r.date }}</span>
             {% if r.status in ['present', 'P'] %}
-            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-semibold hindi">✓ उपस्थित</span>
+            <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-lg text-xs font-bold border border-emerald-200">✓ Present</span>
             {% elif r.status in ['half_day', 'H'] %}
-            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-xs font-semibold hindi">½ Half Day</span>
+            <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-lg text-xs font-bold border border-amber-200">½ Half Day</span>
             {% elif r.status == 'M' %}
-            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-semibold hindi">🏥 Medical</span>
+            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg text-xs font-bold border border-blue-200">🏥 Medical</span>
             {% elif r.status in ['absent', 'A'] %}
-            <span class="bg-red-100 text-red-600 px-3 py-1 rounded-lg text-xs font-semibold hindi">✗ अनुपस्थित</span>
+            <span class="bg-rose-100 text-rose-800 px-3 py-1 rounded-lg text-xs font-bold border border-rose-200">✗ Absent</span>
             {% else %}
             <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg text-xs font-semibold">-</span>
             {% endif %}
         </div>
         {% else %}
-        <div class="px-6 py-8 text-center text-gray-400 hindi">कोई attendance record नहीं मिला।</div>
+        <div class="px-6 py-8 text-center text-gray-400">No attendance records found for this period.</div>
         {% endfor %}
     </div>
 </div>

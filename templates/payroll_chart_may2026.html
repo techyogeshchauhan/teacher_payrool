@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gayatri Vidyapeeth — May 2026 Payroll Chart</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Marcellus&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --green-dark: #2E7D32;
@@ -17,22 +17,22 @@
       --blue-light: #E3F2FD;
       --red:        #B71C1C;
       --red-light:  #FFEBEE;
-      --gray-50:    #FAFAFA;
-      --gray-100:   #F5F5F5;
-      --gray-200:   #EEEEEE;
+      --gray-50:    #FFFDF9;
+      --gray-100:   #FEF3C7;
+      --gray-200:   #FDE68A;
       --gray-400:   #BDBDBD;
       --gray-600:   #757575;
       --gray-800:   #424242;
-      --gray-900:   #212121;
-      --shadow:     0 2px 12px rgba(0,0,0,0.08);
-      --radius:     12px;
+      --gray-900:   #1F2937;
+      --shadow:     0 4px 20px rgba(217, 119, 6, 0.12);
+      --radius:     16px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f0f4f8 0%, #e8edf2 100%);
+      font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif;
+      background-color: #FFFDF9;
       min-height: 100vh;
       padding: 24px 16px;
       color: var(--gray-900);
@@ -46,7 +46,7 @@
 
     /* ── Header ── */
     .header {
-      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #388E3C 100%);
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 45%, #EA580C 100%);
       color: #fff;
       border-radius: var(--radius);
       padding: 28px 32px;
@@ -55,12 +55,13 @@
       justify-content: space-between;
       align-items: flex-end;
       gap: 16px;
-      box-shadow: 0 4px 20px rgba(27,94,32,0.3);
+      box-shadow: 0 4px 20px rgba(217, 119, 6, 0.25);
     }
     .header-left h1 {
-      font-size: 22px;
+      font-family: 'Marcellus', 'Cinzel', serif;
+      font-size: 24px;
       font-weight: 700;
-      letter-spacing: -0.3px;
+      letter-spacing: 0.02em;
     }
     .header-left .sub {
       font-size: 13px;
@@ -129,7 +130,7 @@
       margin-bottom: 20px;
     }
 
-    .table-wrap { overflow-x: auto; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
     table {
       width: 100%;
@@ -475,7 +476,7 @@ teachers.forEach(t => {
 const totalDiff = totalNew - totalOld;
 const tfoot = document.getElementById('tfoot');
 tfoot.innerHTML = `<tr>
-  <td colspan="3" class="left">🧾 कुल (Grand Total)</td>
+  <td colspan="3" class="left">🧾 Grand Total</td>
   <td></td>
   <td class="p1" colspan="3" style="color:#1B5E20;font-size:12px">Period 1 Total</td>
   <td class="p2" colspan="3" style="color:#BF360C;font-size:12px">Period 2 Total</td>

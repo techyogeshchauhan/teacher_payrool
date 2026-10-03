@@ -19,7 +19,7 @@
 
 /* School letterhead header */
 .slip-header {
-    background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);
+    background: linear-gradient(135deg, #78350F 0%, #B45309 50%, #D97706 100%);
     color: #fff;
     padding: 20px 30px 16px;
     display: flex;
@@ -39,7 +39,7 @@
     font-weight: 800;
     letter-spacing: 0.5px;
     margin: 0 0 2px;
-    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-family: 'Cinzel', 'Marcellus', 'Noto Sans Devanagari', sans-serif;
 }
 .slip-header-text p {
     font-size: 0.78rem;
@@ -52,21 +52,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #f9f4ee;
-    border-bottom: 2px solid #e0d5c5;
+    background: #fffdf7;
+    border-bottom: 2px solid #fde68a;
     padding: 10px 30px;
     font-size: 0.82rem;
     color: #555;
 }
-.bill-meta span { font-weight: 700; color: #333; }
+.bill-meta span { font-weight: 700; color: #78350F; font-mono; }
 
 /* Body sections */
 .slip-body { padding: 0 30px 30px; }
 
 .bank-box {
-    border: 1.5px solid #d4b896;
-    border-radius: 10px;
-    background: #fffaf4;
+    border: 1.5px solid #fde68a;
+    border-radius: 12px;
+    background: #fffdfa;
     padding: 14px 18px;
     margin: 20px 0 16px;
 }
@@ -75,9 +75,9 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #7B1C1C;
+    color: #B45309;
     margin: 0 0 10px;
-    border-bottom: 1px solid #e0c8a8;
+    border-bottom: 1px solid #fde68a;
     padding-bottom: 6px;
 }
 .bank-grid {
@@ -100,14 +100,14 @@
     font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #7B1C1C;
+    color: #B45309;
     margin-bottom: 4px;
 }
 .to-block address {
     font-style: normal;
     color: #444;
     padding-left: 14px;
-    border-left: 3px solid #B22222;
+    border-left: 3px solid #D97706;
 }
 
 /* Subject */
@@ -128,8 +128,8 @@
 /* Salary Details Table */
 .sal-table { width: 100%; border-collapse: collapse; margin: 0 0 4px; font-size: 0.83rem; }
 .sal-table thead tr th {
-    background: #7B1C1C;
-    color: #fff;
+    background: linear-gradient(135deg, #78350F 0%, #92400E 100%);
+    color: #fef3c7;
     padding: 9px 12px;
     text-align: left;
     font-weight: 700;
@@ -138,25 +138,25 @@
     letter-spacing: 0.5px;
 }
 .sal-table thead tr th:last-child { text-align: right; }
-.sal-table tbody tr td { padding: 9px 12px; border-bottom: 1px solid #e8e0d5; color: #333; }
+.sal-table tbody tr td { padding: 9px 12px; border-bottom: 1px solid #fef3c7; color: #333; }
 .sal-table tbody tr td:last-child { text-align: right; font-weight: 700; }
-.sal-table tbody tr:hover { background: #fff8f0; }
+.sal-table tbody tr:hover { background: #fffdf5; }
 
 .sal-table tfoot tr td {
     padding: 8px 12px;
     font-weight: 700;
-    background: #f5f0ea;
-    border-top: 2px solid #d4b896;
+    background: #fffdf7;
+    border-top: 2px solid #fde68a;
     font-size: 0.82rem;
 }
 .sal-table tfoot tr td:first-child { text-align: right; color: #555; }
 .sal-table tfoot tr td:last-child { text-align: right; color: #333; }
 
 .tfoot-net td {
-    background: #7B1C1C !important;
+    background: linear-gradient(135deg, #78350F 0%, #92400E 100%) !important;
     color: #fff !important;
     font-size: 0.9rem;
-    border-top: 2px solid #5a1010 !important;
+    border-top: 2px solid #78350F !important;
 }
 
 /* Working days info */
@@ -336,33 +336,33 @@
     <!-- Controls (no-print) -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 no-print">
         <div class="text-center sm:text-left">
-            <h1 class="text-xl font-bold text-gray-800 hindi flex items-center justify-center sm:justify-start gap-2">
-                <i class="fas fa-file-invoice-dollar text-red-700"></i> Salary Slip
+            <h1 class="text-xl font-bold text-stone-900 font-serif flex items-center justify-center sm:justify-start gap-2">
+                <i class="fas fa-file-invoice-dollar text-amber-700"></i> Official Salary Voucher
             </h1>
-            <p class="text-sm text-gray-500 hindi mt-0.5">{{ teacher.name }} — {{ month_name }} {{ year }}</p>
+            <p class="text-xs text-stone-500 mt-0.5">{{ teacher.name }} &bull; {{ month_name }} {{ year }}</p>
         </div>
         <div class="flex flex-wrap gap-2 justify-center sm:justify-end">
             <form method="GET" class="flex gap-2 items-center flex-wrap justify-center">
-                <select name="month" class="px-2 py-1.5 border-2 border-red-200 rounded-lg text-sm focus:outline-none focus:border-red-500">
+                <select name="month" class="px-2.5 py-1.5 border border-amber-300 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-50/20 font-semibold text-stone-800">
                     {% for m in range(1, 13) %}
                     <option value="{{ m }}" {% if m == month %}selected{% endif %}>
                         {{ ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m] }}
                     </option>
                     {% endfor %}
                 </select>
-                <select name="year" class="px-2 py-1.5 border-2 border-red-200 rounded-lg text-sm focus:outline-none">
+                <select name="year" class="px-2.5 py-1.5 border border-amber-300 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-50/20 font-semibold text-stone-800">
                     {% for y in range(2023, 2028) %}
                     <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
                 </select>
-                <button type="submit" class="maroon-grad text-white px-4 py-1.5 rounded-lg text-sm font-semibold">देखें</button>
+                <button type="submit" class="gold-saffron-grad text-white px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-sm hover:opacity-95 transition">View</button>
             </form>
-            <button onclick="printSalarySlip()" class="bg-gray-700 text-white px-4 py-1.5 rounded-lg flex items-center gap-2 text-sm hover:bg-gray-900 transition">
-                <i class="fas fa-print"></i> Print / PDF
+            <button onclick="printSalarySlip()" class="gold-grad text-amber-950 font-bold px-4 py-1.5 rounded-xl flex items-center gap-1.5 text-xs sm:text-sm card-shadow hover:opacity-95 transition">
+                <i class="fas fa-print"></i> Print Voucher
             </button>
             {% if is_admin %}
-            <a href="{{ url_for('payroll', month=month, year=year) }}" class="bg-orange-100 text-orange-700 px-4 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold hover:bg-orange-200 transition">
-                <i class="fas fa-arrow-left"></i> Back
+            <a href="{{ url_for('payroll', month=month, year=year) }}" class="bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs sm:text-sm font-bold hover:bg-amber-200 transition">
+                <i class="fas fa-arrow-left"></i> Payroll
             </a>
             {% endif %}
         </div>
@@ -374,10 +374,10 @@
         <i class="fas fa-exclamation-triangle text-amber-500 text-lg mt-0.5 flex-shrink-0"></i>
         <div>
             <p class="font-bold text-amber-800 hindi text-sm">
-                ⚠️ {{ month_name }} {{ year }} में कोई Attendance Record नहीं मिला!
+                ⚠️ No attendance record found for {{ month_name }} {{ year }}!
             </p>
             <p class="text-amber-700 text-xs mt-1 hindi">
-                इस महीने की attendance अभी mark नहीं हुई है। पिछले महीनों का record देखें:
+                Attendance has not been marked for this month yet. Check records of previous months:
             </p>
             <div class="flex gap-2 mt-2 flex-wrap">
                 {% set months_short = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] %}
@@ -575,7 +575,7 @@
 
         <!-- Footer Disclaimer -->
         <div class="slip-footer hindi">
-            यह computer-generated salary slip है। Sundays और Govt Holidays — सभी Paid हैं। &nbsp;|&nbsp;
+            This is a computer-generated salary slip. Sundays and Govt Holidays are all Paid. &nbsp;|&nbsp;
             Generated on: {{ slip_date }}
         </div>
     </div><!-- /slip-card -->

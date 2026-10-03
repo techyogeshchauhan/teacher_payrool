@@ -10,52 +10,49 @@ if not mongo_uri:
     exit(1)
 
 client = MongoClient(mongo_uri)
-db = client['teacher_payroll']
+db = client['gayatri_school']
 
 def create_indexes():
-    # Teachers
-    print("Creating indexes for teachers...")
-    db.teachers.create_index([("teacher_id", ASCENDING)], unique=True)
-    db.teachers.create_index([("mobile", ASCENDING)], unique=True)
+    print("Creating indexes on 'gayatri_school'...")
     
-    # Students
-    print("Creating indexes for students...")
-    db.students.create_index([("mobile", ASCENDING)]) # Not unique, siblings can share
-    db.students.create_index([("class", ASCENDING), ("section", ASCENDING)])
-    db.students.create_index([("status", ASCENDING)])
+    # Teachers
+    db.teachers.create_index([("teacher_id", ASCENDING)], unique=True)
+    db.teachers.create_index([("phone", ASCENDING)])
+    db.teachers.create_index([("active", ASCENDING)])
     
     # Attendance
-    print("Creating indexes for attendance...")
+    db.attendance.create_index([("date", ASCENDING), ("status", ASCENDING)])
+    db.attendance.create_index([("date", ASCENDING), ("teacher_id", ASCENDING)])
     db.attendance.create_index([("teacher_id", ASCENDING), ("date", DESCENDING)])
-    db.attendance.create_index([("month", DESCENDING)])
+    db.attendance.create_index([("marked_at", DESCENDING)])
     
-    # Admins/Principals/Accountants
-    print("Creating indexes for admins & principals & accountants...")
+    # Admins/Principals
     db.admins.create_index([("username", ASCENDING)], unique=True)
     db.principals.create_index([("username", ASCENDING)], unique=True)
-    # If accountants col exists:
-    if "accountants" in db.list_collection_names():
-        db.accountants.create_index([("username", ASCENDING)], unique=True)
-        
-    # Activity logs
-    print("Creating indexes for activity logs...")
-    db.activity_logs.create_index([("timestamp", DESCENDING)])
-    db.activity_logs.create_index([("teacher_id", ASCENDING)])
-    db.activity_logs.create_index([("action", ASCENDING)])
-
-    # Fee history
-    print("Creating indexes for fee history...")
-    db.fee_history.create_index([("student_id", ASCENDING), ("date", DESCENDING)])
     
     # Assets
-    print("Creating indexes for assets...")
-    db.assets.create_index([("assigned_to", ASCENDING)])
+    db.assets.create_index([("teacher_id", ASCENDING), ("timestamp", DESCENDING)])
     
-    # Govt holidays
-    print("Creating indexes for govt_holidays...")
-    db.govt_holidays.create_index([("date", ASCENDING)])
+    # Holidays
+    db.holidays.create_index([("date", ASCENDING)], unique=True)
 
-    print("All indexes created successfully.")
+    # Leave Requests
+    db.leave_requests.create_index([("teacher_id", ASCENDING), ("applied_on", DESCENDING)])
+    db.leave_requests.create_index([("status", ASCENDING), ("start_date", ASCENDING), ("end_date", ASCENDING)])
+
+    # Generated Slips
+    db.generated_slips.create_index([("generated_at", DESCENDING)])
+    db.generated_slips.create_index([("teacher_id", ASCENDING), ("year", ASCENDING), ("month", ASCENDING)])
+
+    # Logs
+    db.logs.create_index([("teacher_id", ASCENDING), ("timestamp", DESCENDING)])
+    db.logs.create_index([("action", ASCENDING), ("date", ASCENDING)])
+    db.logs.create_index([("timestamp", DESCENDING)])
+
+    # Salary Adjustments
+    db.salary_adjustments.create_index([("year", ASCENDING), ("month", ASCENDING), ("teacher_id", ASCENDING)])
+
+    print("All production indexes for gayatri_school created successfully.")
 
 if __name__ == "__main__":
     create_indexes()

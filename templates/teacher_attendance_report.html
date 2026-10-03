@@ -1,138 +1,147 @@
 {% extends "base.html" %}
-{% block title %}मेरी Attendance - गायत्री विद्यापीठ{% endblock %}
+{% block title %}My Attendance Report — Gayatri Vidyapeeth{% endblock %}
 {% block content %}
 
-<div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
-        <i class="fas fa-calendar-alt text-green-600"></i> मेरी Attendance Report
-    </h1>
-    <button onclick="window.print()" class="bg-gray-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-gray-800 transition text-sm no-print">
-        <i class="fas fa-print"></i> Print
+<!-- Header Controls -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 no-print">
+    <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-900 font-serif flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl gold-grad flex items-center justify-center text-amber-950 shadow-sm">
+                <i class="fas fa-calendar-check text-lg"></i>
+            </span>
+            Faculty Attendance Report
+        </h1>
+        <p class="text-xs sm:text-sm text-stone-500 mt-1">Monthly faculty duty roster, biometric/manual log, and summary statistics</p>
+    </div>
+    <button onclick="window.print()" class="gold-grad text-amber-950 font-bold px-4 py-2 rounded-xl flex items-center gap-2 text-xs sm:text-sm card-shadow hover:opacity-95 transition">
+        <i class="fas fa-print"></i> Print Sheet
     </button>
 </div>
 
 <!-- Teacher Info Banner -->
-<div class="green-grad rounded-2xl p-4 mb-5 text-white flex items-center gap-4 no-print">
+<div class="gold-saffron-grad rounded-2xl p-4 sm:p-5 mb-5 text-white flex items-center gap-4 card-shadow no-print">
     {% if teacher.photo %}
     <img src="{{ url_for('static', filename='uploads/' + teacher.photo) }}"
-         class="w-12 h-12 rounded-full object-cover border-2 border-white shadow">
+         class="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-md">
     {% else %}
-    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-green-700 font-bold text-xl">
+    <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white font-bold text-2xl font-serif border border-white/30">
         {{ teacher.name[0] }}
     </div>
     {% endif %}
     <div>
-        <p class="font-bold text-lg hindi">{{ teacher.name }}</p>
-        <p class="text-green-200 text-sm hindi">{{ teacher.subject }} &bull; <span class="font-mono bg-green-700 px-2 py-0.5 rounded">{{ teacher.teacher_id }}</span></p>
+        <p class="font-bold text-lg sm:text-xl font-serif">{{ teacher.name }}</p>
+        <p class="text-amber-100 text-xs sm:text-sm">{{ teacher.subject or 'Faculty' }} &bull; <span class="font-mono bg-black/20 px-2.5 py-0.5 rounded-full text-xs font-bold">{{ teacher.teacher_id }}</span></p>
     </div>
 </div>
 
 <!-- Month Selector -->
-<div class="bg-white rounded-2xl card-shadow p-4 mb-5 flex flex-wrap items-center gap-4 no-print">
+<div class="bg-white rounded-2xl card-shadow p-4 mb-6 border border-amber-200/70 flex flex-wrap items-center gap-4 no-print">
     <form method="GET" class="flex items-center gap-3 flex-wrap">
-        <label class="font-semibold text-gray-700 hindi">महीना:</label>
-        <select name="month" class="px-3 py-2 border-2 border-green-300 rounded-xl focus:outline-none">
+        <label class="text-xs font-bold text-stone-700 uppercase tracking-wider">Select Month:</label>
+        <select name="month" class="px-3.5 py-2 border border-amber-300 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-50/20 font-semibold text-stone-800">
             {% for mo in range(1, 13) %}
             <option value="{{ mo }}" {% if mo == month %}selected{% endif %}>
                 {{ ['','January','February','March','April','May','June','July','August','September','October','November','December'][mo] }}
             </option>
             {% endfor %}
         </select>
-        <select name="year" class="px-3 py-2 border-2 border-green-300 rounded-xl focus:outline-none">
+        <select name="year" class="px-3.5 py-2 border border-amber-300 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-50/20 font-semibold text-stone-800">
             {% for y in range(2024, 2028) %}
-            <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+            <option value="{{ y }}" {% if y == year %}selected{% endif %}>Year {{ y }}</option>
             {% endfor %}
         </select>
-        <button type="submit" class="green-grad text-white px-5 py-2 rounded-xl font-semibold">
-            <i class="fas fa-search"></i> देखें
+        <button type="submit" class="gold-saffron-grad text-white px-5 py-2 rounded-xl font-bold text-xs sm:text-sm hover:opacity-95 transition shadow-sm flex items-center gap-1.5">
+            <i class="fas fa-search"></i> Load Sheet
         </button>
     </form>
 </div>
 
 <!-- Summary Cards -->
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white rounded-2xl card-shadow p-4 text-center border-l-4 border-green-500">
-        <p class="text-3xl font-bold text-green-600">{{ p_count }}</p>
-        <p class="text-xs text-gray-500 hindi mt-1">उपस्थित (P)</p>
+    <div class="bg-white rounded-2xl card-shadow p-4 text-center border-l-4 border-emerald-500 border border-amber-100">
+        <p class="text-3xl font-extrabold text-emerald-700 font-mono">{{ p_count }}</p>
+        <p class="text-[11px] font-bold text-emerald-900 uppercase tracking-wider mt-1">Full Present (P)</p>
     </div>
-    <div class="bg-white rounded-2xl card-shadow p-4 text-center border-l-4 border-yellow-400">
-        <p class="text-3xl font-bold text-yellow-500">{{ h_count }}</p>
-        <p class="text-xs text-gray-500 hindi mt-1">Half Day (H)</p>
+    <div class="bg-white rounded-2xl card-shadow p-4 text-center border-l-4 border-amber-500 border border-amber-100">
+        <p class="text-3xl font-extrabold text-amber-700 font-mono">{{ h_count }}</p>
+        <p class="text-[11px] font-bold text-amber-900 uppercase tracking-wider mt-1">Half Day (H)</p>
     </div>
-    <div class="bg-white rounded-2xl card-shadow p-4 text-center border-l-4 border-blue-400">
-        <p class="text-3xl font-bold text-blue-600">{{ m_count }}</p>
-        <p class="text-xs text-gray-500 hindi mt-1">Medical (M)</p>
+    <div class="bg-white rounded-2xl card-shadow p-4 text-center border-l-4 border-blue-500 border border-amber-100">
+        <p class="text-3xl font-extrabold text-blue-700 font-mono">{{ m_count }}</p>
+        <p class="text-[11px] font-bold text-blue-900 uppercase tracking-wider mt-1">Medical (M)</p>
     </div>
-    <div class="bg-white rounded-2xl card-shadow p-4 text-center border-l-4 border-red-400">
-        <p class="text-3xl font-bold text-red-500">{{ a_count }}</p>
-        <p class="text-xs text-gray-500 hindi mt-1">अनुपस्थित (A)</p>
+    <div class="bg-white rounded-2xl card-shadow p-4 text-center border-l-4 border-rose-500 border border-amber-100">
+        <p class="text-3xl font-extrabold text-rose-600 font-mono">{{ a_count }}</p>
+        <p class="text-[11px] font-bold text-rose-900 uppercase tracking-wider mt-1">Absent (A)</p>
     </div>
 </div>
 
 <!-- Legend -->
-<div class="flex gap-3 mb-4 flex-wrap no-print">
-    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-semibold">P = Present</span>
-    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-semibold">A = Absent</span>
-    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-xs font-semibold">H = Half Day</span>
-    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-semibold">M = Medical</span>
-    <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-lg text-xs font-semibold">SUN = Sunday</span>
-    <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg text-xs">– = Not Marked</span>
+<div class="flex gap-2.5 mb-4 flex-wrap no-print text-xs">
+    <span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-lg font-bold">P = Present</span>
+    <span class="bg-rose-100 text-rose-800 border border-rose-300 px-3 py-1 rounded-lg font-bold">A = Absent</span>
+    <span class="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-lg font-bold">H = Half Day</span>
+    <span class="bg-blue-100 text-blue-800 border border-blue-300 px-3 py-1 rounded-lg font-bold">M = Medical</span>
+    <span class="bg-purple-100 text-purple-700 border border-purple-300 px-3 py-1 rounded-lg font-bold">SUN = Sunday (Paid)</span>
+    <span class="bg-stone-100 text-stone-600 border border-stone-300 px-3 py-1 rounded-lg font-bold">&ndash; = Unrecorded</span>
 </div>
 
 <!-- Attendance Table -->
-<div class="bg-white rounded-2xl card-shadow overflow-hidden">
-    <div class="px-6 py-3 bg-green-50 border-b">
-        <h2 class="font-bold text-gray-800 hindi">{{ month_name }} {{ year }} — Attendance Sheet</h2>
+<div class="bg-white rounded-2xl card-shadow overflow-hidden border border-amber-100/80 mb-6">
+    <div class="px-6 py-3.5 bg-gradient-to-r from-amber-50 to-yellow-50 border-b border-amber-200/60 flex items-center justify-between">
+        <h2 class="font-bold text-stone-800 text-sm sm:text-base flex items-center gap-2">
+            <i class="fas fa-table-cells text-amber-600"></i> {{ month_name }} {{ year }} &mdash; Monthly Faculty Roll Sheet
+        </h2>
     </div>
     <div class="scroll-x">
         <table class="w-full text-xs">
             <thead>
-                <tr class="bg-gray-800 text-white">
-                    <th class="text-left px-4 py-3 min-w-[120px] hindi sticky left-0 bg-gray-800">दिन / तारीख</th>
+                <tr class="bg-gradient-to-r from-amber-900 via-amber-950 to-stone-950 text-amber-200">
+                    <th class="text-left px-4 py-3 min-w-[130px] sticky left-0 bg-stone-900 font-semibold uppercase tracking-wider">Faculty</th>
                     {% for d in range(1, days+1) %}
                     {% if d in sundays %}
-                    <th class="px-1.5 py-3 text-center min-w-[32px] bg-purple-800 text-purple-200">
+                    <th class="px-1.5 py-3 text-center min-w-[32px] bg-purple-950 text-purple-200 border-x border-purple-900 font-bold">
                         {{ d }}<br><span class="text-[8px] font-normal">SUN</span>
                     </th>
                     {% else %}
-                    <th class="px-1.5 py-3 text-center min-w-[28px]">{{ d }}</th>
+                    <th class="px-1.5 py-3 text-center min-w-[28px] border-r border-amber-900/40 font-mono">{{ d }}</th>
                     {% endif %}
                     {% endfor %}
-                    <th class="px-3 py-3 text-center text-green-400">P</th>
-                    <th class="px-3 py-3 text-center text-yellow-400">H</th>
-                    <th class="px-3 py-3 text-center text-blue-400">M</th>
-                    <th class="px-3 py-3 text-center text-red-400">A</th>
+                    <th class="px-3 py-3 text-center text-emerald-400 font-bold">P</th>
+                    <th class="px-3 py-3 text-center text-amber-400 font-bold">H</th>
+                    <th class="px-3 py-3 text-center text-blue-400 font-bold">M</th>
+                    <th class="px-3 py-3 text-center text-rose-400 font-bold">A</th>
                 </tr>
             </thead>
             <tbody>
-                <tr class="hover:bg-green-50">
-                    <td class="px-4 py-3 font-semibold text-gray-800 sticky left-0 bg-white hindi">{{ teacher.name }}</td>
+                <tr class="hover:bg-amber-50/50">
+                    <td class="px-4 py-3.5 font-bold text-stone-900 sticky left-0 bg-white border-r border-stone-200">{{ teacher.name }}</td>
                     {% for d in range(1, days+1) %}
                     {% if d in sundays %}
-                    <td class="px-0.5 py-3 text-center bg-purple-50">
-                        <span class="text-purple-400 font-bold text-[10px]">SUN</span>
+                    <td class="px-0.5 py-3.5 text-center bg-purple-50/70 border-r border-purple-100">
+                        <span class="text-purple-700 font-bold text-[10px]">SUN</span>
                     </td>
                     {% else %}
-                    <td class="px-0.5 py-3 text-center">
+                    <td class="px-0.5 py-3.5 text-center border-r border-stone-100">
                         {% set s = att_map.get(d) %}
                         {% if s in ['present', 'P'] %}
-                        <span class="text-green-600 font-bold text-sm">P</span>
+                        <span class="text-emerald-700 font-bold text-sm">P</span>
                         {% elif s in ['half_day', 'H'] %}
-                        <span class="text-yellow-600 font-bold text-sm">H</span>
+                        <span class="text-amber-600 font-bold text-sm">H</span>
                         {% elif s in ['absent', 'A'] %}
-                        <span class="text-red-500 font-bold text-sm">A</span>
+                        <span class="text-rose-600 font-bold text-sm">A</span>
                         {% elif s == 'M' %}
-                        <span class="text-blue-600 font-bold text-sm">M</span>
+                        <span class="text-blue-700 font-bold text-sm">M</span>
                         {% else %}
-                        <span class="text-gray-300">–</span>
+                        <span class="text-stone-300">&ndash;</span>
                         {% endif %}
                     </td>
                     {% endif %}
                     {% endfor %}
-                    <td class="px-3 py-3 text-center font-bold text-green-700 bg-green-50">{{ p_count }}</td>
-                    <td class="px-3 py-3 text-center font-bold text-yellow-700 bg-yellow-50">{{ h_count }}</td>
-                    <td class="px-3 py-3 text-center font-bold text-blue-700 bg-blue-50">{{ m_count }}</td>
-                    <td class="px-3 py-3 text-center font-bold text-red-600 bg-red-50">{{ a_count }}</td>
+                    <td class="px-3 py-3.5 text-center font-bold text-emerald-800 bg-emerald-50/70 font-mono">{{ p_count }}</td>
+                    <td class="px-3 py-3.5 text-center font-bold text-amber-800 bg-amber-50/70 font-mono">{{ h_count }}</td>
+                    <td class="px-3 py-3.5 text-center font-bold text-blue-800 bg-blue-50/70 font-mono">{{ m_count }}</td>
+                    <td class="px-3 py-3.5 text-center font-bold text-rose-700 bg-rose-50/70 font-mono">{{ a_count }}</td>
                 </tr>
             </tbody>
         </table>
@@ -141,7 +150,7 @@
 
 <style>
 @media print {
-    nav, .no-print { display: none !important; }
+    nav, .no-print, header { display: none !important; }
     body { background: white; font-size: 10px; }
     .card-shadow { box-shadow: none; border: 1px solid #ddd; }
 }

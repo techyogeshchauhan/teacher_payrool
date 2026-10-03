@@ -91,9 +91,7 @@ app.logger.addHandler(file_handler)
 app.logger.setLevel(logging.INFO)
 app.logger.info('School Management System startup')
 
-# ─── Accountant Blueprint ────────────────────────────────────────────────────
-from accountant_bp import accountant_bp, init_accountant
-app.register_blueprint(accountant_bp)
+
 
 # MongoDB Connection (secured from env vars)
 mongo_uri = app.config['MONGO_URI']
@@ -116,10 +114,7 @@ increment_col = db['increments']
 holidays_col = db['govt_holidays']
 logs_col = db['activity_logs']
 assets_col = db['assets']
-students_col = db['students']
-fee_history_col = db['fee_history']
 leave_requests_col = db['leave_requests']
-certificates_col = db['certificates']
 
 # Initialize Flask-Mail
 mail = Mail(app)
@@ -137,9 +132,7 @@ try:
     teachers_col.create_index('teacher_id', unique=True)
     teachers_col.create_index('phone')
     attendance_col.create_index([('teacher_id', 1), ('date', -1)])
-    students_col.create_index('admission_no')
-    students_col.create_index([('class', 1), ('section', 1)])
-    fee_history_col.create_index([('student_id', 1), ('date', -1)])
+
     logs_col.create_index([('teacher_id', 1), ('timestamp', -1)])
     app.logger.info('Database indexes created successfully')
 except Exception as e:
@@ -270,8 +263,7 @@ def init_admin():
                 }}
             )
     
-    # Initialize accountant
-    init_accountant()
+
 
 # Decorators for role-based access control
 from functools import wraps
@@ -281,7 +273,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not session.get('admin'):
             log_security_event('UNAUTHORIZED_ACCESS_ATTEMPT', session.get('username', 'anonymous'), f'Attempted to access: {request.path}')
-            flash('कृपया लॉगिन करें!')
+            flash('Please log in!')
             return redirect(url_for('admin_login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -291,7 +283,7 @@ def principal_required(f):
     def decorated_function(*args, **kwargs):
         if not session.get('principal') and not session.get('admin'):
             log_security_event('UNAUTHORIZED_ACCESS_ATTEMPT', session.get('username', 'anonymous'), f'Attempted to access: {request.path}')
-            flash('कृपया लॉगिन करें!')
+            flash('Please log in!')
             return redirect(url_for('principal_login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -301,7 +293,7 @@ def teacher_required(f):
     def decorated_function(*args, **kwargs):
         if not session.get('teacher_id'):
             log_security_event('UNAUTHORIZED_ACCESS_ATTEMPT', session.get('username', 'anonymous'), f'Attempted to access: {request.path}')
-            flash('कृपया लॉगिन करें!')
+            flash('Please log in!')
             return redirect(url_for('teacher_login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -319,16 +311,16 @@ with app.app_context():
 # Error handlers
 @app.errorhandler(403)
 def forbidden(e):
-    return render_template('error.html', error='403 - Access Forbidden', message='आपके पास इस पेज को देखने की अनुमति नहीं है।'), 403
+    return render_template('error.html', error='403 - Access Forbidden', message='You do not have permission to view this page.'), 403
 
 @app.errorhandler(404)
 def not_found(e):
-    return render_template('error.html', error='404 - Page Not Found', message='यह पेज मौजूद नहीं है।'), 404
+    return render_template('error.html', error='404 - Page Not Found', message='This page does not exist.'), 404
 
 @app.errorhandler(500)
 def internal_error(e):
     app.logger.error(f'Internal error: {e}')
-    return render_template('error.html', error='500 - Internal Server Error', message='कुछ गलत हो गया। कृपया बाद में पुन: प्रयास करें।'), 500
+    return render_template('error.html', error='500 - Internal Server Error', message='Something went wrong. Please try again later.'), 500
 
 # Add security headers to all responses
 @app.after_request

@@ -1,92 +1,113 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify OTP - गायत्री विद्यापीठ</title>
+    <title>Verify OTP - Gayatri Vidyapeeth</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Marcellus&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; }
-        .hindi { font-family: 'Noto Sans Devanagari', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif; }
+        .font-serif-crest { font-family: 'Marcellus', 'Cinzel', serif; }
+        .font-serif { font-family: 'Marcellus', 'Cinzel', serif; }
+        .font-univ { font-family: 'Marcellus', 'Cinzel', serif; letter-spacing: 0.02em; }
+        .font-heading { font-family: 'Marcellus', serif; }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(251, 191, 36, 0.3);
         }
-        .green-grad { background: linear-gradient(135deg, #10B981 0%, #047857 100%); }
-        .input-field { transition: all 0.3s ease; border: 2px solid #f3f4f6; }
-        .input-field:focus { border-color: #10B981; box-shadow: 0 0 0 4px rgba(16,185,129,0.1); outline: none; transform: translateY(-1px); }
-        .btn-hover { transition: all 0.3s ease; }
-        .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4); }
-        .otp-input { tracking-widest: 0.5em; text-align: center; font-size: 1.5rem; font-weight: bold; }
+        .gold-saffron-grad {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 45%, #EA580C 100%);
+        }
+        .input-field {
+            transition: all 0.25s ease;
+            border: 2px solid #FEF3C7;
+        }
+        .input-field:focus {
+            border-color: #F59E0B;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18);
+            outline: none;
+            background: #FFFFFF;
+        }
+        .btn-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 25px -4px rgba(217, 119, 6, 0.35);
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 sm:p-8 relative" style="background-image: url('https://i.etsystatic.com/10949726/r/il/e9d23a/2122553551/il_1588xN.2122553551_kcqd.jpg'); background-size: cover; background-position: center; background-attachment: fixed;">
-<div class="absolute inset-0 bg-black/40 z-0 pointer-events-none"></div>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-8 relative bg-amber-50" style="background-image: url('https://i.etsystatic.com/10949726/r/il/e9d23a/2122553551/il_1588xN.2122553551_kcqd.jpg'); background-size: cover; background-position: center; background-attachment: fixed;">
+<div class="absolute inset-0 bg-gradient-to-br from-amber-950/75 via-stone-900/70 to-black/80 z-0 pointer-events-none"></div>
 
-<div class="w-full max-w-4xl glass-panel relative z-10 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+<div class="w-full max-w-4xl glass-panel relative z-10 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-amber-300/40">
     
     <!-- Left Section: Branding & Maa Gayatri -->
-    <div class="w-full md:w-5/12 p-8 sm:p-12 flex flex-col items-center justify-center text-center relative overflow-hidden bg-gradient-to-b from-white/20 to-white/5 border-b md:border-b-0 md:border-r border-white/20">
-        <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-            <div class="absolute -top-10 -right-10 w-40 h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-pulse"></div>
-        </div>
-
+    <div class="w-full md:w-5/12 p-8 sm:p-12 flex flex-col items-center justify-center text-center relative overflow-hidden bg-gradient-to-b from-amber-900/90 via-amber-950/90 to-stone-950/95 border-b md:border-b-0 md:border-r border-amber-400/20 text-white">
         <a href="https://awgp.org" target="_blank" class="transform hover:scale-105 transition duration-500 relative z-10 block mb-6">
-            <img src="https://gurukulam.awgp.in/var/profiles/3044/post/15715/Guruji-Mataji-11.jpg" 
+            <img src="{{ url_for('static', filename='guruji_mataji.jpg') }}" 
                  alt="Guruji Mataji" 
-                 class="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 object-cover rounded-full border-4 border-yellow-300 shadow-2xl mx-auto ring-4 ring-white/30">
+                 class="w-40 h-40 sm:w-48 sm:h-48 object-cover rounded-full border-4 border-amber-300 shadow-2xl mx-auto ring-4 ring-amber-400/40">
         </a>
-        <h1 class="hindi text-3xl sm:text-4xl font-extrabold text-white drop-shadow-md relative z-10 tracking-wide">गायत्री विद्यापीठ</h1>
-        <p class="text-green-50 font-medium tracking-widest mt-2 relative z-10 text-sm uppercase">OTP वेरिफिकेशन</p>
+        <div class="relative z-10">
+            <span class="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-200 border border-amber-400/30 mb-2">
+                Security & Verification
+            </span>
+            <h1 class="font-serif-crest text-2xl sm:text-3xl font-extrabold text-white tracking-wide">Gayatri Vidyapeeth</h1>
+            <p class="text-amber-200 text-xs font-serif italic tracking-widest mt-1 uppercase">सा प्रथमा संस्कृति विश्ववारा</p>
+        </div>
     </div>
 
     <!-- Right Section: OTP Form -->
-    <div class="w-full md:w-7/12 p-8 sm:p-12 bg-white/95">
-        <div class="mb-8 flex flex-col items-center text-center">
-            <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                <i class="fas fa-shield-alt text-3xl text-blue-600"></i>
-            </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800 hindi leading-tight">OTP सत्यापित करें</h2>
-            <span class="text-gray-500 text-xs sm:text-sm font-medium mt-1 hindi">ईमेल पर भेजे गए 6 अंकों का OTP डालें</span>
-        </div>
-
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        {% for msg in messages %}
-        <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 px-4 py-3 rounded-r shadow-sm mb-6 text-sm hindi flex items-center">
-            <i class="fas fa-info-circle mr-2"></i>{{ msg }}
-        </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-
-        <form method="POST" class="space-y-6">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-3 text-center">
-                    <i class="fas fa-envelope-open-text text-green-500 mr-2"></i> एंटर OTP
-                </label>
-                <div class="relative">
-                    <input type="text" name="otp" required maxlength="6" placeholder="******"
-                        class="input-field w-full px-5 py-4 rounded-xl bg-gray-50 text-gray-800 text-center text-3xl font-bold tracking-[0.5em] focus:outline-none">
+    <div class="w-full md:w-7/12 p-8 sm:p-12 bg-white/95 flex flex-col justify-between">
+        <div>
+            <div class="mb-8 flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mb-3 shadow-inner text-amber-700">
+                    <i class="fas fa-shield-alt text-2xl"></i>
                 </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 font-serif leading-tight">Verify Security OTP</h2>
+                <span class="text-gray-500 text-xs sm:text-sm font-medium mt-1">Enter the 6-digit verification code sent to your mobile</span>
             </div>
-            
-            <button type="submit"
-                class="w-full green-grad btn-hover text-white font-bold text-lg py-4 rounded-xl flex items-center justify-center gap-2">
-                <i class="fas fa-check-circle"></i>
-                <span class="hindi">Verify OTP</span>
-            </button>
-        </form>
 
-        <div class="mt-8 pt-6 border-t border-gray-100 text-center">
-            <p class="text-xs text-gray-400 mb-2 hindi">OTP नहीं मिला?</p>
-            <a href="{{ url_for('teacher_forgot_password') }}" class="text-sm font-bold text-emerald-600 hover:text-emerald-700 transition hindi">
-                ID/Phone फिर से चेक करें
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for msg in messages %}
+            <div class="bg-amber-50 border-l-4 border-amber-500 text-amber-800 px-4 py-3 rounded-r-xl shadow-sm mb-6 text-sm flex items-center gap-2">
+                <i class="fas fa-info-circle text-amber-600"></i>
+                <span>{{ msg }}</span>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-3 text-center">
+                        <i class="fas fa-envelope-open-text text-amber-600 mr-1.5"></i> One-Time Password
+                    </label>
+                    <div class="relative">
+                        <input type="text" name="otp" required maxlength="6" placeholder="******"
+                            class="input-field w-full px-5 py-4 rounded-2xl bg-amber-50/40 text-amber-950 text-center text-3xl font-extrabold tracking-[0.5em] focus:outline-none">
+                    </div>
+                </div>
+                
+                <button type="submit"
+                    class="w-full gold-saffron-grad btn-hover text-white font-bold text-base py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Verify & Continue</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-amber-100 text-center">
+            <p class="text-xs text-gray-400 mb-1">Didn't receive code?</p>
+            <a href="{{ url_for('teacher_forgot_password') }}" class="text-xs font-bold text-amber-800 hover:text-amber-950 transition">
+                Check Teacher ID & Mobile again
             </a>
         </div>
     </div>

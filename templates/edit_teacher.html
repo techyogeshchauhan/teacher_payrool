@@ -1,148 +1,161 @@
 {% extends "base.html" %}
-{% block title %}Teacher Edit - गायत्री विद्यापीठ{% endblock %}
+{% block title %}Edit Faculty Profile - Gayatri Vidyapeeth{% endblock %}
 {% block content %}
 
-<div class="max-w-2xl mx-auto">
+<div class="max-w-3xl mx-auto my-6">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ url_for('manage_teachers') }}" class="text-gray-400 hover:text-orange-600 transition">
-            <i class="fas fa-arrow-left text-xl"></i>
+        <a href="{{ url_for('manage_teachers') }}" class="w-10 h-10 rounded-2xl bg-white border border-amber-200 text-amber-800 hover:bg-amber-50 flex items-center justify-center transition shadow-sm">
+            <i class="fas fa-arrow-left text-sm"></i>
         </a>
-        <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
-            <i class="fas fa-user-edit text-blue-500"></i> Teacher जानकारी बदलें
-        </h1>
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 font-serif flex items-center gap-2.5">
+                <i class="fas fa-user-edit text-amber-600"></i> Update Faculty Profile
+            </h1>
+            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Modify teacher records, salary scale, or banking information</p>
+        </div>
     </div>
 
     <!-- Teacher ID Badge -->
-    <div class="bg-blue-50 border border-blue-200 rounded-2xl px-5 py-3 mb-5 flex items-center gap-3">
-        <i class="fas fa-id-card text-blue-500 text-lg"></i>
-        <div>
-            <p class="text-xs text-blue-400 hindi">Teacher ID (बदला नहीं जा सकता)</p>
-            <p class="font-mono font-bold text-blue-700 text-lg">{{ teacher.teacher_id }}</p>
+    <div class="bg-amber-50 border border-amber-200 rounded-3xl px-6 py-4 mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl gold-saffron-grad flex items-center justify-center text-white text-xl shadow-md">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-amber-800">Faculty Identifier (Permanent)</p>
+                <p class="font-mono font-extrabold text-amber-950 text-xl">{{ teacher.teacher_id }}</p>
+            </div>
+        </div>
+        <div class="text-right hidden sm:block">
+            <span class="text-xs font-semibold text-gray-500">Record Active</span>
+            <p class="text-xs font-bold text-amber-900 font-serif">{{ teacher.name }}</p>
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
-        <div class="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4">
-            <p class="text-white text-sm hindi font-semibold">
-                <i class="fas fa-pencil-alt mr-2"></i>{{ teacher.name }} की जानकारी अपडेट करें
-            </p>
+    <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-amber-100 mb-8">
+        <div class="gold-saffron-grad px-6 py-5 flex items-center gap-3 text-white">
+            <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-lg shadow-sm">
+                <i class="fas fa-pencil-alt"></i>
+            </div>
+            <div>
+                <h2 class="font-bold font-serif text-lg">Update Profile for {{ teacher.name }}</h2>
+                <p class="text-xs text-amber-100">Ensure bank and salary alterations have administrative approval</p>
+            </div>
         </div>
 
-        <form method="POST" class="p-6 space-y-5">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <form method="POST" class="p-6 sm:p-8 space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="grid md:grid-cols-2 gap-5">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                        <i class="fas fa-user text-blue-500 mr-1"></i> पूरा नाम *
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        <i class="fas fa-user text-amber-600 mr-1.5"></i> Full Name *
                     </label>
                     <input type="text" name="name" id="name_input" required
                         value="{{ teacher.name }}"
-                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50">
+                        class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 font-medium text-sm text-gray-900">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                        <i class="fas fa-phone text-blue-500 mr-1"></i> फ़ोन नंबर *
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        <i class="fas fa-phone text-amber-600 mr-1.5"></i> Mobile Number *
                     </label>
                     <input type="text" name="phone" required maxlength="10" minlength="10"
                         value="{{ teacher.phone }}"
-                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50">
+                        class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 font-mono text-sm text-gray-900">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                        <i class="fas fa-book text-blue-500 mr-1"></i> विषय *
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        <i class="fas fa-book-open text-amber-600 mr-1.5"></i> Department / Subject *
                     </label>
                     <input type="text" name="subject" required
                         value="{{ teacher.subject }}"
-                        placeholder="जैसे: गणित, विज्ञान"
-                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50">
+                        placeholder="e.g. Mathematics, Science"
+                        class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 font-medium text-sm text-gray-900">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        <i class="fas fa-envelope text-blue-500 mr-1"></i> Email (optional)
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        <i class="fas fa-envelope text-amber-600 mr-1.5"></i> Email Address (optional)
                     </label>
                     <input type="email" name="email"
                         value="{{ teacher.email or '' }}"
-                        placeholder="email@example.com"
-                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50">
+                        placeholder="faculty@gvp.edu"
+                        class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 font-medium text-sm text-gray-900">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                        <i class="fas fa-calendar text-blue-500 mr-1"></i> Joining Date *
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        <i class="fas fa-calendar-alt text-amber-600 mr-1.5"></i> Joining Date *
                     </label>
                     <input type="date" name="joining_date" required
                         value="{{ teacher.joining_date }}"
-                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50">
+                        class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 font-medium text-sm text-gray-900">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                        <i class="fas fa-rupee-sign text-blue-500 mr-1"></i> Basic Salary (₹/माह) *
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        <i class="fas fa-coins text-amber-600 mr-1.5"></i> Monthly Basic Salary (₹) *
                     </label>
                     <input type="number" name="basic_salary" required min="1000"
                         value="{{ teacher.basic_salary | int }}"
-                        class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50">
+                        class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 font-extrabold text-sm text-amber-950">
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-gray-100">
-                <h3 class="text-sm font-bold text-gray-800 hindi mb-4 flex items-center gap-2">
-                    <i class="fas fa-university text-blue-500"></i> बैंक विवरण (Bank Details)
+            <div class="pt-6 border-t border-amber-100">
+                <h3 class="text-xs font-bold text-amber-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <i class="fas fa-university text-amber-600"></i> Direct Bank & Tax Information
                 </h3>
                 <div class="grid md:grid-cols-2 gap-5">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">बैंक का नाम</label>
-                        <input type="text" name="bank_name" placeholder="जैसे: SBI, HDFC"
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Bank Name</label>
+                        <input type="text" name="bank_name" placeholder="e.g. State Bank of India, PNB"
                             value="{{ teacher.bank_name or '' }}"
-                            class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50">
+                            class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">खाता नंबर (Account Number)</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Account Number</label>
                         <input type="text" name="bank_account" placeholder="000000000000"
                             value="{{ teacher.bank_account or '' }}"
-                            class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50">
+                            class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 font-mono text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">IFSC कोड</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">IFSC Code</label>
                         <input type="text" name="ifsc" placeholder="SBIN0001234"
                             value="{{ teacher.ifsc or '' }}"
-                            class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50 uppercase">
+                            class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 font-mono uppercase text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">खाताधारक का नाम</label>
-                        <input type="text" name="holder_name" placeholder="बैंक रिकॉर्ड के अनुसार"
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Account Holder Name</label>
+                        <input type="text" name="holder_name" placeholder="As per bank records"
                             value="{{ teacher.holder_name or '' }}"
-                            class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50">
+                            class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">PAN Number</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">PAN Card Number</label>
                         <input type="text" name="pan_no" placeholder="ABCDE1234F" maxlength="10"
                             value="{{ teacher.pan_no or '' }}"
-                            class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50 uppercase">
+                            class="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none bg-amber-50/20 uppercase font-mono text-sm">
                     </div>
                 </div>
             </div>
 
-            <!-- Reset Password Note -->
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-xl">
+            <!-- Password Reset Advisory -->
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-2xl">
                 <div class="flex items-start gap-3">
-                    <i class="fas fa-key text-yellow-500 mt-0.5"></i>
-                    <div>
-                        <p class="text-sm font-semibold text-yellow-700 hindi">Password Reset करना हो तो?</p>
-                        <p class="text-xs text-yellow-600 hindi mt-1">
-                            Teachers List में जाकर 🔑 (Key) बटन से Default Password: <b>GVP@2026</b> पर reset करें।
-                        </p>
+                    <i class="fas fa-key text-amber-600 mt-0.5 text-base"></i>
+                    <div class="text-xs text-amber-900 leading-relaxed">
+                        <p class="font-bold">Password Reset Option:</p>
+                        <p class="mt-0.5">If the faculty member is locked out or forgot their password, navigate to the <a href="{{ url_for('manage_teachers') }}" class="underline font-bold text-amber-950">Faculty Directory</a> and click the 🔑 (Key) icon to reset it directly to <span class="font-mono font-bold">GVP@2026</span>.</p>
                     </div>
                 </div>
             </div>
 
-            <div class="flex gap-4 pt-2">
+            <div class="flex flex-wrap items-center gap-4 pt-2">
                 <button type="submit"
-                    class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-8 py-3 rounded-xl font-bold hover:opacity-90 transition shadow-lg flex items-center gap-2">
+                    class="gold-saffron-grad text-white px-8 py-3.5 rounded-2xl font-bold hover:opacity-95 transition shadow-lg flex items-center gap-2">
                     <i class="fas fa-save"></i>
-                    <span class="hindi">Changes Save करें</span>
+                    <span>Save Profile Changes</span>
                 </button>
                 <a href="{{ url_for('manage_teachers') }}"
-                    class="bg-gray-100 text-gray-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-200 transition hindi">
-                    रद्द करें
+                    class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-6 py-3.5 rounded-2xl font-bold transition text-sm">
+                    Cancel
                 </a>
             </div>
         </form>

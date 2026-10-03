@@ -373,13 +373,9 @@ def requires_role(*roles):
                 user_role = 'principal'
             elif session.get('teacher_id'):
                 user_role = 'teacher'
-            elif session.get('accountant'):
-                user_role = 'accountant'
-            elif session.get('student_id'):
-                user_role = 'student'
 
             if user_role not in roles:
-                flash('आपके पास इस पेज को देखने की अनुमति नहीं है।')
+                flash('You do not have permission to view this page.')
                 abort(403)
 
             return f(*args, **kwargs)

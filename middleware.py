@@ -5,6 +5,7 @@ Centralizes request/response security processing.
 import uuid
 import time
 import logging
+import gzip
 from functools import wraps
 from flask import request, g, session, abort
 
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class SecurityMiddleware:
-    """WSGI middleware for security headers and request tracking."""
+    """WSGI middleware for security headers, performance caching, and request tracking."""
 
     def __init__(self, app=None):
         self.app = app
@@ -32,7 +33,7 @@ class SecurityMiddleware:
 
     @staticmethod
     def _after_request(response):
-        """Inject security headers into every response."""
+        """Inject security headers, caching, and compression into every response."""
         # ── Strict Transport Security (HSTS) ───────────────────────────
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
 
@@ -58,7 +59,7 @@ class SecurityMiddleware:
         response.headers.pop('Server', None)
         response.headers.pop('X-Powered-By', None)
 
-        # ── Cache control for authenticated pages ────────────────────
+        # ── Cache control for authenticated pages & static assets ────
         if _is_authenticated_route():
             response.headers['Cache-Control'] = (
                 'no-store, no-cache, must-revalidate, '
@@ -66,9 +67,29 @@ class SecurityMiddleware:
             )
             response.headers['Pragma'] = 'no-cache'
             response.headers['Expires'] = '-1'
+        elif request.path.startswith('/static/'):
+            # Static asset performance caching for CSS, images, JS
+            response.headers['Cache-Control'] = 'public, max-age=86400, stale-while-revalidate=3600'
 
         # ── Request tracking header (internal) ───────────────────────
         response.headers['X-Request-ID'] = getattr(g, 'request_id', 'unknown')
+
+        # ── Transparent Gzip Compression (reduces payload by 70-85%) ─
+        accept_encoding = request.headers.get('Accept-Encoding', '')
+        if (
+            'gzip' in accept_encoding
+            and response.status_code == 200
+            and not response.direct_passthrough
+            and 'Content-Encoding' not in response.headers
+        ):
+            content_type = response.headers.get('Content-Type', '')
+            if any(t in content_type for t in ('text/', 'json', 'javascript', 'css')):
+                data = response.get_data()
+                if len(data) > 1024:
+                    compressed_data = gzip.compress(data, compresslevel=6)
+                    response.set_data(compressed_data)
+                    response.headers['Content-Encoding'] = 'gzip'
+                    response.headers['Content-Length'] = len(compressed_data)
 
         # ── Log slow requests ────────────────────────────────────────
         elapsed = time.time() - getattr(g, 'request_start', time.time())
@@ -85,8 +106,8 @@ class SecurityMiddleware:
 def _is_authenticated_route():
     """Check if the current route should have no-cache headers."""
     sensitive_keywords = (
-        'dashboard', 'login', 'admin', 'teacher', 'student',
-        'accountant', 'principal', 'salary', 'payroll', 'fee',
+        'dashboard', 'login', 'admin', 'teacher',
+        'principal', 'salary', 'payroll',
         'attendance', 'profile', 'password', 'logout'
     )
     path = request.path.lower()

@@ -1,131 +1,158 @@
 {% extends "base.html" %}
-{% block title %}Govt Holidays - गायत्री विद्यापीठ{% endblock %}
+{% block title %}Government & Academic Holidays — Gayatri Vidyapeeth{% endblock %}
 {% block content %}
 
-<h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2 mb-6">
-    <i class="fas fa-calendar-times text-orange-500"></i> Government Holidays
-</h1>
+<!-- Header Banner -->
+<div class="mb-6 bg-gradient-to-r from-amber-50 via-yellow-50/50 to-orange-50 border border-amber-200/70 rounded-2xl p-5 sm:p-6 card-shadow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+        <div class="flex items-center gap-2 mb-1.5">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-500/20">
+                <i class="fas fa-calendar-star text-amber-600"></i> Institutional Calendar
+            </span>
+            <span class="text-xs text-stone-500">Official Gazetted & Mandated Closures</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-900 font-serif flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl gold-grad flex items-center justify-center text-amber-950 shadow-sm">
+                <i class="fas fa-calendar-check text-lg"></i>
+            </span>
+            Government & Gazetted Holidays
+        </h1>
+        <p class="text-xs sm:text-sm text-stone-600 mt-1">Configured holidays are fully protected paid days in faculty payroll computation</p>
+    </div>
+    <a href="{{ url_for('payroll') }}" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-amber-300 text-amber-900 hover:bg-amber-50 transition card-shadow flex items-center gap-2">
+        <i class="fas fa-file-invoice-dollar text-amber-600"></i> Open Payroll
+    </a>
+</div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
     <!-- Add Holiday Form -->
-    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
-        <div class="saffron-grad px-6 py-4">
-            <h2 class="text-white font-bold hindi flex items-center gap-2">
-                <i class="fas fa-plus-circle"></i> नई Government Holiday जोड़ें
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-amber-100/80">
+        <div class="gold-saffron-grad px-6 py-4 text-white">
+            <h2 class="font-bold flex items-center gap-2 text-base sm:text-lg">
+                <i class="fas fa-plus-circle text-amber-200"></i> Add Sanctioned Holiday
             </h2>
+            <p class="text-xs text-amber-100/90 mt-0.5">Specify calendar date and official occasion</p>
         </div>
         <form method="POST" class="p-6 space-y-4">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                    <i class="fas fa-calendar text-orange-500 mr-1"></i> Date *
+                <label class="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                    <i class="fas fa-calendar-day text-amber-600 mr-1"></i> Holiday Date <span class="text-red-500">*</span>
                 </label>
                 <input type="date" name="date" required
-                    class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+                    class="w-full px-4 py-2.5 rounded-xl border border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none bg-amber-50/20 text-stone-800 text-sm">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5 hindi">
-                    <i class="fas fa-flag text-orange-500 mr-1"></i> Holiday का नाम *
+                <label class="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                    <i class="fas fa-flag text-amber-600 mr-1"></i> Holiday Designation <span class="text-red-500">*</span>
                 </label>
-                <input type="text" name="name" required placeholder="जैसे: Republic Day, Holi, Diwali"
-                    class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none bg-gray-50">
+                <input type="text" name="name" required placeholder="e.g. Republic Day, Buddha Purnima, Diwali"
+                    class="w-full px-4 py-2.5 rounded-xl border border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none bg-amber-50/20 text-stone-800 text-sm">
             </div>
             <button type="submit"
-                class="w-full saffron-grad text-white py-3 rounded-xl font-bold hover:opacity-90 transition flex items-center justify-center gap-2">
+                class="w-full gold-saffron-grad text-white py-3 rounded-xl font-bold hover:opacity-95 transition card-shadow flex items-center justify-center gap-2">
                 <i class="fas fa-plus"></i>
-                <span class="hindi">Holiday Add करें</span>
+                <span>Register Holiday</span>
             </button>
         </form>
 
-        <!-- Common Holidays Quick Add Note -->
-        <div class="px-6 pb-5">
-            <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
-                <p class="text-xs font-bold text-orange-700 hindi mb-2">📋 Common Govt Holidays (India):</p>
-                <div class="grid grid-cols-2 gap-1 text-xs text-orange-600 hindi">
-                    <span>• 26 Jan — Republic Day</span>
-                    <span>• 15 Aug — Independence Day</span>
-                    <span>• 2 Oct — Gandhi Jayanti</span>
-                    <span>• 25 Dec — Christmas</span>
-                    <span>• Holi, Diwali, Eid आदि</span>
+        <!-- Common Holidays Quick Reference -->
+        <div class="px-6 pb-6">
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/80 rounded-xl p-4">
+                <p class="text-xs font-bold text-amber-900 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <i class="fas fa-lightbulb text-amber-600"></i> Standard National & Gazetted Days:
+                </p>
+                <div class="grid grid-cols-2 gap-1.5 text-xs text-stone-700 font-medium">
+                    <span>&bull; 26 Jan — Republic Day</span>
+                    <span>&bull; 15 Aug — Independence Day</span>
+                    <span>&bull; 02 Oct — Gandhi Jayanti</span>
+                    <span>&bull; 25 Dec — Christmas Day</span>
+                    <span>&bull; Holi, Diwali, Eid al-Fitr</span>
+                    <span>&bull; Gayatri Jayanti / Gurupurnima</span>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Holiday List + Year Filter -->
-    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
-        <div class="px-6 py-4 border-b bg-gray-50 flex items-center justify-between">
-            <h2 class="font-bold text-gray-800 hindi">
-                <i class="fas fa-list text-orange-500 mr-2"></i>{{ year }} की Holidays
-            </h2>
-            <form method="GET" class="flex items-center gap-2">
-                <select name="year" class="px-3 py-1.5 border-2 border-orange-300 rounded-xl text-sm focus:outline-none"
-                        onchange="this.form.submit()">
-                    {% for y in range(2024, 2029) %}
-                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
-                    {% endfor %}
-                </select>
-            </form>
-        </div>
-
-        {% if holidays %}
-        <div class="divide-y divide-gray-100">
-            {% for h in holidays %}
-            <div class="px-5 py-3.5 flex items-center justify-between hover:bg-orange-50 transition">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-umbrella-beach text-orange-500"></i>
-                    </div>
-                    <div>
-                        <p class="font-bold text-gray-800 hindi text-sm">{{ h.name }}</p>
-                        <p class="text-xs text-gray-500">{{ h.date }}</p>
-                    </div>
-                </div>
-                <form action="{{ url_for('delete_holiday', holiday_id=h['_id']) }}" method="POST" class="inline" onsubmit="return confirm('{{ h.name }} holiday हटाएं?')">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="w-9 h-9 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition">
-                        <i class="fas fa-trash-alt text-sm"></i>
-                    </button>
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-amber-100/80 flex flex-col justify-between">
+        <div>
+            <div class="px-6 py-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-b border-amber-200/60 flex items-center justify-between">
+                <h2 class="font-bold text-stone-800 flex items-center gap-2 text-base">
+                    <i class="fas fa-calendar-alt text-amber-600"></i> Sanctioned Holidays in {{ year }}
+                </h2>
+                <form method="GET" class="flex items-center gap-2">
+                    <select name="year" class="px-3 py-1.5 border border-amber-300 rounded-xl text-xs font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-white"
+                            onchange="this.form.submit()">
+                        {% for y in range(2024, 2029) %}
+                        <option value="{{ y }}" {% if y == year %}selected{% endif %}>Year {{ y }}</option>
+                        {% endfor %}
+                    </select>
                 </form>
             </div>
-            {% endfor %}
+
+            {% if holidays %}
+            <div class="divide-y divide-amber-100/50 max-h-[420px] overflow-y-auto">
+                {% for h in holidays %}
+                <div class="px-5 py-3.5 flex items-center justify-between hover:bg-amber-50/50 transition">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 gold-grad text-amber-950 rounded-xl flex items-center justify-center shadow-sm">
+                            <i class="fas fa-sun text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-stone-900 text-sm">{{ h.name }}</p>
+                            <p class="text-xs text-stone-500 font-mono">{{ h.date }}</p>
+                        </div>
+                    </div>
+                    <form action="{{ url_for('delete_holiday', holiday_id=h['_id']) }}" method="POST" class="inline" onsubmit="return confirm('Remove {{ h.name }} from holiday roster?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="w-8 h-8 rounded-lg text-rose-500 hover:text-white hover:bg-rose-500 flex items-center justify-center transition" title="Delete holiday">
+                            <i class="fas fa-trash-alt text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-12 text-center text-stone-400">
+                <i class="fas fa-calendar-times text-5xl mb-4 text-amber-300/50"></i>
+                <p class="text-stone-600 font-medium">No gazetted holidays recorded for {{ year }}.</p>
+            </div>
+            {% endif %}
         </div>
-        <div class="px-5 py-3 bg-orange-50 border-t border-orange-100">
-            <p class="text-sm font-bold text-orange-700 hindi">कुल {{ holidays|length }} holidays — ये Salary Calculation में automatically exclude होंगी (Paid Holidays)</p>
+
+        <div class="px-5 py-3.5 bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 border-t border-amber-200/80">
+            <p class="text-xs font-bold text-amber-950 flex items-center gap-2">
+                <i class="fas fa-shield-check text-emerald-600 text-sm"></i>
+                Total {{ holidays|length }} holidays — automatically excluded from faculty salary deductions (Paid Holidays)
+            </p>
         </div>
-        {% else %}
-        <div class="p-12 text-center text-gray-400">
-            <i class="fas fa-calendar-times text-5xl mb-4 opacity-30"></i>
-            <p class="hindi">{{ year }} में कोई holiday नहीं जोड़ी गई।</p>
-        </div>
-        {% endif %}
     </div>
 </div>
 
-<!-- How It Works -->
-<div class="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-5">
-    <h3 class="font-bold text-blue-800 hindi flex items-center gap-2 mb-3">
-        <i class="fas fa-info-circle"></i> Salary Calculation कैसे काम करती है?
+<!-- How It Works Explanation -->
+<div class="mt-6 bg-gradient-to-r from-amber-50 via-yellow-50/40 to-stone-50 border border-amber-200/80 rounded-2xl p-5 card-shadow">
+    <h3 class="font-bold text-stone-900 flex items-center gap-2 mb-3 text-sm sm:text-base font-serif">
+        <i class="fas fa-info-circle text-amber-600"></i> Institutional Payroll Compensation Formulation
     </h3>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-        <div class="bg-white rounded-xl p-4 border border-blue-100">
-            <p class="font-bold text-blue-700 hindi">📅 Total Days</p>
-            <p class="text-gray-600 text-xs hindi mt-1">महीने के सभी दिन (30/31)</p>
+        <div class="bg-white rounded-xl p-4 border border-amber-200/70 card-shadow">
+            <p class="font-bold text-amber-900 text-xs uppercase tracking-wide">📅 Calendar Total</p>
+            <p class="text-stone-600 text-xs mt-1">Full 30 or 31 calendar days in the monthly academic period.</p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-blue-100">
-            <p class="font-bold text-purple-700 hindi">🌅 Sundays + Holidays</p>
-            <p class="text-gray-600 text-xs hindi mt-1">Paid छुट्टियाँ — salary में already शामिल</p>
+        <div class="bg-white rounded-xl p-4 border border-amber-200/70 card-shadow">
+            <p class="font-bold text-purple-900 text-xs uppercase tracking-wide">🌅 Sundays & Gazetted Holidays</p>
+            <p class="text-stone-600 text-xs mt-1">Institutional paid rest days — included in full base pay.</p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-blue-100">
-            <p class="font-bold text-orange-700 hindi">💼 Working Days</p>
-            <p class="text-gray-600 text-xs hindi mt-1">Total - Sundays - Holidays = Per Day Rate base</p>
+        <div class="bg-white rounded-xl p-4 border border-amber-200/70 card-shadow">
+            <p class="font-bold text-emerald-900 text-xs uppercase tracking-wide">💼 Effective Working Roster</p>
+            <p class="text-stone-600 text-xs mt-1">Academic working sessions forming daily valuation unit base.</p>
         </div>
     </div>
-    <p class="text-xs text-blue-600 hindi mt-3">
-        <b>Formula:</b> Per Day = Basic Salary ÷ Working Days &nbsp;|&nbsp;
-        Net Salary = Per Day × (Present + Medical + Half×½) &nbsp;|&nbsp;
-        Sunday + Holiday की salary automatically include है Basic Salary में।
+    <p class="text-xs text-stone-600 mt-3 border-t border-amber-200/60 pt-2.5">
+        <b>Compensation Axiom:</b> Per Day Rate = Basic Monthly Pay &divide; 30 (or Month Days) &nbsp;|&nbsp;
+        Net Payable = Basic Pay - (Daily Rate &times; Unsanctioned Absents) - Deductions. All Gazetted Holidays are 100% paid.
     </p>
 </div>
 

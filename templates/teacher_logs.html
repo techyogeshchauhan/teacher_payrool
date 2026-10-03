@@ -1,40 +1,70 @@
 {% extends "base.html" %}
-{% block title %}Activity Logs - गायत्री विद्यापीठ{% endblock %}
+{% block title %}Faculty Activity Logs — Gayatri Vidyapeeth{% endblock %}
 {% block content %}
 
-<div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
-        <i class="fas fa-clipboard-list text-orange-500"></i> Teacher Activity Logs
-    </h1>
-    <span class="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg font-semibold">
-        🔒 Admin Only
+<!-- Header Banner -->
+<div class="mb-6 bg-gradient-to-r from-amber-50 via-yellow-50/50 to-orange-50 border border-amber-200/70 rounded-2xl p-5 sm:p-6 card-shadow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+        <div class="flex items-center gap-2 mb-1.5">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-500/20">
+                <i class="fas fa-shield-halved text-amber-600"></i> Audit & Governance
+            </span>
+            <span class="text-xs text-stone-500">Security & Authentication Tracking</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-900 font-serif flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl gold-grad flex items-center justify-center text-amber-950 shadow-sm">
+                <i class="fas fa-clipboard-list text-lg"></i>
+            </span>
+            Faculty Portal Activity Logs
+        </h1>
+        <p class="text-xs sm:text-sm text-stone-600 mt-1">Audit trail of faculty logins, session activities, profile updates, and portal engagements</p>
+    </div>
+    <span class="text-xs bg-rose-100 text-rose-800 border border-rose-300 px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 shadow-sm">
+        <i class="fas fa-lock text-rose-600"></i> Authorized Administration
     </span>
 </div>
 
-<!-- Summary Cards -->
+<!-- Summary KPI Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-orange-500">
-        <p class="text-xs text-gray-400 hindi">आज के Logins</p>
-        <p class="text-4xl font-bold text-orange-600">{{ today_logins }}</p>
-        <p class="text-xs text-gray-400 mt-1">Today</p>
+    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-amber-500 border border-amber-100 flex items-center justify-between">
+        <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-amber-900">Faculty Logins Today</p>
+            <p class="text-3xl sm:text-4xl font-extrabold text-amber-700 font-mono mt-0.5">{{ today_logins }}</p>
+            <p class="text-[10px] text-stone-400 mt-0.5 font-medium">Active daily authentications</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl gold-grad text-amber-950 flex items-center justify-center shadow-sm">
+            <i class="fas fa-user-check text-xl"></i>
+        </div>
     </div>
-    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-blue-500">
-        <p class="text-xs text-gray-400 hindi">Total Logins (All Time)</p>
-        <p class="text-4xl font-bold text-blue-600">{{ total_logins }}</p>
+    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-blue-500 border border-amber-100 flex items-center justify-between">
+        <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-blue-900">Total Logins Recorded</p>
+            <p class="text-3xl sm:text-4xl font-extrabold text-blue-700 font-mono mt-0.5">{{ total_logins }}</p>
+            <p class="text-[10px] text-stone-400 mt-0.5 font-medium">All historical logins</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center shadow-sm">
+            <i class="fas fa-right-to-bracket text-xl"></i>
+        </div>
     </div>
-    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-green-500">
-        <p class="text-xs text-gray-400 hindi">Total Activities Logged</p>
-        <p class="text-4xl font-bold text-green-600">{{ total_visits }}</p>
+    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-emerald-500 border border-amber-100 flex items-center justify-between">
+        <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-900">Total Activities Logged</p>
+            <p class="text-3xl sm:text-4xl font-extrabold text-emerald-700 font-mono mt-0.5">{{ total_visits }}</p>
+            <p class="text-[10px] text-stone-400 mt-0.5 font-medium">Navigation & access events</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shadow-sm">
+            <i class="fas fa-chart-line text-xl"></i>
+        </div>
     </div>
 </div>
 
 <!-- Filters -->
-<div class="bg-white rounded-2xl card-shadow p-4 mb-5">
-    <form method="GET" class="flex flex-wrap items-end gap-3">
+<div class="bg-white rounded-2xl card-shadow p-4 mb-6 border border-amber-200/70">
+    <form method="GET" class="flex flex-wrap items-end gap-3 text-xs">
         <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1 hindi">Teacher फ़िल्टर</label>
-            <select name="teacher_id" class="px-3 py-2 border-2 border-orange-300 rounded-xl text-sm focus:outline-none">
-                <option value="">— सभी Teachers —</option>
+            <label class="block font-bold text-stone-700 uppercase tracking-wider mb-1">Filter by Faculty</label>
+            <select name="teacher_id" class="px-3 py-2 border border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-50/20 text-stone-800 font-medium">
+                <option value="">— All Faculty Members —</option>
                 {% for t in all_teachers %}
                 <option value="{{ t.teacher_id }}" {% if filter_id == t.teacher_id %}selected{% endif %}>
                     {{ t.name }} ({{ t.teacher_id }})
@@ -43,46 +73,46 @@
             </select>
         </div>
         <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Action Type</label>
-            <select name="action" class="px-3 py-2 border-2 border-orange-300 rounded-xl text-sm focus:outline-none">
-                <option value="">— सभी Actions —</option>
-                <option value="LOGIN"         {% if filter_action == 'LOGIN' %}selected{% endif %}>🔑 Login</option>
+            <label class="block font-bold text-stone-700 uppercase tracking-wider mb-1">Activity Classification</label>
+            <select name="action" class="px-3 py-2 border border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-50/20 text-stone-800 font-medium">
+                <option value="">— All Activity Types —</option>
+                <option value="LOGIN"           {% if filter_action == 'LOGIN' %}selected{% endif %}>🔑 Login</option>
                 <option value="VISIT_DASHBOARD" {% if filter_action == 'VISIT_DASHBOARD' %}selected{% endif %}>🏠 Dashboard Visit</option>
-                <option value="VISIT_SALARY"  {% if filter_action == 'VISIT_SALARY' %}selected{% endif %}>💰 Salary View</option>
-                <option value="VISIT_ATTENDANCE" {% if filter_action == 'VISIT_ATTENDANCE' %}selected{% endif %}>📅 Attendance View</option>
-                <option value="VISIT_PROFILE" {% if filter_action == 'VISIT_PROFILE' %}selected{% endif %}>👤 Profile Visit</option>
-                <option value="PHOTO_UPLOAD"  {% if filter_action == 'PHOTO_UPLOAD' %}selected{% endif %}>📷 Photo Upload</option>
+                <option value="VISIT_SALARY"    {% if filter_action == 'VISIT_SALARY' %}selected{% endif %}>💰 Salary Slip View</option>
+                <option value="VISIT_ATTENDANCE" {% if filter_action == 'VISIT_ATTENDANCE' %}selected{% endif %}>📅 Attendance Sheet</option>
+                <option value="VISIT_PROFILE"   {% if filter_action == 'VISIT_PROFILE' %}selected{% endif %}>👤 Profile View</option>
+                <option value="PHOTO_UPLOAD"    {% if filter_action == 'PHOTO_UPLOAD' %}selected{% endif %}>📷 Photo Upload</option>
             </select>
         </div>
         <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Date</label>
+            <label class="block font-bold text-stone-700 uppercase tracking-wider mb-1">Date</label>
             <input type="date" name="date" value="{{ filter_date }}"
-                class="px-3 py-2 border-2 border-orange-300 rounded-xl text-sm focus:outline-none">
+                class="px-3 py-2 border border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-50/20 text-stone-800 font-medium">
         </div>
-        <button type="submit" class="saffron-grad text-white px-5 py-2 rounded-xl font-semibold text-sm">
-            <i class="fas fa-filter"></i> Filter
+        <button type="submit" class="gold-saffron-grad text-white px-5 py-2.5 rounded-xl font-bold shadow-sm hover:opacity-95 transition flex items-center gap-1.5">
+            <i class="fas fa-filter"></i> Apply Filters
         </button>
-        <a href="{{ url_for('teacher_logs') }}" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl text-sm hover:bg-gray-200 transition">
+        <a href="{{ url_for('teacher_logs') }}" class="bg-stone-100 text-stone-700 px-4 py-2.5 rounded-xl font-semibold hover:bg-stone-200 transition flex items-center gap-1.5">
             <i class="fas fa-times"></i> Reset
         </a>
     </form>
 </div>
 
 <!-- Logs Table -->
-<div class="bg-white rounded-2xl card-shadow overflow-hidden">
-    <div class="px-5 py-3 border-b bg-gray-50 flex items-center justify-between">
-        <h2 class="font-bold text-gray-700 hindi flex items-center gap-2">
-            <i class="fas fa-history text-orange-500"></i>
-            Recent Activity
-            <span class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">{{ logs|length }} entries</span>
+<div class="bg-white rounded-2xl card-shadow overflow-hidden border border-amber-100/80 mb-6">
+    <div class="px-5 py-3.5 bg-gradient-to-r from-amber-50 to-yellow-50 border-b border-amber-200/60 flex items-center justify-between">
+        <h2 class="font-bold text-stone-800 flex items-center gap-2 text-sm sm:text-base">
+            <i class="fas fa-history text-amber-600"></i>
+            Real-Time Audit Stream
+            <span class="text-xs bg-amber-100 text-amber-900 border border-amber-200 px-2.5 py-0.5 rounded-full font-bold">{{ logs|length }} entries</span>
         </h2>
         <!-- Clear Old Logs -->
         <form method="POST" action="{{ url_for('clear_logs') }}"
-              onsubmit="return confirm('क्या आप पिछले 2 दिन से पुराने सभी logs delete करना चाहते हैं?')"
+              onsubmit="return confirm('Are you sure you want to delete all activity logs older than 2 days?')"
               class="flex items-center gap-2">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="bg-red-50 text-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-500 hover:text-white transition" title="2 दिन से पुराने logs हटाएं">
-                <i class="fas fa-trash"></i> Clear Old (Older than 2 Days)
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="bg-rose-50 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-rose-600 hover:text-white transition" title="Purge historical logs older than 48 hours">
+                <i class="fas fa-trash-can mr-1"></i> Purge &gt; 2 Days Old
             </button>
         </form>
     </div>
@@ -90,24 +120,24 @@
     {% if logs %}
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-gray-800 text-white text-xs">
+            <thead class="bg-gradient-to-r from-amber-900 via-amber-950 to-stone-950 text-amber-200 text-xs">
                 <tr>
-                    <th class="text-left px-4 py-3 hindi">Teacher</th>
-                    <th class="text-center px-4 py-3">Action</th>
-                    <th class="text-left px-4 py-3 hindi">Details</th>
-                    <th class="text-center px-3 py-3">Time</th>
-                    <th class="text-center px-3 py-3">IP</th>
+                    <th class="text-left px-4 py-3 font-semibold uppercase tracking-wider">Faculty Member</th>
+                    <th class="text-center px-4 py-3 font-semibold uppercase tracking-wider">Action Type</th>
+                    <th class="text-left px-4 py-3 font-semibold uppercase tracking-wider">Event Details</th>
+                    <th class="text-center px-3 py-3 font-semibold uppercase tracking-wider">Time</th>
+                    <th class="text-center px-3 py-3 font-semibold uppercase tracking-wider">Client IP</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
+            <tbody class="divide-y divide-amber-100/40">
                 {% set current_date = namespace(value='') %}
                 {% for log in logs %}
                     {% if log.date != current_date.value %}
-                        <tr class="bg-orange-100/50">
-                            <td colspan="5" class="px-4 py-3 font-bold text-orange-800 hindi text-sm border-y border-orange-200">
-                                <i class="fas fa-calendar-day mr-2 text-orange-500"></i>
+                        <tr class="bg-gradient-to-r from-amber-100/60 via-yellow-100/40 to-amber-100/60">
+                            <td colspan="5" class="px-4 py-2.5 font-bold text-amber-950 text-xs border-y border-amber-200">
+                                <i class="fas fa-calendar-day mr-1.5 text-amber-700"></i>
                                 {% if log.date == today %}
-                                    <span class="bg-orange-500 text-white px-2 py-0.5 rounded text-xs mr-2">आज</span>{{ log.date }}
+                                    <span class="bg-amber-600 text-white px-2 py-0.5 rounded text-[10px] mr-1.5 uppercase font-bold tracking-wide">Today</span>{{ log.date }}
                                 {% else %}
                                     {{ log.date }}
                                 {% endif %}
@@ -115,57 +145,57 @@
                         </tr>
                         {% set current_date.value = log.date %}
                     {% endif %}
-                <tr class="hover:bg-orange-50 transition">
+                <tr class="hover:bg-amber-50/50 transition">
                     <td class="px-4 py-3">
-                        <p class="font-semibold text-gray-800 hindi text-sm">{{ log.teacher_name }}</p>
-                        <p class="text-xs text-gray-400 font-mono">{{ log.teacher_id }}</p>
+                        <p class="font-bold text-stone-900 text-sm">{{ log.teacher_name }}</p>
+                        <p class="text-xs text-stone-400 font-mono">{{ log.teacher_id }}</p>
                     </td>
                     <td class="px-4 py-3 text-center">
                         {% if log.action == 'LOGIN' %}
-                        <span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-lg text-xs font-bold">
+                        <span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
                             🔑 LOGIN
                         </span>
                         {% elif log.action == 'VISIT_DASHBOARD' %}
-                        <span class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-bold">
+                        <span class="bg-blue-100 text-blue-800 border border-blue-300 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
                             🏠 Dashboard
                         </span>
                         {% elif log.action == 'VISIT_SALARY' %}
-                        <span class="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-lg text-xs font-bold">
+                        <span class="bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
                             💰 Salary
                         </span>
                         {% elif log.action == 'VISIT_ATTENDANCE' %}
-                        <span class="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg text-xs font-bold">
+                        <span class="bg-purple-100 text-purple-800 border border-purple-300 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
                             📅 Attendance
                         </span>
                         {% elif log.action == 'VISIT_PROFILE' %}
-                        <span class="bg-orange-100 text-orange-700 px-2.5 py-1 rounded-lg text-xs font-bold">
+                        <span class="bg-orange-100 text-orange-800 border border-orange-300 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
                             👤 Profile
                         </span>
                         {% elif log.action == 'PHOTO_UPLOAD' %}
-                        <span class="bg-pink-100 text-pink-700 px-2.5 py-1 rounded-lg text-xs font-bold">
+                        <span class="bg-pink-100 text-pink-800 border border-pink-300 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
                             📷 Photo
                         </span>
                         {% else %}
-                        <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg text-xs font-bold">
+                        <span class="bg-stone-100 text-stone-700 border border-stone-300 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
                             {{ log.action }}
                         </span>
                         {% endif %}
                     </td>
-                    <td class="px-4 py-3 text-gray-500 text-xs">{{ log.details or '—' }}</td>
+                    <td class="px-4 py-3 text-stone-600 text-xs">{{ log.details or '—' }}</td>
                     <td class="px-3 py-3 text-center">
-                        <span class="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">{{ log.time }}</span>
+                        <span class="font-mono text-xs bg-stone-100 border border-stone-200 px-2 py-0.5 rounded text-stone-700">{{ log.time }}</span>
                     </td>
-                    <td class="px-3 py-3 text-center text-xs text-gray-400 font-mono">{{ log.ip }}</td>
+                    <td class="px-3 py-3 text-center text-xs text-stone-400 font-mono">{{ log.ip }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
     {% else %}
-    <div class="p-16 text-center text-gray-400">
-        <i class="fas fa-clipboard-list text-6xl mb-4 opacity-20"></i>
-        <p class="hindi text-lg">कोई activity log नहीं मिला।</p>
-        <p class="text-sm hindi mt-1">Filter बदलें या Teachers के portal use करने का इंतज़ार करें।</p>
+    <div class="p-16 text-center text-stone-400">
+        <i class="fas fa-clipboard-list text-6xl mb-4 text-amber-300/40"></i>
+        <p class="text-lg text-stone-600 font-semibold">No activity logs recorded.</p>
+        <p class="text-xs text-stone-400 mt-1">Logs will automatically populate as faculty members authenticate and access their portal.</p>
     </div>
     {% endif %}
 </div>

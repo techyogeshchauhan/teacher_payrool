@@ -1,64 +1,117 @@
 {% extends "base.html" %}
-{% block title %}My Leave Requests - गायत्री विद्यापीठ{% endblock %}
+{% block title %}Leave Application & Status — Gayatri Vidyapeeth{% endblock %}
 {% block content %}
 
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
-        <i class="fas fa-plane-departure text-orange-500"></i>
-        Leave Requests
-    </h1>
-    <p class="text-gray-500 text-sm hindi">छुट्टी के लिए आवेदन करें और स्टेटस देखें</p>
+<!-- Header Banner -->
+<div class="mb-6 bg-gradient-to-r from-amber-50 via-yellow-50/50 to-orange-50 border border-amber-200/70 rounded-2xl p-5 sm:p-6 card-shadow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+        <div class="flex items-center gap-2 mb-1.5">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-500/20">
+                <i class="fas fa-plane-departure text-amber-600"></i> Faculty Self-Service
+            </span>
+            <span class="text-xs text-stone-500">Leave Sanction Requests</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-900 font-serif flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl gold-grad flex items-center justify-center text-amber-950 shadow-sm">
+                <i class="fas fa-calendar-day text-lg"></i>
+            </span>
+            Leave Requests & Applications
+        </h1>
+        <p class="text-xs sm:text-sm text-stone-600 mt-1">Submit formal leave applications for administrative approval and track review status</p>
+    </div>
+    <a href="{{ url_for('teacher_attendance_report') }}" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-amber-300 text-amber-900 hover:bg-amber-50 transition card-shadow flex items-center gap-2">
+        <i class="fas fa-clipboard-user text-amber-600"></i> Attendance Sheet
+    </a>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <!-- Apply Leave Form -->
     <div class="md:col-span-1">
-        <div class="bg-white rounded-2xl p-6 card-shadow border-t-4 border-orange-500">
-            <h2 class="font-bold text-gray-800 hindi mb-4">नई छुट्टी का आवेदन</h2>
-            <form method="POST" action="{{ url_for('teacher_leave') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2 hindi">कब से (Start Date)</label>
-                    <input type="date" name="start_date" required min="{{ today_str }}" class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-amber-100/80">
+            <div class="gold-saffron-grad px-5 py-4 text-white">
+                <h2 class="font-bold flex items-center gap-2 text-base">
+                    <i class="fas fa-pen-nib text-amber-200"></i> New Leave Application
+                </h2>
+                <p class="text-xs text-amber-100/90 mt-0.5">Specify leave duration & justification</p>
+            </div>
+            <form method="POST" action="{{ url_for('teacher_leave') }}" class="p-5 sm:p-6 space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                        <i class="fas fa-calendar text-amber-600 mr-1"></i> Start Date <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" name="start_date" required min="{{ today_str }}" 
+                           class="w-full px-4 py-2.5 rounded-xl border border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none bg-amber-50/20 text-stone-800 text-sm">
                 </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2 hindi">कब तक (End Date)</label>
-                    <input type="date" name="end_date" required min="{{ today_str }}" class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                        <i class="fas fa-calendar-check text-amber-600 mr-1"></i> End Date <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" name="end_date" required min="{{ today_str }}" 
+                           class="w-full px-4 py-2.5 rounded-xl border border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none bg-amber-50/20 text-stone-800 text-sm">
                 </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2 hindi">छुट्टी का कारण (Reason)</label>
-                    <textarea name="reason" required rows="3" placeholder="कारण लिखें..." class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"></textarea>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                        <i class="fas fa-comment-alt text-amber-600 mr-1"></i> Justification / Reason <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="reason" required rows="3" placeholder="Please describe reason for leave (medical, academic, urgent personal)..." 
+                              class="w-full px-4 py-2.5 rounded-xl border border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none bg-amber-50/20 text-stone-800 text-sm"></textarea>
                 </div>
-                <button type="submit" class="w-full saffron-grad text-white font-bold py-2 px-4 rounded-xl hover:opacity-90 transition hindi">आवेदन भेजें</button>
+                <button type="submit" class="w-full gold-saffron-grad text-white font-bold py-3 px-4 rounded-xl hover:opacity-95 transition card-shadow flex items-center justify-center gap-2">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Submit Application</span>
+                </button>
             </form>
         </div>
     </div>
 
     <!-- Leave History -->
     <div class="md:col-span-2">
-        <div class="bg-white rounded-2xl p-6 card-shadow">
-            <h2 class="font-bold text-gray-800 hindi mb-4"><i class="fas fa-history text-gray-500"></i> आपके पिछले आवेदन</h2>
-            <div class="space-y-4">
+        <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-amber-100/80">
+            <div class="px-6 py-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-b border-amber-200/60 flex items-center justify-between">
+                <h2 class="font-bold text-stone-800 flex items-center gap-2 text-base">
+                    <i class="fas fa-history text-amber-600"></i> Leave Application History
+                </h2>
+                <span class="text-xs bg-amber-100 text-amber-900 border border-amber-200 px-3 py-1 rounded-full font-bold">
+                    {{ leaves|length }} Applications
+                </span>
+            </div>
+            <div class="p-6 space-y-4">
                 {% for req in leaves %}
-                <div class="p-4 border rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="p-4 border rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition {% if req.status == 'Pending' %}border-l-4 border-amber-500 bg-amber-50/20 border-amber-200{% else %}border-stone-200 bg-white hover:bg-stone-50/50{% endif %}">
                     <div>
-                        <p class="font-bold text-gray-800 hindi">{{ req.start_date }} <span class="text-sm font-normal text-gray-500 mx-2">से</span> {{ req.end_date }}</p>
-                        <p class="text-sm text-gray-600 mt-1 hindi">कारण: {{ req.reason }}</p>
-                        <p class="text-xs text-gray-400 mt-1">Applied on: {{ req.applied_on.strftime('%Y-%m-%d') }}</p>
+                        <p class="font-bold text-stone-900 text-base flex items-center gap-2">
+                            <i class="fas fa-calendar-range text-amber-600"></i>
+                            <span>{{ req.start_date }}</span>
+                            <span class="text-stone-400 font-normal text-xs">to</span>
+                            <span>{{ req.end_date }}</span>
+                        </p>
+                        <p class="text-sm text-stone-600 mt-1.5 flex items-start gap-1.5">
+                            <i class="fas fa-quote-left text-amber-400 text-xs mt-1 shrink-0"></i>
+                            <span><b>Reason:</b> {{ req.reason }}</span>
+                        </p>
+                        <p class="text-xs text-stone-400 mt-2 font-mono">Applied on: {{ req.applied_on.strftime('%d %b %Y') if req.applied_on else '—' }}</p>
                     </div>
-                    <div class="shrink-0">
+                    <div class="shrink-0 mt-2 sm:mt-0">
                         {% if req.status == 'Pending' %}
-                            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm font-bold"><i class="fas fa-clock"></i> Pending</span>
+                            <span class="bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                                <i class="fas fa-hourglass-half text-amber-600"></i> Under Review
+                            </span>
                         {% elif req.status == 'Approved' %}
-                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm font-bold"><i class="fas fa-check-circle"></i> Approved</span>
+                            <span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                                <i class="fas fa-circle-check text-emerald-600"></i> Approved & Sanctioned
+                            </span>
                         {% elif req.status == 'Rejected' %}
-                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-sm font-bold"><i class="fas fa-times-circle"></i> Rejected</span>
+                            <span class="bg-rose-100 text-rose-800 border border-rose-300 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                                <i class="fas fa-circle-xmark text-rose-600"></i> Declined
+                            </span>
                         {% endif %}
                     </div>
                 </div>
                 {% else %}
-                <div class="text-center py-6 text-gray-400 hindi">
-                    आपने अभी तक कोई छुट्टी का आवेदन नहीं किया है।
+                <div class="text-center py-10 text-stone-400">
+                    <i class="fas fa-calendar-check text-4xl text-amber-300/50 mb-3"></i>
+                    <p class="text-stone-600 font-medium">No leave applications submitted yet.</p>
                 </div>
                 {% endfor %}
             </div>

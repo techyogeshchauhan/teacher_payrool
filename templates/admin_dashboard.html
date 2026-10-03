@@ -1,161 +1,212 @@
 {% extends "base.html" %}
-{% block title %}Admin Dashboard - गायत्री विद्यापीठ{% endblock %}
+{% block title %}Administrator Dashboard - Gayatri Vidyapeeth{% endblock %}
 {% block content %}
 
-<!-- Header -->
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800 hindi flex items-center gap-2">
-        <i class="fas fa-tachometer-alt text-orange-500"></i>
-        Admin Dashboard
-    </h1>
-    <p class="text-gray-500 text-sm hindi">स्वागत है, {{ admin_name }} जी | आज: {{ today }}</p>
+<!-- Header & Welcome Banner -->
+<div class="mb-8 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-amber-300/40">
+    <div class="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none transform translate-x-20 -translate-y-20"></div>
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="bg-amber-950/40 text-amber-200 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider backdrop-blur-sm border border-amber-300/30">
+                    <i class="fas fa-shield-alt mr-1"></i> Central Administration
+                </span>
+                <span class="text-amber-200 text-xs hidden sm:inline">•</span>
+                <span class="text-amber-100 text-xs hidden sm:inline font-medium">Academic Session 2026-27</span>
+            </div>
+            <h1 class="text-2xl sm:text-4xl font-extrabold font-univ tracking-wide text-white drop-shadow-sm">
+                Administrator Dashboard
+            </h1>
+            <p class="text-amber-100 text-sm mt-1">Welcome back, <span class="font-bold text-white">{{ admin_name }}</span> • Real-time overview of faculty, attendance & payroll</p>
+        </div>
+        <div class="bg-white/15 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 flex items-center gap-3 shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-amber-400/30 flex items-center justify-center text-amber-100 text-lg">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div>
+                <p class="text-[10px] text-amber-100 uppercase tracking-widest font-semibold">Today's Date</p>
+                <p class="text-sm font-bold text-white">{{ today }}</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-orange-500">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 mb-8">
+    <!-- Total Teachers -->
+    <div class="bg-white rounded-3xl p-6 card-shadow card-shadow-hover border-t-4 border-amber-500">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-xs hindi">कुल शिक्षक</p>
-                <p class="text-3xl font-bold text-orange-600">{{ total }}</p>
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Faculty</p>
+                <p class="text-3xl font-extrabold text-amber-700 mt-1 font-univ">{{ total }}</p>
+                <p class="text-[11px] text-gray-400 mt-1 font-medium">Registered teachers</p>
             </div>
-            <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <i class="fas fa-users text-orange-500 text-xl"></i>
+            <div class="w-13 h-13 bg-gradient-to-br from-amber-100 to-yellow-200 rounded-2xl flex items-center justify-center text-amber-700 text-2xl shadow-sm">
+                <i class="fas fa-chalkboard-teacher"></i>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-green-500">
+
+    <!-- Present Today -->
+    <div class="bg-white rounded-3xl p-6 card-shadow card-shadow-hover border-t-4 border-emerald-500">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-xs hindi">आज उपस्थित</p>
-                <p class="text-3xl font-bold text-green-600">{{ present_today }}</p>
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Present Today</p>
+                <p class="text-3xl font-extrabold text-emerald-600 mt-1 font-univ">{{ present_today }}</p>
+                <p class="text-[11px] text-emerald-600 mt-1 font-medium"><i class="fas fa-check-circle mr-1"></i>On campus duty</p>
             </div>
-            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <i class="fas fa-user-check text-green-500 text-xl"></i>
+            <div class="w-13 h-13 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center text-emerald-700 text-2xl shadow-sm">
+                <i class="fas fa-user-check"></i>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-red-400">
+
+    <!-- Absent Today -->
+    <div class="bg-white rounded-3xl p-6 card-shadow card-shadow-hover border-t-4 border-rose-500">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-xs hindi">आज अनुपस्थित</p>
-                <p class="text-3xl font-bold text-red-500">{{ absent_today }}</p>
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Absent / On Leave</p>
+                <p class="text-3xl font-extrabold text-rose-600 mt-1 font-univ">{{ absent_today }}</p>
+                <p class="text-[11px] text-rose-500 mt-1 font-medium"><i class="fas fa-exclamation-circle mr-1"></i>Not in attendance</p>
             </div>
-            <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                <i class="fas fa-user-times text-red-400 text-xl"></i>
+            <div class="w-13 h-13 bg-gradient-to-br from-rose-100 to-red-100 rounded-2xl flex items-center justify-center text-rose-600 text-2xl shadow-sm">
+                <i class="fas fa-user-times"></i>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-yellow-500">
+
+    <!-- Attendance Rate -->
+    <div class="bg-white rounded-3xl p-6 card-shadow card-shadow-hover border-t-4 border-orange-500">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-xs">Today</p>
-                <p class="text-lg font-bold text-yellow-600">{{ today }}</p>
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Attendance Rate</p>
+                {% set att_rate = ((present_today / total) * 100) if total > 0 else 0 %}
+                <p class="text-3xl font-extrabold text-orange-600 mt-1 font-univ">{{ "%.0f"|format(att_rate) }}%</p>
+                <p class="text-[11px] text-gray-400 mt-1 font-medium">{{ present_today }} of {{ total }} faculty present</p>
             </div>
-            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                <i class="fas fa-calendar text-yellow-500 text-xl"></i>
+            <div class="w-13 h-13 bg-gradient-to-br from-orange-100 to-amber-200 rounded-2xl flex items-center justify-center text-orange-600 text-2xl shadow-sm">
+                <i class="fas fa-chart-pie"></i>
             </div>
         </div>
     </div>
-    <!-- Student Card -->
-    <div class="bg-white rounded-2xl p-5 card-shadow border-l-4 border-teal-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-xs hindi">कुल छात्र</p>
-                <p class="text-3xl font-bold text-teal-600">{{ total_students }}</p>
-                <p class="text-xs text-gray-400 mt-1">₹{{ "{:,.0f}".format(total_balance) }} बाकी</p>
+</div>
+
+<!-- Quick Actions (DSVV Golden Theme) -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+    <a href="{{ url_for('mark_attendance') }}" class="gold-saffron-grad bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 rounded-3xl p-6 text-white card-shadow card-shadow-hover group border border-amber-300/40 relative overflow-hidden shadow-lg hover:shadow-2xl transition duration-300">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-2xl shrink-0 group-hover:scale-110 transition-transform shadow-inner">
+                <i class="fas fa-calendar-check"></i>
             </div>
-            <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
-                <i class="fas fa-user-graduate text-teal-500 text-xl"></i>
+            <div>
+                <h3 class="font-bold text-lg font-univ tracking-wide text-white drop-shadow-sm">Mark Attendance</h3>
+                <p class="text-amber-100 text-xs mt-0.5 font-medium">Record faculty attendance for today</p>
             </div>
         </div>
-    </div>
+    </a>
+
+    <a href="{{ url_for('payroll') }}" class="royal-grad bg-gradient-to-r from-orange-600 via-amber-700 to-amber-900 rounded-3xl p-6 text-white card-shadow card-shadow-hover group border border-orange-300/40 relative overflow-hidden shadow-lg hover:shadow-2xl transition duration-300">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-2xl shrink-0 group-hover:scale-110 transition-transform shadow-inner">
+                <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-lg font-univ tracking-wide text-white drop-shadow-sm">Payroll Ledger</h3>
+                <p class="text-orange-100 text-xs mt-0.5 font-medium">Calculate monthly salaries & deductions</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="{{ url_for('add_teacher') }}" class="emerald-grad bg-gradient-to-r from-emerald-600 via-teal-700 to-emerald-800 rounded-3xl p-6 text-white card-shadow card-shadow-hover group border border-emerald-300/40 relative overflow-hidden shadow-lg hover:shadow-2xl transition duration-300">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-2xl shrink-0 group-hover:scale-110 transition-transform shadow-inner">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-lg font-univ tracking-wide text-white drop-shadow-sm">Register Teacher</h3>
+                <p class="text-emerald-100 text-xs mt-0.5 font-medium">Add new faculty member to portal</p>
+            </div>
+        </div>
+    </a>
 </div>
 
 <!-- Charts Section -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
     <!-- Trend Chart -->
-    <div class="lg:col-span-2 bg-white rounded-2xl p-5 card-shadow border border-gray-100">
-        <h3 class="font-bold text-gray-800 mb-4 hindi flex items-center gap-2"><i class="fas fa-chart-line text-orange-500"></i> पिछले 7 दिनों की उपस्थिति (Last 7 Days Trend)</h3>
+    <div class="lg:col-span-2 bg-white rounded-3xl p-6 card-shadow border border-amber-200/50">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-100">
+            <h3 class="font-bold text-amber-950 font-univ flex items-center gap-2 text-base sm:text-lg">
+                <i class="fas fa-chart-line text-amber-600"></i> Attendance Trends (Past 7 Days)
+            </h3>
+            <span class="text-xs text-amber-700 bg-amber-100/80 px-2.5 py-1 rounded-full font-semibold">Faculty Duty</span>
+        </div>
         <div style="height: 280px; position: relative;">
             <canvas id="attendanceTrendChart"></canvas>
         </div>
     </div>
+
     <!-- Pie Chart -->
-    <div class="bg-white rounded-2xl p-5 card-shadow border border-gray-100">
-        <h3 class="font-bold text-gray-800 mb-4 hindi flex items-center gap-2"><i class="fas fa-chart-pie text-green-500"></i> विषय (Subject) Distribution</h3>
+    <div class="bg-white rounded-3xl p-6 card-shadow border border-amber-200/50">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-100">
+            <h3 class="font-bold text-amber-950 font-univ flex items-center gap-2 text-base sm:text-lg">
+                <i class="fas fa-chart-pie text-amber-600"></i> Faculty Distribution
+            </h3>
+            <span class="text-xs text-amber-700 bg-amber-100/80 px-2.5 py-1 rounded-full font-semibold">By Department</span>
+        </div>
         <div style="height: 280px; position: relative;" class="flex justify-center items-center">
             <canvas id="subjectPieChart"></canvas>
         </div>
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <a href="{{ url_for('mark_attendance') }}" class="saffron-grad rounded-2xl p-6 text-white hover:opacity-90 transition card-shadow group">
-        <i class="fas fa-calendar-check text-3xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
-        <h3 class="font-bold text-lg hindi">Attendance लगाएं</h3>
-        <p class="text-orange-100 text-sm hindi">आज की उपस्थिति दर्ज करें</p>
-    </a>
-    <a href="{{ url_for('payroll') }}" class="maroon-grad rounded-2xl p-6 text-white hover:opacity-90 transition card-shadow group">
-        <i class="fas fa-rupee-sign text-3xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
-        <h3 class="font-bold text-lg hindi">Payroll देखें</h3>
-        <p class="text-red-200 text-sm hindi">इस महीने की salary calculate करें</p>
-    </a>
-    <a href="{{ url_for('add_teacher') }}" class="green-grad rounded-2xl p-6 text-white hover:opacity-90 transition card-shadow group">
-        <i class="fas fa-user-plus text-3xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
-        <h3 class="font-bold text-lg hindi">Teacher जोड़ें</h3>
-        <p class="text-green-200 text-sm hindi">नए शिक्षक को register करें</p>
-    </a>
-    <a href="{{ url_for('manage_students') }}" class="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl p-6 text-white hover:opacity-90 transition card-shadow group">
-        <i class="fas fa-user-graduate text-3xl mb-3 group-hover:scale-110 transition-transform inline-block"></i>
-        <h3 class="font-bold text-lg hindi">Students देखें</h3>
-        <p class="text-teal-100 text-sm hindi">छात्र शुल्क प्रबंधन करें</p>
-    </a>
-</div>
-
-<!-- Teachers Table -->
-<div class="bg-white rounded-2xl card-shadow overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h2 class="font-bold text-gray-800 hindi flex items-center gap-2">
-            <i class="fas fa-list text-orange-500"></i> सभी शिक्षकों की सूची
+<!-- Faculty Directory Table -->
+<div class="bg-white rounded-3xl card-shadow overflow-hidden border border-amber-200/60 mb-8">
+    <div class="px-6 py-4.5 bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 border-b border-amber-200/80 flex items-center justify-between">
+        <h2 class="font-bold text-amber-950 font-univ flex items-center gap-2.5 text-base sm:text-lg">
+            <i class="fas fa-users text-amber-600"></i> Active Faculty Directory
         </h2>
-        <a href="{{ url_for('manage_teachers') }}" class="text-orange-600 text-sm hover:underline hindi">सभी देखें →</a>
+        <a href="{{ url_for('manage_teachers') }}" class="text-amber-800 hover:text-amber-950 text-xs sm:text-sm font-bold bg-amber-200/60 hover:bg-amber-200 px-3.5 py-1.5 rounded-full transition flex items-center gap-1">
+            View All Teachers <i class="fas fa-arrow-right text-xs"></i>
+        </a>
     </div>
     <div class="scroll-x">
         <table class="w-full">
-            <thead class="bg-orange-50">
+            <thead class="bg-amber-100/40 border-b border-amber-200/60">
                 <tr>
-                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hindi">Teacher ID</th>
-                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hindi">नाम</th>
-                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hindi">विषय</th>
-                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hindi">फ़ोन</th>
-                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 hindi">Basic Salary</th>
+                    <th class="text-left px-5 py-3.5 text-xs font-bold text-amber-950 uppercase tracking-wider">Teacher ID</th>
+                    <th class="text-left px-5 py-3.5 text-xs font-bold text-amber-950 uppercase tracking-wider">Faculty Name</th>
+                    <th class="text-left px-5 py-3.5 text-xs font-bold text-amber-950 uppercase tracking-wider">Subject / Dept</th>
+                    <th class="text-left px-5 py-3.5 text-xs font-bold text-amber-950 uppercase tracking-wider">Phone</th>
+                    <th class="text-left px-5 py-3.5 text-xs font-bold text-amber-950 uppercase tracking-wider">Basic Salary</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-50">
+            <tbody class="divide-y divide-amber-100/60">
                 {% for t in teachers %}
-                <tr class="hover:bg-orange-50 transition">
-                    <td class="px-4 py-3">
-                        <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-lg text-xs font-mono font-bold">{{ t.teacher_id }}</span>
+                <tr class="hover:bg-amber-50/60 transition">
+                    <td class="px-5 py-3.5">
+                        <span class="bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold">{{ t.teacher_id }}</span>
                     </td>
-                    <td class="px-4 py-3 font-medium text-gray-800 hindi">{{ t.name }}</td>
-                    <td class="px-4 py-3 text-gray-600 hindi text-sm">{{ t.subject }}</td>
-                    <td class="px-4 py-3 text-gray-600 text-sm">{{ t.phone }}</td>
-                    <td class="px-4 py-3 font-semibold text-green-700">₹{{ "{:,.2f}".format(t.basic_salary) }}</td>
+                    <td class="px-5 py-3.5 font-semibold text-gray-800">{{ t.name }}</td>
+                    <td class="px-5 py-3.5 text-gray-600 text-sm font-medium">{{ t.subject }}</td>
+                    <td class="px-5 py-3.5 text-gray-600 text-sm font-mono">{{ t.phone }}</td>
+                    <td class="px-5 py-3.5 font-bold text-emerald-700">₹{{ "{:,.2f}".format(t.basic_salary) }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="5" class="text-center py-8 text-gray-400 hindi">कोई शिक्षक नहीं मिले। पहले teacher जोड़ें।</td></tr>
+                <tr>
+                    <td colspan="5" class="text-center py-10 text-gray-400">
+                        <i class="fas fa-chalkboard-teacher text-3xl mb-2 text-amber-300"></i>
+                        <p>No faculty members found. Please register teachers first.</p>
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Chart.js and Graph Implementation -->
+<!-- Chart.js Setup with Warm Golden Palette -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Data from Backend
     const trendLabels = {{ trend_labels | tojson }};
     const trendPresents = {{ trend_presents | tojson }};
     const trendAbsents = {{ trend_absents | tojson }};
@@ -163,8 +214,7 @@
     const pieLabels = {{ pie_labels | tojson }};
     const pieData = {{ pie_data | tojson }};
 
-    // Chart.js Default styling
-    Chart.defaults.font.family = "'Poppins', 'Noto Sans Devanagari', sans-serif";
+    Chart.defaults.font.family = "'Plus Jakarta Sans', 'Poppins', sans-serif";
 
     // 1. Line Chart: Attendance Trend
     const ctxTrend = document.getElementById('attendanceTrendChart').getContext('2d');
@@ -174,22 +224,24 @@
             labels: trendLabels,
             datasets: [
                 {
-                    label: 'उपस्थित (Present)',
+                    label: 'Present',
                     data: trendPresents,
-                    borderColor: '#16a34a',
-                    backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                    borderColor: '#059669',
+                    backgroundColor: 'rgba(5, 150, 105, 0.12)',
                     borderWidth: 3,
-                    pointBackgroundColor: '#16a34a',
+                    pointBackgroundColor: '#059669',
+                    pointRadius: 4,
                     fill: true,
                     tension: 0.4
                 },
                 {
-                    label: 'अनुपस्थित (Absent)',
+                    label: 'Absent',
                     data: trendAbsents,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderColor: '#E11D48',
+                    backgroundColor: 'rgba(225, 29, 72, 0.10)',
                     borderWidth: 3,
-                    pointBackgroundColor: '#ef4444',
+                    pointBackgroundColor: '#E11D48',
+                    pointRadius: 4,
                     fill: true,
                     tension: 0.4
                 }
@@ -199,11 +251,12 @@
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { weight: 600 } } },
                 tooltip: { mode: 'index', intersect: false }
             },
             scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
             }
         }
     });
@@ -217,7 +270,7 @@
             datasets: [{
                 data: pieData,
                 backgroundColor: [
-                    '#f97316', '#3b82f6', '#10b981', '#ec4899', '#8b5cf6', '#eab308', '#06b6d4', '#f43f5e'
+                    '#F59E0B', '#D97706', '#059669', '#2563EB', '#EA580C', '#8B5CF6', '#EAB308', '#06B6D4'
                 ],
                 borderWidth: 2,
                 borderColor: '#ffffff'
@@ -226,9 +279,9 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '65%',
+            cutout: '68%',
             plugins: {
-                legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 10 } }
+                legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11, weight: 500 } } }
             }
         }
     });

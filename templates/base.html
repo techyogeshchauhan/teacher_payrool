@@ -1,322 +1,334 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}गायत्री विद्यापीठ{% endblock %}</title>
+    <title>{% block title %}Gayatri Vidyapeeth - Daudnagar{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Marcellus&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --saffron: #FF6B00;
-            --deep-saffron: #E55A00;
-            --gold: #FFB300;
-            --maroon: #7B1C1C;
-            --deep-green: #1A5C2E;
-            --cream: #FFF8F0;
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
         }
         body { 
-            font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; 
-            background: url("{{ url_for('static', filename='bg.jpg') }}") no-repeat center center fixed;
-            background-size: cover;
+            font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif; 
+            background-color: #FFFDF9; 
+            color: #1F2937;
         }
-        /* Add a semi-transparent overlay to make text readable */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(253, 246, 237, 0.90);
-            z-index: -1;
-        }
+        .font-serif-crest { font-family: 'Marcellus', 'Cinzel', serif; }
+        .font-univ { font-family: 'Marcellus', 'Cinzel', serif; letter-spacing: 0.02em; }
+        .font-heading { font-family: 'Marcellus', serif; }
+        .font-serif { font-family: 'Marcellus', 'Cinzel', serif; }
         .hindi { font-family: 'Noto Sans Devanagari', sans-serif; }
-        .saffron-grad { background: linear-gradient(135deg, #FF6B00 0%, #FFB300 100%); }
-        .maroon-grad { background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%); }
-        .green-grad { background: linear-gradient(135deg, #1A5C2E 0%, #2E8B57 100%); }
-        .card-shadow { box-shadow: 0 4px 24px rgba(0,0,0,0.10); }
-        .nav-link { transition: all 0.2s; }
-        .nav-link:hover { background: rgba(255,255,255,0.18); border-radius: 8px; }
-        .status-present { background: #d1fae5; color: #065f46; }
-        .status-absent { background: #fee2e2; color: #991b1b; }
-        .status-half_day { background: #fef3c7; color: #92400e; }
-        .scroll-x { overflow-x: auto; }
-        ::-webkit-scrollbar { height: 5px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #FF6B00; border-radius: 3px; }
+        
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 2px solid rgba(245, 158, 11, 0.25);
+        }
+
+        /* Gold & Saffron Gradient Theme (Matching about.html) */
+        .gold-saffron-grad, .saffron-grad { 
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 45%, #EA580C 100%); 
+        }
+        .gold-grad { 
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 50%, #D97706 100%); 
+        }
+        .gentle-grad { 
+            background: linear-gradient(180deg, #FEF3C7 0%, #FFFBEB 50%, #FFFDF9 100%); 
+        }
+        .royal-grad { 
+            background: linear-gradient(135deg, #C2410C 0%, #EA580C 50%, #9A3412 100%) !important; 
+        }
+        .emerald-grad { 
+            background: linear-gradient(135deg, #059669 0%, #047857 50%, #065F46 100%) !important; 
+        }
+        .maroon-grad { 
+            background: linear-gradient(135deg, #881337 0%, #9F1239 50%, #BE123C 100%); 
+        }
+        .blue-grad { 
+            background: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 50%, #3B82F6 100%); 
+        }
+
+        /* Card and hover styles matching about.html */
+        .card-hover { 
+            transition: all 0.3s ease; 
+        }
+        .card-hover:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 20px 25px -5px rgba(217, 119, 6, 0.12), 0 10px 10px -5px rgba(217, 119, 6, 0.04); 
+        }
+        .card-shadow { 
+            box-shadow: 0 4px 20px -2px rgba(217, 119, 6, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04); 
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
+        .card-shadow-hover { 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .card-shadow-hover:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 12px 28px -4px rgba(217, 119, 6, 0.16), 0 4px 12px -2px rgba(0, 0, 0, 0.06); 
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+        .gold-border { 
+            border: 1px solid rgba(245, 158, 11, 0.3); 
+        }
+        .gold-glow { 
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.25); 
+        }
+
+        /* Navigation Links */
+        .nav-link { 
+            transition: all 0.25s ease; 
+            border-radius: 9999px;
+            color: #374151;
+            font-weight: 700;
+        }
+        .nav-link:hover { 
+            background: #FEF3C7; 
+            color: #92400E;
+            transform: translateY(-1px);
+        }
+        .nav-link.active {
+            background: #FEF3C7;
+            color: #92400E;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            font-weight: 700;
+        }
+
+        /* Status Badges */
+        .status-present { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+        .status-absent { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+        .status-half_day { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+        
+        .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        ::-webkit-scrollbar { height: 6px; width: 6px; }
+        ::-webkit-scrollbar-track { background: #FEF3C7; }
+        ::-webkit-scrollbar-thumb { background: #F59E0B; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D97706; }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen flex flex-col justify-between">
 
-{% if session.get('admin') or session.get('teacher_id') or session.get('principal') or session.get('accountant') %}
-<!-- Navbar -->
-<nav class="saffron-grad shadow-lg relative z-50">
+<div>
+{% if session.get('admin') or session.get('teacher_id') or session.get('principal') %}
+<!-- Main Top Navigation -->
+<nav class="glass-nav sticky top-0 w-full z-50 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between py-2 min-h-[4.5rem]">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center p-0.5 shadow-md overflow-hidden border border-orange-300 shrink-0">
-                    <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="w-full h-full object-cover">
+        <div class="flex items-center justify-between py-2 min-h-[4.75rem]">
+            <!-- Institutional Identity -->
+            <a href="{% if session.get('admin') %}{{ url_for('admin_dashboard') }}{% elif session.get('principal') %}{{ url_for('principal_dashboard') }}{% else %}{{ url_for('teacher_dashboard') }}{% endif %}" class="flex flex-col justify-center group py-1">
+                <div class="font-serif-crest font-extrabold text-2xl sm:text-3xl text-amber-950 leading-none group-hover:text-amber-700 transition">
+                    Gayatri Vidyapeeth
                 </div>
-                <div class="flex flex-col">
-                    <div class="text-white font-extrabold text-base sm:text-xl hindi leading-tight">गायत्री विद्यापीठ</div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-orange-100 text-[10px] sm:text-xs font-medium tracking-wide">दाउदनगर</span>
-                        {% if session.get('admin') %}
-                        <span class="bg-red-600 text-white text-[9px] px-1.5 rounded-full font-bold uppercase tracking-tighter border border-white/20">Admin</span>
-                        {% elif session.get('principal') %}
-                        <span class="bg-blue-600 text-white text-[9px] px-1.5 rounded-full font-bold uppercase tracking-tighter border border-white/20">Principal</span>
-                        {% elif session.get('teacher_id') %}
-                        <span class="bg-green-600 text-white text-[9px] px-1.5 rounded-full font-bold uppercase tracking-tighter border border-white/20">Teacher</span>
-                        {% elif session.get('accountant') %}
-                        <span class="bg-teal-600 text-white text-[9px] px-1.5 rounded-full font-bold uppercase tracking-tighter border border-white/20">Accountant</span>
-                        {% endif %}
-                    </div>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="text-xs sm:text-sm font-bold text-amber-700 uppercase tracking-widest">Daudnagar</span>
+                    {% if session.get('admin') %}
+                    <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Admin</span>
+                    {% elif session.get('principal') %}
+                    <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Principal</span>
+                    {% elif session.get('teacher_id') %}
+                    <span class="bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Faculty</span>
+                    {% endif %}
                 </div>
-            </div>
+            </a>
 
-            <!-- Desktop Menu -->
-            <div class="hidden lg:flex items-center gap-2">
+            <!-- Desktop Menu Links -->
+            <div class="hidden lg:flex items-center gap-1.5">
                 {% if session.get('admin') %}
-                <a href="{{ url_for('admin_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-home text-xs"></i> Dashboard
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold">
+                    <i class="fas fa-th-large text-xs text-amber-600"></i> Dashboard
                 </a>
                 
                 <!-- Staff Dropdown -->
                 <div class="relative group">
-                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
-                        <i class="fas fa-users-cog text-xs"></i> Staff <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    <button class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold focus:outline-none">
+                        <i class="fas fa-users-cog text-xs text-amber-600"></i> Staff <i class="fas fa-chevron-down text-[10px] ml-0.5 opacity-70 text-amber-700"></i>
                     </button>
-                    <div class="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
-                        <a href="{{ url_for('manage_teachers') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-users w-5 text-center text-gray-400"></i> Teachers</a>
-                        <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-calendar-check w-5 text-center text-gray-400"></i> Attendance</a>
-                        <a href="{{ url_for('admin_leave_requests') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-envelope-open-text w-5 text-center text-gray-400"></i> Leave Requests</a>
-                        <a href="{{ url_for('payroll') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-rupee-sign w-5 text-center text-gray-400"></i> Payroll</a>
-                        <a href="{{ url_for('salary_slip_generator') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-file-invoice-dollar w-5 text-center text-gray-400"></i> Slip Generator</a>
-                        <a href="{{ url_for('admin_generated_slips') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-history w-5 text-center text-gray-400"></i> Saved Slips</a>
-                        <a href="{{ url_for('salary_increment') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-arrow-trend-up w-5 text-center text-gray-400"></i> Increment</a>
-                        <a href="{{ url_for('teacher_logs') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 border-t border-gray-50 mt-1 pt-2"><i class="fas fa-clipboard-list w-5 text-center text-gray-400"></i> Logs</a>
-                    </div>
-                </div>
-
-                <!-- Students Dropdown (Admin) -->
-                <div class="relative group">
-                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
-                        <i class="fas fa-user-graduate text-xs"></i> Students <i class="fas fa-chevron-down text-[10px] ml-1"></i>
-                    </button>
-                    <div class="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
-                        <a href="{{ url_for('manage_students') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700"><i class="fas fa-users w-5 text-center text-gray-400"></i> Manage Students</a>
-                        <a href="{{ url_for('add_student') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700"><i class="fas fa-user-plus w-5 text-center text-gray-400"></i> Add Student</a>
-                        <a href="{{ url_for('manage_students', fee_status='pending') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700"><i class="fas fa-exclamation-circle w-5 text-center text-gray-400"></i> Pending Fees</a>
-                        <a href="{{ url_for('manage_students', fee_status='fully_paid') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700"><i class="fas fa-check-circle w-5 text-center text-gray-400"></i> Paid Students</a>
-                        <a href="{{ url_for('admin_certificates') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700 border-t border-gray-50 mt-1 pt-2"><i class="fas fa-award w-5 text-center text-gray-400"></i> Manage Certificates</a>
+                    <div class="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-amber-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2.5">
+                        <a href="{{ url_for('manage_teachers') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-users w-5 text-amber-500"></i> Teachers Directory</a>
+                        <a href="{{ url_for('mark_attendance') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-calendar-check w-5 text-amber-500"></i> Mark Attendance</a>
+                        <a href="{{ url_for('admin_leave_requests') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-envelope-open-text w-5 text-amber-500"></i> Leave Requests</a>
+                        <a href="{{ url_for('payroll') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-rupee-sign w-5 text-amber-500"></i> Payroll Ledger</a>
+                        <a href="{{ url_for('salary_slip_generator') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-file-invoice-dollar w-5 text-amber-500"></i> Slip Generator</a>
+                        <a href="{{ url_for('admin_generated_slips') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-history w-5 text-amber-500"></i> Saved Slips</a>
+                        <a href="{{ url_for('salary_increment') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-arrow-trend-up w-5 text-amber-500"></i> Salary Increment</a>
+                        <a href="{{ url_for('teacher_logs') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium border-t border-amber-100 mt-1 pt-2"><i class="fas fa-clipboard-list w-5 text-amber-500"></i> Activity Logs</a>
                     </div>
                 </div>
 
                 <!-- Operations Dropdown -->
                 <div class="relative group">
-                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
-                        <i class="fas fa-cogs text-xs"></i> Operations <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    <button class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold focus:outline-none">
+                        <i class="fas fa-landmark text-xs text-amber-600"></i> Operations <i class="fas fa-chevron-down text-[10px] ml-0.5 opacity-70 text-amber-700"></i>
                     </button>
-                    <div class="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
-                        <a href="{{ url_for('manage_holidays') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-calendar-times w-5 text-center text-gray-400"></i> Holidays</a>
-                        <a href="{{ url_for('manage_assets') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-boxes w-5 text-center text-gray-400"></i> Assets</a>
-                        <a href="{{ url_for('attendance_report') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-chart-bar w-5 text-center text-gray-400"></i> Reports</a>
-                    </div>
-                </div>
-
-                {% elif session.get('accountant') %}
-                <a href="{{ url_for('accountant.accountant_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-home text-xs"></i> Dashboard
-                </a>
-
-                <!-- Students/Fee Dropdown -->
-                <div class="relative group">
-                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
-                        <i class="fas fa-user-graduate text-xs"></i> Students <i class="fas fa-chevron-down text-[10px] ml-1"></i>
-                    </button>
-                    <div class="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
-                        <a href="{{ url_for('accountant.accountant_manage_students') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600"><i class="fas fa-users w-5 text-center text-gray-400"></i> Manage Students</a>
-                        <a href="{{ url_for('accountant.accountant_add_student') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600"><i class="fas fa-user-plus w-5 text-center text-gray-400"></i> Add Student</a>
-                        <a href="{{ url_for('accountant.accountant_manage_students', fee_status='pending') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600 border-t border-gray-50 mt-1 pt-2"><i class="fas fa-exclamation-circle w-5 text-center text-gray-400"></i> Pending Fees</a>
+                    <div class="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-amber-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2.5">
+                        <a href="{{ url_for('manage_holidays') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-calendar-times w-5 text-amber-500"></i> Holiday Calendar</a>
+                        <a href="{{ url_for('manage_assets') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-boxes w-5 text-amber-500"></i> Campus Assets</a>
+                        <a href="{{ url_for('attendance_report') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-chart-bar w-5 text-amber-500"></i> Attendance Reports</a>
                     </div>
                 </div>
 
                 {% elif session.get('principal') %}
-                <a href="{{ url_for('principal_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-home text-xs"></i> Dashboard
+                <a href="{{ url_for('principal_dashboard') }}" class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold">
+                    <i class="fas fa-th-large text-xs text-amber-600"></i> Dashboard
                 </a>
                 
                 <div class="relative group">
-                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
-                        <i class="fas fa-users-cog text-xs"></i> Staff <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    <button class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold focus:outline-none">
+                        <i class="fas fa-users-cog text-xs text-amber-600"></i> Staff <i class="fas fa-chevron-down text-[10px] ml-0.5 opacity-70 text-amber-700"></i>
                     </button>
-                    <div class="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
-                        <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-calendar-check w-5 text-center text-gray-400"></i> Attendance</a>
-                        <a href="{{ url_for('attendance_report') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"><i class="fas fa-chart-bar w-5 text-center text-gray-400"></i> Reports</a>
+                    <div class="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-amber-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2.5">
+                        <a href="{{ url_for('mark_attendance') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-calendar-check w-5 text-amber-500"></i> Mark Attendance</a>
+                        <a href="{{ url_for('attendance_report') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-chart-bar w-5 text-amber-500"></i> Reports</a>
                     </div>
                 </div>
 
-                <a href="{{ url_for('manage_assets') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-boxes text-xs"></i> Assets
+                <a href="{{ url_for('manage_assets') }}" class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold">
+                    <i class="fas fa-boxes text-xs text-amber-600"></i> Campus Assets
                 </a>
-
 
                 {% else %}
-                <a href="{{ url_for('teacher_dashboard') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-home text-xs"></i> Dashboard
+                <a href="{{ url_for('teacher_dashboard') }}" class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold">
+                    <i class="fas fa-th-large text-xs text-amber-600"></i> Dashboard
                 </a>
-                <a href="{{ url_for('teacher_attendance_report') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-calendar-alt text-xs"></i> Attendance
+                <a href="{{ url_for('teacher_attendance_report') }}" class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold">
+                    <i class="fas fa-calendar-alt text-xs text-amber-600"></i> My Attendance
                 </a>
-                <a href="{{ url_for('teacher_leave') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-plane-departure text-xs"></i> Leaves
+                <a href="{{ url_for('teacher_leave') }}" class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold">
+                    <i class="fas fa-plane-departure text-xs text-amber-600"></i> Leaves
                 </a>
-                <a href="{{ url_for('teacher_holidays') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-umbrella-beach text-xs"></i> Holidays
+                <a href="{{ url_for('teacher_holidays') }}" class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold">
+                    <i class="fas fa-umbrella-beach text-xs text-amber-600"></i> Holidays
                 </a>
-                <a href="{{ url_for('teacher_salary') }}" class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium">
-                    <i class="fas fa-file-invoice-dollar text-xs"></i> Salary
+                <a href="{{ url_for('teacher_salary') }}" class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold">
+                    <i class="fas fa-file-invoice-dollar text-xs text-amber-600"></i> My Salary
                 </a>
                 <div class="relative group">
-                    <button class="nav-link text-white px-3 py-2 text-sm flex items-center gap-1 font-medium focus:outline-none">
-                        <i class="fas fa-user-circle text-xs"></i> Account <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    <button class="nav-link px-3.5 py-2 text-sm flex items-center gap-1.5 font-bold focus:outline-none">
+                        <i class="fas fa-user-circle text-xs text-amber-600"></i> Account <i class="fas fa-chevron-down text-[10px] ml-0.5 opacity-70 text-amber-700"></i>
                     </button>
-                    <div class="absolute top-full right-0 mt-1 w-40 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
-                        <a href="{{ url_for('teacher_profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600"><i class="fas fa-user w-5 text-center text-gray-400"></i> Profile</a>
-                        <a href="{{ url_for('teacher_change_password') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600"><i class="fas fa-key w-5 text-center text-gray-400"></i> Password</a>
+                    <div class="absolute top-full right-0 mt-2 w-44 bg-white rounded-2xl shadow-2xl border border-amber-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2.5">
+                        <a href="{{ url_for('teacher_profile') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-user w-5 text-amber-500"></i> My Profile</a>
+                        <a href="{{ url_for('teacher_change_password') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition font-medium"><i class="fas fa-key w-5 text-amber-500"></i> Security</a>
                     </div>
                 </div>
                 {% endif %}
-                <a href="{{ url_for('logout') }}" class="bg-white text-orange-600 px-4 py-2 rounded-xl text-sm font-bold shadow hover:bg-orange-50 transition ml-3 flex items-center gap-1">
+
+                <!-- Logout Button with Gold-Saffron Gradient -->
+                <a href="{{ url_for('logout') }}" class="gold-saffron-grad text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all ml-3 flex items-center gap-1.5">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
 
-            <!-- Mobile Menu Button -->
+            <!-- Mobile Menu Toggle Button -->
             <div class="lg:hidden flex items-center">
-                <button type="button" id="mobile-btn" class="text-white hover:text-orange-200 focus:outline-none focus:ring-2 focus:ring-white rounded-lg p-2 transition">
-                    <i class="fas fa-bars text-2xl"></i>
+                <button type="button" id="mobile-btn" class="text-amber-950 hover:text-amber-700 focus:outline-none p-2 border border-amber-200 rounded-xl bg-amber-50">
+                    <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Mobile Menu Dropdown -->
-    <div id="mobile-menu" class="hidden lg:hidden bg-white shadow-2xl absolute w-full left-0 top-full flex-col border-t border-orange-100 divide-y divide-gray-100">
-        <div class="px-6 py-4 bg-orange-50/50 flex items-center gap-3">
-            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-white shadow-2xl absolute w-full left-0 top-full flex-col border-t-2 border-amber-300 divide-y divide-amber-100 max-h-[85vh] overflow-y-auto">
+        <div class="px-6 py-4 bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 flex items-center gap-3 border-b border-amber-200/60">
+            <div class="w-11 h-11 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center text-white shadow-md">
                 <i class="fas {% if session.get('admin') %}fa-user-shield{% elif session.get('principal') %}fa-user-tie{% else %}fa-chalkboard-teacher{% endif %}"></i>
             </div>
             <div>
-                <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">
-                    {% if session.get('admin') %}ADMIN PORTAL{% elif session.get('principal') %}PRINCIPAL PORTAL{% elif session.get('accountant') %}ACCOUNTANT PORTAL{% else %}TEACHER PORTAL{% endif %}
+                <p class="text-xs text-amber-800 font-bold uppercase tracking-wider font-univ">
+                    {% if session.get('admin') %}ADMINISTRATOR PORTAL{% elif session.get('principal') %}PRINCIPAL PORTAL{% else %}FACULTY PORTAL{% endif %}
                 </p>
-                <p class="text-gray-800 font-bold hindi">
-                    {{ session.get('admin_name') or session.get('principal_name') or session.get('accountant_name') or session.get('teacher_name') }}
+                <p class="text-gray-900 font-bold">
+                    {{ session.get('admin_name') or session.get('principal_name') or session.get('teacher_name') }}
                 </p>
             </div>
         </div>
-        <div class="px-4 py-2 space-y-1">
+        <div class="px-4 py-3 space-y-1">
             {% if session.get('admin') %}
-            <a href="{{ url_for('admin_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-home w-6 text-center text-orange-500"></i> Dashboard
+            <a href="{{ url_for('admin_dashboard') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-th-large w-6 text-center text-amber-500"></i> Dashboard
             </a>
-            <a href="{{ url_for('manage_teachers') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-users w-6 text-center text-orange-500"></i> Teachers
+            <a href="{{ url_for('manage_teachers') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-users w-6 text-center text-amber-500"></i> Teachers Directory
             </a>
-            <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-calendar-check w-6 text-center text-orange-500"></i> Attendance
+            <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-calendar-check w-6 text-center text-amber-500"></i> Attendance
             </a>
-            <a href="{{ url_for('admin_leave_requests') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-envelope-open-text w-6 text-center text-orange-500"></i> Leave Requests
+            <a href="{{ url_for('admin_leave_requests') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-envelope-open-text w-6 text-center text-amber-500"></i> Leave Requests
             </a>
-            <a href="{{ url_for('payroll') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-rupee-sign w-6 text-center text-orange-500"></i> Payroll
+            <a href="{{ url_for('payroll') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-rupee-sign w-6 text-center text-amber-500"></i> Payroll Ledger
             </a>
-            <a href="{{ url_for('salary_slip_generator') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-file-invoice-dollar w-6 text-center text-orange-500"></i> Slip Generator
+            <a href="{{ url_for('salary_slip_generator') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-file-invoice-dollar w-6 text-center text-amber-500"></i> Slip Generator
             </a>
-            <a href="{{ url_for('admin_generated_slips') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-history w-6 text-center text-orange-500"></i> Saved Slips
+            <a href="{{ url_for('admin_generated_slips') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-history w-6 text-center text-amber-500"></i> Saved Slips
             </a>
-            <a href="{{ url_for('salary_increment') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-arrow-trend-up w-6 text-center text-orange-500"></i> Increment
+            <a href="{{ url_for('salary_increment') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-arrow-trend-up w-6 text-center text-amber-500"></i> Salary Increment
             </a>
-            <a href="{{ url_for('manage_holidays') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-calendar-times w-6 text-center text-orange-500"></i> Holidays
+            <a href="{{ url_for('manage_holidays') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-calendar-times w-6 text-center text-amber-500"></i> Holiday Calendar
             </a>
-            <a href="{{ url_for('attendance_report') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-chart-bar w-6 text-center text-orange-500"></i> Report
+            <a href="{{ url_for('attendance_report') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-chart-bar w-6 text-center text-amber-500"></i> Attendance Reports
             </a>
-            <a href="{{ url_for('teacher_logs') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-clipboard-list w-6 text-center text-orange-500"></i> Logs
+            <a href="{{ url_for('teacher_logs') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-clipboard-list w-6 text-center text-amber-500"></i> Activity Logs
             </a>
-            <a href="{{ url_for('manage_assets') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-boxes w-6 text-center text-orange-500"></i> Assets
-            </a>
-            <div class="border-t border-orange-100 my-2"></div>
-            <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Students</p>
-            <a href="{{ url_for('manage_students') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
-                <i class="fas fa-user-graduate w-6 text-center text-teal-500"></i> Manage Students
-            </a>
-            <a href="{{ url_for('add_student') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
-                <i class="fas fa-user-plus w-6 text-center text-teal-500"></i> Add Student
-            </a>
-            <a href="{{ url_for('manage_students', fee_status='pending') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
-                <i class="fas fa-exclamation-circle w-6 text-center text-teal-500"></i> Pending Fees
+            <a href="{{ url_for('manage_assets') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-boxes w-6 text-center text-amber-500"></i> Campus Assets
             </a>
             {% elif session.get('principal') %}
-            <a href="{{ url_for('principal_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-home w-6 text-center text-orange-500"></i> Dashboard
+            <a href="{{ url_for('principal_dashboard') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-th-large w-6 text-center text-amber-500"></i> Dashboard
             </a>
-            <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-calendar-check w-6 text-center text-orange-500"></i> Attendance
+            <a href="{{ url_for('mark_attendance') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-calendar-check w-6 text-center text-amber-500"></i> Mark Attendance
             </a>
-            <a href="{{ url_for('attendance_report') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-chart-bar w-6 text-center text-orange-500"></i> Report
+            <a href="{{ url_for('attendance_report') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-chart-bar w-6 text-center text-amber-500"></i> Attendance Reports
             </a>
-            <a href="{{ url_for('manage_assets') }}" class="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg font-semibold transition">
-                <i class="fas fa-boxes w-6 text-center text-orange-500"></i> Assets
-            </a>
-            {% elif session.get('accountant') %}
-            <a href="{{ url_for('accountant.accountant_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
-                <i class="fas fa-home w-6 text-center text-teal-600"></i> Dashboard
-            </a>
-            <a href="{{ url_for('accountant.accountant_manage_students') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
-                <i class="fas fa-user-graduate w-6 text-center text-teal-600"></i> Students
-            </a>
-            <a href="{{ url_for('accountant.accountant_add_student') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
-                <i class="fas fa-user-plus w-6 text-center text-teal-600"></i> Add Student
-            </a>
-            <a href="{{ url_for('accountant.accountant_manage_students', fee_status='pending') }}" class="block px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 rounded-lg font-semibold transition">
-                <i class="fas fa-exclamation-circle w-6 text-center text-teal-600"></i> Pending Fees
+            <a href="{{ url_for('manage_assets') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-boxes w-6 text-center text-amber-500"></i> Campus Assets
             </a>
             {% else %}
-            <a href="{{ url_for('teacher_dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
-                <i class="fas fa-home w-6 text-center text-green-600"></i> Dashboard
+            <a href="{{ url_for('teacher_dashboard') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-th-large w-6 text-center text-amber-500"></i> Dashboard
             </a>
-            <a href="{{ url_for('teacher_attendance_report') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
-                <i class="fas fa-calendar-alt w-6 text-center text-green-600"></i> Attendance
+            <a href="{{ url_for('teacher_attendance_report') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-calendar-alt w-6 text-center text-amber-500"></i> My Attendance
             </a>
-            <a href="{{ url_for('teacher_leave') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
-                <i class="fas fa-plane-departure w-6 text-center text-green-600"></i> Leaves
+            <a href="{{ url_for('teacher_leave') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-plane-departure w-6 text-center text-amber-500"></i> Leave Application
             </a>
-            <a href="{{ url_for('teacher_holidays') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
-                <i class="fas fa-umbrella-beach w-6 text-center text-green-600"></i> Holidays
+            <a href="{{ url_for('teacher_holidays') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-umbrella-beach w-6 text-center text-amber-500"></i> Holiday Calendar
             </a>
-            <a href="{{ url_for('teacher_salary') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
-                <i class="fas fa-file-invoice-dollar w-6 text-center text-green-600"></i> Salary
+            <a href="{{ url_for('teacher_salary') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-file-invoice-dollar w-6 text-center text-amber-500"></i> Salary Ledger
             </a>
-            <a href="{{ url_for('teacher_profile') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
-                <i class="fas fa-user-circle w-6 text-center text-green-600"></i> Profile
+            <a href="{{ url_for('teacher_profile') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-user w-6 text-center text-amber-500"></i> My Profile
             </a>
-            <a href="{{ url_for('teacher_change_password') }}" class="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg font-semibold transition">
-                <i class="fas fa-key w-6 text-center text-green-600"></i> Password
+            <a href="{{ url_for('teacher_change_password') }}" class="block px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-800 rounded-xl font-semibold transition">
+                <i class="fas fa-key w-6 text-center text-amber-500"></i> Change Password
             </a>
             {% endif %}
-            <div class="border-t border-gray-100 my-2 pt-2 pb-4">
-                <a href="{{ url_for('logout') }}" class="block px-4 py-3 bg-red-600 text-white hover:bg-red-700 rounded-xl font-bold transition text-center shadow-lg">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+            <div class="border-t border-amber-200/80 my-2 pt-2 pb-3">
+                <a href="{{ url_for('logout') }}" class="block px-4 py-3 bg-gradient-to-r from-red-600 to-rose-700 text-white hover:from-red-700 hover:to-rose-800 rounded-xl font-bold transition text-center shadow-md">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
                 </a>
             </div>
         </div>
@@ -344,26 +356,87 @@
 </script>
 {% endif %}
 
-<!-- Flash Messages -->
+<!-- Flash Messages with Golden-Amber Notification Styling -->
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 <div class="max-w-7xl mx-auto px-4 pt-4">
     {% for msg in messages %}
-    <div class="bg-orange-50 border-l-4 border-orange-500 text-orange-800 px-4 py-3 rounded-lg mb-2 flex items-center gap-2 animate-pulse">
-        <i class="fas fa-info-circle"></i> <span class="hindi">{{ msg }}</span>
+    <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-500 text-amber-900 px-4 py-3.5 rounded-xl mb-3 flex items-center gap-3 shadow-sm border border-amber-200">
+        <div class="w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 shrink-0">
+            <i class="fas fa-info-circle"></i>
+        </div>
+        <span class="font-medium text-sm">{{ msg }}</span>
     </div>
     {% endfor %}
 </div>
 {% endif %}
 {% endwith %}
 
-<!-- Main Content -->
-<main class="max-w-7xl mx-auto px-4 py-6">
+<!-- Main Content Area -->
+<main class="max-w-7xl mx-auto px-4 py-6 sm:py-8 w-full">
     {% block content %}{% endblock %}
 </main>
+</div>
 
-<footer class="text-center text-xs text-gray-400 py-4 mt-8 hindi relative z-10">
-    गायत्री विद्यापीठ, दाउदनगर &mdash; Attendance & Payroll System
+<!-- University Cultural Footer -->
+<footer class="bg-gray-900 text-white pt-14 pb-8 border-t-8 border-orange-600 mt-12 relative z-10 text-xs sm:text-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-14 mb-10 border-b border-gray-800 pb-10">
+            <div>
+                <span class="font-serif-crest font-extrabold text-2xl text-amber-400">Gayatri Vidyapeeth</span>
+                <p class="text-xs font-bold text-amber-500 uppercase tracking-widest mt-1">Daudnagar &bull; Dev Sanskriti Heritage</p>
+                <p class="text-gray-400 text-xs sm:text-sm mt-3 leading-relaxed">
+                    Inspired by Dev Sanskriti Vishwavidyalaya Traditions. A sacred center for values, righteous conduct, moral science, and modern academic excellence.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-sm sm:text-base font-bold text-amber-400 uppercase tracking-wider mb-4 font-serif-crest">
+                    Portal Navigation
+                </h4>
+                <ul class="space-y-2.5 text-xs sm:text-sm text-gray-300">
+                    <li><a href="{{ url_for('index') }}" class="hover:text-amber-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-amber-500"></i> Public Portal Home</a></li>
+                    <li><a href="{{ url_for('about') }}" class="hover:text-amber-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-amber-500"></i> About Gayatri Vidyapeeth</a></li>
+                    <li><a href="{{ url_for('contact') }}" class="hover:text-amber-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-amber-500"></i> Campus Contact & Support</a></li>
+                    {% if session.get('admin') %}
+                    <li><a href="{{ url_for('admin_dashboard') }}" class="hover:text-amber-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-amber-500"></i> Admin Dashboard</a></li>
+                    {% elif session.get('principal') %}
+                    <li><a href="{{ url_for('principal_dashboard') }}" class="hover:text-amber-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-amber-500"></i> Principal Dashboard</a></li>
+                    {% elif session.get('teacher_id') %}
+                    <li><a href="{{ url_for('teacher_dashboard') }}" class="hover:text-amber-400 transition flex items-center gap-2"><i class="fas fa-angle-right text-amber-500"></i> Faculty Dashboard</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-sm sm:text-base font-bold text-amber-400 uppercase tracking-wider mb-4 font-serif-crest">
+                    Campus Contact
+                </h4>
+                <ul class="space-y-3 text-xs sm:text-sm">
+                    <li class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <span class="text-gray-400 leading-relaxed">NH-139, Patna Road, Akodha, Daudnagar, Bihar</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <span class="text-gray-400">+91 9006564065, +91 8767238613</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 shrink-0">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <span class="text-gray-400 break-all">cp.awgp@gmail.com</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="text-center text-gray-500 text-xs sm:text-sm flex flex-col md:flex-row justify-between items-center gap-3">
+            <p>&copy; 2026 Gayatri Vidyapeeth, Daudnagar. All Rights Reserved.</p>
+            <p>School Management & Payroll Portal</p>
+        </div>
+    </div>
 </footer>
 
 </body>
