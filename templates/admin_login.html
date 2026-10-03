@@ -109,8 +109,13 @@
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                         <i class="fas fa-lock text-amber-600 mr-1.5"></i> Admin Password
                     </label>
-                    <input type="password" name="password" required placeholder="••••••••"
-                        class="input-field w-full px-5 py-3.5 rounded-xl bg-amber-50/40 text-gray-800 font-medium">
+                    <div class="relative">
+                        <input type="password" name="password" id="password" required placeholder="••••••••"
+                            class="input-field w-full px-5 py-3.5 pr-12 rounded-xl bg-amber-50/40 text-gray-800 font-medium">
+                        <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-amber-600 transition" aria-label="Toggle password visibility">
+                            <i id="password-eye" class="fas fa-eye text-lg"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit"
                     class="w-full gold-saffron-grad btn-hover text-white font-bold text-base py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg mt-6">
@@ -133,6 +138,22 @@
         </div>
     </div>
 </div>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('password-eye');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        }
+    }
+</script>
 
 </body>
 </html>
