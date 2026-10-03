@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gayatri Vidyapeeth - Daudnagar{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Marcellus&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -438,6 +441,26 @@
         </div>
     </div>
 </footer>
+
+<!-- Instant Page Navigation & Link Prefetcher -->
+<script>
+(function() {
+    var prefetched = new Set();
+    document.addEventListener('mouseover', function(e) {
+        var a = e.target.closest('a');
+        if (a && a.href && a.origin === window.location.origin && !prefetched.has(a.href)) {
+            var path = a.pathname || '';
+            if (!path.includes('logout') && !path.includes('delete') && !path.includes('clear') && !a.hash) {
+                prefetched.add(a.href);
+                var l = document.createElement('link');
+                l.rel = 'prefetch';
+                l.href = a.href;
+                document.head.appendChild(l);
+            }
+        }
+    }, { passive: true });
+})();
+</script>
 
 </body>
 </html>

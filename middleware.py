@@ -70,6 +70,19 @@ class SecurityMiddleware:
         elif request.path.startswith('/static/'):
             # Static asset performance caching for CSS, images, JS
             response.headers['Cache-Control'] = 'public, max-age=86400, stale-while-revalidate=3600'
+        else:
+            # Public pages (/, /about, /contact): Fast browser cache with stale-while-revalidate
+            response.headers['Cache-Control'] = 'public, max-age=300, stale-while-revalidate=600'
+
+        # ── Fast Reload Optimization: ETag & Conditional 304 Validation ──
+        if (
+            request.method == 'GET'
+            and response.status_code == 200
+            and not response.direct_passthrough
+            and not session.get('_flashes')
+        ):
+            response.add_etag()
+            response.make_conditional(request)
 
         # ── Request tracking header (internal) ───────────────────────
         response.headers['X-Request-ID'] = getattr(g, 'request_id', 'unknown')

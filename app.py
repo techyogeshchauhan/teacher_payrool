@@ -112,13 +112,13 @@ except Exception:
 try:
     client = MongoClient(
         mongo_uri,
-        serverSelectionTimeoutMS=5000,
+        serverSelectionTimeoutMS=15000,
         connect=False,                  # Prevents connection socket sharing across forked Gunicorn workers on Render
         maxPoolSize=50,
-        minPoolSize=5,
-        maxIdleTimeMS=45000,
-        connectTimeoutMS=5000,
-        socketTimeoutMS=10000,
+        minPoolSize=2,
+        maxIdleTimeMS=30000,
+        connectTimeoutMS=15000,
+        socketTimeoutMS=20000,
         retryWrites=True
     )
     db = client['gayatri_school']
