@@ -2197,7 +2197,8 @@ def salary_slip_generator():
             request.form.get('absent_days', 0), 'Absent Days', 31
         )
         valid2, paid_leave = SecurityValidator.validate_positive_int(
-            request.form.get('paid_leave', 0), 'Paid Leave', 31
+            request.form.get('paid_holidays') if request.form.get('paid_holidays') is not None else request.form.get('paid_leave', 0),
+            'Paid Holidays', 31
         )
         valid3, sunday_count = SecurityValidator.validate_positive_int(
             request.form.get('sunday_count', 4), 'Sunday Count', 10
@@ -2241,10 +2242,11 @@ def salary_slip_generator():
         att = {
             'present': present_days,
             'half': 0,
-            'medical': paid_leave,
+            'medical': 0,
             'absent': absent_days,
             'sundays_paid': sunday_count,
             'holidays_paid': 0,
+            'paid_holidays': paid_leave,
             'paid_days': paid_days,
             'leave_taken': absent_days,
         }
@@ -2272,6 +2274,9 @@ def salary_slip_generator():
                 'present_days': present_days,
                 'absent_days': absent_days,
                 'paid_leave': paid_leave,
+                'paid_holidays': paid_leave,
+                'holidays_paid': 0,
+                'medical': 0,
                 'sunday_count': sunday_count,
                 'paid_days': paid_days,
                 'basic_salary': basic_salary,
@@ -2294,10 +2299,11 @@ def salary_slip_generator():
                              month_name=calendar.month_name[month],
                              present=present_days,
                              half=0,
-                             medical=paid_leave,
+                             medical=0,
                              absent=absent_days,
                              sundays_paid=sunday_count,
                              holidays_paid=0,
+                             paid_holidays=paid_leave,
                              paid_days=paid_days,
                              leave_taken=absent_days,
                              present_days=present_days,
@@ -2399,10 +2405,11 @@ def view_generated_slip(slip_id):
                              month_name=calendar.month_name[slip.get('month', 1)],
                              present=slip.get('present_days', 0),
                              half=0,
-                             medical=slip.get('paid_leave', 0),
+                             medical=slip.get('medical', 0),
                              absent=slip.get('absent_days', 0),
                              sundays_paid=slip.get('sunday_count', 0),
-                             holidays_paid=0,
+                             holidays_paid=slip.get('holidays_paid', 0),
+                             paid_holidays=slip.get('paid_holidays', slip.get('paid_leave', 0)),
                              paid_days=slip.get('paid_days', 0),
                              leave_taken=slip.get('absent_days', 0),
                              present_days=slip.get('present_days', 0),

@@ -543,6 +543,10 @@
                     <span class="di-val" style="color:#0369a1;">{{ holidays_paid if holidays_paid is defined else 0 }}</span>
                     <span class="di-lbl">Govt Holiday</span>
                 </div>
+                <div class="di" style="color:#2563eb;">
+                    <span class="di-val" style="color:#2563eb;">{{ paid_holidays if paid_holidays is defined else (paid_leave if paid_leave is defined else 0) }}</span>
+                    <span class="di-lbl">Paid Holidays</span>
+                </div>
                 <div class="di" style="color:#B22222;">
                     <span class="di-val" style="color:#B22222;">{{ leave_taken if leave_taken is defined else absent }}</span>
                     <span class="di-lbl">Leave (A)</span>
