@@ -19,7 +19,7 @@
 
 /* School letterhead header */
 .slip-header {
-    background: linear-gradient(135deg, #78350F 0%, #B45309 50%, #D97706 100%);
+    background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);
     color: #fff;
     padding: 20px 30px 16px;
     display: flex;
@@ -39,7 +39,7 @@
     font-weight: 800;
     letter-spacing: 0.5px;
     margin: 0 0 2px;
-    font-family: 'Cinzel', 'Marcellus', 'Noto Sans Devanagari', sans-serif;
+    font-family: 'Noto Sans Devanagari', sans-serif;
 }
 .slip-header-text p {
     font-size: 0.78rem;
@@ -52,21 +52,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #fffdf7;
-    border-bottom: 2px solid #fde68a;
+    background: #f9f4ee;
+    border-bottom: 2px solid #e0d5c5;
     padding: 10px 30px;
     font-size: 0.82rem;
     color: #555;
 }
-.bill-meta span { font-weight: 700; color: #78350F; font-mono; }
+.bill-meta span { font-weight: 700; color: #333; }
 
 /* Body sections */
 .slip-body { padding: 0 30px 30px; }
 
 .bank-box {
-    border: 1.5px solid #fde68a;
-    border-radius: 12px;
-    background: #fffdfa;
+    border: 1.5px solid #d4b896;
+    border-radius: 10px;
+    background: #fffaf4;
     padding: 14px 18px;
     margin: 20px 0 16px;
 }
@@ -75,9 +75,9 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #B45309;
+    color: #7B1C1C;
     margin: 0 0 10px;
-    border-bottom: 1px solid #fde68a;
+    border-bottom: 1px solid #e0c8a8;
     padding-bottom: 6px;
 }
 .bank-grid {
@@ -100,14 +100,14 @@
     font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #B45309;
+    color: #7B1C1C;
     margin-bottom: 4px;
 }
 .to-block address {
     font-style: normal;
     color: #444;
     padding-left: 14px;
-    border-left: 3px solid #D97706;
+    border-left: 3px solid #B22222;
 }
 
 /* Subject */
@@ -128,8 +128,8 @@
 /* Salary Details Table */
 .sal-table { width: 100%; border-collapse: collapse; margin: 0 0 4px; font-size: 0.83rem; }
 .sal-table thead tr th {
-    background: linear-gradient(135deg, #78350F 0%, #92400E 100%);
-    color: #fef3c7;
+    background: #7B1C1C;
+    color: #fff;
     padding: 9px 12px;
     text-align: left;
     font-weight: 700;
@@ -138,25 +138,25 @@
     letter-spacing: 0.5px;
 }
 .sal-table thead tr th:last-child { text-align: right; }
-.sal-table tbody tr td { padding: 9px 12px; border-bottom: 1px solid #fef3c7; color: #333; }
+.sal-table tbody tr td { padding: 9px 12px; border-bottom: 1px solid #e8e0d5; color: #333; }
 .sal-table tbody tr td:last-child { text-align: right; font-weight: 700; }
-.sal-table tbody tr:hover { background: #fffdf5; }
+.sal-table tbody tr:hover { background: #fff8f0; }
 
 .sal-table tfoot tr td {
     padding: 8px 12px;
     font-weight: 700;
-    background: #fffdf7;
-    border-top: 2px solid #fde68a;
+    background: #f5f0ea;
+    border-top: 2px solid #d4b896;
     font-size: 0.82rem;
 }
 .sal-table tfoot tr td:first-child { text-align: right; color: #555; }
 .sal-table tfoot tr td:last-child { text-align: right; color: #333; }
 
 .tfoot-net td {
-    background: linear-gradient(135deg, #78350F 0%, #92400E 100%) !important;
+    background: #7B1C1C !important;
     color: #fff !important;
     font-size: 0.9rem;
-    border-top: 2px solid #78350F !important;
+    border-top: 2px solid #5a1010 !important;
 }
 
 /* Working days info */
@@ -491,7 +491,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="2">Sub Total (in Rs.)</td>
+                        <td colspan="2">Calculated Salary (in Rs.)</td>
                         <td>{{ "{:,.2f}".format(net_salary) }}</td>
                     </tr>
                     <tr>
@@ -502,13 +502,9 @@
                         <td colspan="2">SGST (in Rs.)</td>
                         <td>00.0</td>
                     </tr>
-                    <tr>
-                        <td colspan="2">Total (in Rs.)</td>
-                        <td>{{ "{:,.2f}".format(net_salary) }}</td>
-                    </tr>
                     <tr class="tfoot-net">
-                        <td colspan="2">Net Total (in Rs.)</td>
-                        <td style="font-size:1rem;">{{ "{:,.2f}".format(net_salary) }}</td>
+                        <td colspan="2">Final Payable Salary / Net Total (in Rs.)</td>
+                        <td style="font-size:1rem; font-weight:800;">₹{{ "{:,.2f}".format(net_salary) }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -519,7 +515,8 @@
             </div>
             <div class="att-row">
                 <div class="att-badge att-p">
-                    <span class="av">{{ present }}</span>
+                    {%- set _pv = present|float -%}
+                    <span class="av">{{ _pv|int if _pv == _pv|int else _pv }}</span>
                     <span class="al">Present (P)</span>
                 </div>
                 <div class="att-badge att-h">
@@ -551,7 +548,8 @@
                     <span class="di-lbl">Leave (A)</span>
                 </div>
                 <div class="di" style="background:#064e3b;color:#fff;border-radius:8px;padding:4px 6px;">
-                    <span class="di-val" style="color:#fff;">{{ paid_days }}</span>
+                    {%- set _pd = paid_days|float -%}
+                    <span class="di-val" style="color:#fff;">{{ _pd|int if _pd == _pd|int else _pd }}</span>
                     <span class="di-lbl" style="color:#d1fae5;">Paid Days</span>
                 </div>
             </div>
@@ -575,7 +573,7 @@
 
         <!-- Footer Disclaimer -->
         <div class="slip-footer hindi">
-            This is a computer-generated salary slip. Sundays and Govt Holidays are all Paid. &nbsp;|&nbsp;
+            यह computer-generated salary slip है। Sundays और Govt Holidays — सभी Paid हैं। &nbsp;|&nbsp;
             Generated on: {{ slip_date }}
         </div>
     </div><!-- /slip-card -->

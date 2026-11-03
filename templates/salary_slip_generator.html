@@ -5,13 +5,13 @@
 <style>
     .gen-card {
         background: #fff;
-        border-radius: 20px;
-        box-shadow: 0 10px 35px rgba(180, 83, 9, 0.08), 0 4px 12px rgba(0,0,0,0.04);
-        border: 1px solid rgba(245, 158, 11, 0.25);
+        border-radius: 16px;
+        box-shadow: 0 10px 35px rgba(123, 28, 28, 0.08), 0 4px 12px rgba(0,0,0,0.04);
+        border: 1.5px solid #d4b896;
         overflow: hidden;
     }
     .gen-header {
-        background: linear-gradient(135deg, #78350F 0%, #B45309 50%, #D97706 100%);
+        background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);
         color: #fff;
         padding: 24px 30px;
     }
@@ -19,12 +19,12 @@
         font-size: 1.35rem;
         font-weight: 800;
         margin: 0 0 4px;
-        font-family: 'Cinzel', 'Marcellus', serif;
+        font-family: 'Noto Sans Devanagari', 'Poppins', sans-serif;
         letter-spacing: 0.5px;
     }
     .gen-header p {
         font-size: 0.82rem;
-        color: rgba(254, 243, 199, 0.9);
+        color: rgba(255, 255, 255, 0.85);
         margin: 0;
     }
     .gen-body {
@@ -39,25 +39,25 @@
         letter-spacing: 0.6px;
         margin-bottom: 6px;
     }
-    .form-label .required { color: #dc2626; }
+    .form-label .required { color: #B22222; }
     .form-input {
         width: 100%;
         padding: 10px 14px;
-        border: 1.5px solid #fde68a;
-        border-radius: 12px;
+        border: 1.5px solid #d4b896;
+        border-radius: 10px;
         font-size: 0.9rem;
         color: #1c1917;
-        background: #fffdfa;
+        background: #fffaf4;
         transition: border-color 0.2s, box-shadow 0.2s;
-        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-family: 'Poppins', sans-serif;
     }
     .form-input:focus {
         outline: none;
-        border-color: #d97706;
-        box-shadow: 0 0 0 3.5px rgba(217, 119, 6, 0.15);
+        border-color: #B22222;
+        box-shadow: 0 0 0 3.5px rgba(178, 34, 34, 0.15);
         background: #fff;
     }
-    .form-input:hover { border-color: #f59e0b; }
+    .form-input:hover { border-color: #7B1C1C; }
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -70,7 +70,7 @@
         margin-top: 5px;
     }
     .submit-btn {
-        background: linear-gradient(135deg, #F59E0B 0%, #D97706 60%, #EA580C 100%);
+        background: linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);
         color: #fff;
         padding: 12px 32px;
         border: none;
@@ -79,20 +79,20 @@
         font-weight: 700;
         cursor: pointer;
         transition: transform 0.15s, box-shadow 0.2s;
-        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-family: 'Poppins', sans-serif;
         letter-spacing: 0.3px;
-        box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25);
+        box-shadow: 0 4px 15px rgba(123, 28, 28, 0.25);
     }
     .submit-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(217, 119, 6, 0.35);
+        box-shadow: 0 6px 20px rgba(123, 28, 28, 0.35);
     }
     .submit-btn:active { transform: translateY(0); }
     .submit-btn i { margin-right: 6px; }
     .days-summary {
-        background: #fffbeb;
-        border: 1.5px solid #fde68a;
-        border-radius: 14px;
+        background: #f0f7ff;
+        border: 1.5px solid #c8dff0;
+        border-radius: 12px;
         padding: 16px 20px;
         display: flex;
         gap: 20px;
@@ -117,7 +117,7 @@
         letter-spacing: 0.6px;
         font-weight: 700;
     }
-    .ds-val.warn { color: #dc2626; }
+    .ds-val.warn { color: #B22222; }
     .validation-msg {
         background: #fef2f2;
         border: 1.5px solid #fca5a5;
@@ -146,27 +146,27 @@
 <div style="max-width:760px; margin:0 auto;">
 
     <!-- Page Title Banner -->
-    <div class="mb-5 bg-gradient-to-r from-amber-50 via-yellow-50/50 to-orange-50 border border-amber-200/70 rounded-2xl p-5 card-shadow flex items-center justify-between gap-4">
+    <div class="mb-5 bg-gradient-to-r from-red-50/80 via-stone-50 to-amber-50/40 border border-red-200/70 rounded-2xl p-5 card-shadow flex items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
-            <div class="w-12 h-12 gold-grad rounded-xl flex items-center justify-center text-amber-950 shadow-sm shrink-0">
+            <div class="w-12 h-12 maroon-grad rounded-xl flex items-center justify-center text-white shadow-sm shrink-0">
                 <i class="fas fa-file-invoice-dollar text-xl"></i>
             </div>
             <div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-300">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-red-900 bg-red-100/80 px-2 py-0.5 rounded-full border border-red-200">
                     Faculty Compensation Module
                 </span>
                 <h1 class="text-xl sm:text-2xl font-extrabold text-stone-900 font-serif mt-0.5">Salary Slip Generator</h1>
                 <p class="text-xs text-stone-500">Configure attendance days, evaluate deductions, and issue authorized salary slips</p>
             </div>
         </div>
-        <a href="{{ url_for('admin_generated_slips') }}" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-amber-900 bg-white border border-amber-300 hover:bg-amber-50 transition card-shadow">
-            <i class="fas fa-clock-rotate-left text-amber-600"></i> Slips History
+        <a href="{{ url_for('admin_generated_slips') }}" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-red-900 bg-white border border-red-300 hover:bg-red-50 transition card-shadow">
+            <i class="fas fa-clock-rotate-left text-red-700"></i> Slips History
         </a>
     </div>
 
     <div class="gen-card">
         <div class="gen-header">
-            <h1><i class="fas fa-calculator" style="margin-right:8px; font-size:1.1rem; color:#fde68a;"></i>Attendance & Compensation Calculation</h1>
+            <h1><i class="fas fa-calculator" style="margin-right:8px; font-size:1.1rem; color:#fecaca;"></i>Attendance & Compensation Calculation</h1>
             <p>Select faculty employee, specify period, and review real-time net disbursable salary</p>
         </div>
 
@@ -178,7 +178,7 @@
                 <div class="form-grid">
                     <div class="form-full">
                         <label class="form-label">
-                            <i class="fas fa-user-tie" style="margin-right:4px; color:#b45309;"></i>
+                            <i class="fas fa-user-tie" style="margin-right:4px; color:#7B1C1C;"></i>
                             Employee / Faculty <span class="required">*</span>
                         </label>
                         <select name="teacher_id" id="teacherSelect" class="form-input" required>
@@ -197,7 +197,7 @@
                     <!-- Row 2: Month & Year -->
                     <div>
                         <label class="form-label">
-                            <i class="fas fa-calendar-alt" style="margin-right:4px; color:#b45309;"></i>
+                            <i class="fas fa-calendar-alt" style="margin-right:4px; color:#7B1C1C;"></i>
                             Month <span class="required">*</span>
                         </label>
                         <select name="month" id="monthSelect" class="form-input" required>
@@ -211,7 +211,7 @@
                     </div>
                     <div>
                         <label class="form-label">
-                            <i class="fas fa-calendar" style="margin-right:4px; color:#b45309;"></i>
+                            <i class="fas fa-calendar" style="margin-right:4px; color:#7B1C1C;"></i>
                             Year <span class="required">*</span>
                         </label>
                         <select name="year" id="yearSelect" class="form-input" required>
@@ -268,7 +268,7 @@
                     <!-- Row 5: Deduction Type Dropdown -->
                     <div class="form-full">
                         <label class="form-label">
-                            <i class="fas fa-tags" style="margin-right:4px; color:#b45309;"></i>
+                            <i class="fas fa-tags" style="margin-right:4px; color:#7B1C1C;"></i>
                             Deduction Type
                         </label>
                         <select name="deduction_type" id="deductionType" class="form-input" onchange="handleDeductionTypeChange()">
@@ -302,7 +302,7 @@
                     <div id="assetsInputGroup" class="form-group-item" style="display:none;">
                         <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
                             <span>
-                                <i class="fas fa-box-open" style="margin-right:4px; color:#d97706;"></i>
+                                <i class="fas fa-box-open" style="margin-right:4px; color:#7B1C1C;"></i>
                                 Assets Recovery (₹)
                             </span>
                             <span style="font-size:0.72rem; color:#78716c; font-weight:normal; text-transform:none;">Default: ₹0</span>
@@ -321,7 +321,7 @@
                 <!-- Live Summary -->
                 <div style="margin-top:24px;">
                     <div style="font-size:0.75rem; color:#78716c; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
-                        <i class="fas fa-chart-pie" style="margin-right:4px; color:#d97706;"></i> Live Calculation Preview
+                        <i class="fas fa-chart-pie" style="margin-right:4px; color:#7B1C1C;"></i> Live Calculation Preview
                     </div>
                     <div class="days-summary" id="liveSummary">
                         <div class="ds-item">
@@ -360,9 +360,9 @@
                             <span class="ds-val" style="color:#991b1b;font-size:1.15rem;" id="sumTotalDed">-₹0</span>
                             <span class="ds-lbl" style="color:#991b1b;">Total Ded. (-)</span>
                         </div>
-                        <div class="ds-item" style="background:linear-gradient(135deg, #78350F 0%, #B45309 100%);color:#fff;border-radius:10px;padding:6px 14px;box-shadow:0 4px 12px rgba(180,83,9,0.25);">
+                        <div class="ds-item" style="background:linear-gradient(135deg, #7B1C1C 0%, #B22222 100%);color:#fff;border-radius:10px;padding:6px 14px;box-shadow:0 4px 12px rgba(123,28,28,0.25);">
                             <span class="ds-val" style="color:#fff;font-size:1.25rem;" id="sumFinalSalary">₹0</span>
-                            <span class="ds-lbl" style="color:#fde68a;">Final Payable</span>
+                            <span class="ds-lbl" style="color:#fecaca;">Final Payable</span>
                         </div>
                     </div>
                 </div>

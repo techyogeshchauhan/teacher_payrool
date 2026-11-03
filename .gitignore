@@ -42,6 +42,7 @@ Thumbs.db
 desktop.ini
 
 # ─── Sensitive Documents ─────────────────────────────────────────
+records/
 *.xlsx
 *.docx
 *.csv

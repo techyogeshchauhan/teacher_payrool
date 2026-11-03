@@ -17,7 +17,7 @@ sudo systemctl enable mongodb
 
 ### Step 2: Python Libraries Install करें
 ```bash
-cd gayatri_school
+cd teacher_payrool
 pip install -r requirements.txt
 ```
 
@@ -77,22 +77,23 @@ Deduction = Basic Salary - Net Salary
 ## 📁 Project Structure
 
 ```
-gayatri_school/
-├── app.py              # Main Flask Application
+teacher_payrool/
+├── app.py              # Main Flask application (all routes)
+├── config.py           # App settings, loaded from .env
+├── security.py         # Password hashing, input validation helpers
+├── middleware.py       # Security headers / request middleware
 ├── requirements.txt    # Python dependencies
-├── templates/
-│   ├── base.html           # Common navbar/layout
-│   ├── admin_login.html    # Admin login page
-│   ├── teacher_login.html  # Teacher login page
-│   ├── admin_dashboard.html
-│   ├── manage_teachers.html
-│   ├── add_teacher.html
-│   ├── mark_attendance.html
-│   ├── payroll.html
-│   ├── attendance_report.html
-│   ├── teacher_dashboard.html
-│   └── teacher_salary.html
-└── static/             # CSS/JS files (optional)
+├── Procfile            # Production start command (gunicorn)
+├── .env                # Secrets — never commit
+├── scripts/
+│   └── create_indexes.py   # One-time MongoDB index setup
+├── templates/          # Jinja2 HTML pages (base.html = common layout)
+├── static/             # Logo, school photos
+│   └── uploads/            # Teacher photos uploaded via the app
+├── logs/               # App log files (auto-created, not committed)
+└── records/            # Private payroll documents (not committed)
+    ├── payroll/            # Monthly payroll sheets
+    └── salary_slips/       # Generated salary slips, one folder per month (YYYY-MM)
 ```
 
 ---
