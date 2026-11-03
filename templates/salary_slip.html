@@ -2,8 +2,17 @@
 {% block title %}Salary Slip - {{ teacher.name }} - {{ month_name }} {{ year }}{% endblock %}
 
 {% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <style>
-/* ── Screen Styles ── */
+/* ── Typography & Screen Styles (Exact match with PDF) ── */
+.slip-wrapper,
+.slip-card,
+.slip-card * {
+    font-family: 'Poppins', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
 .slip-wrapper {
     max-width: 800px;
     margin: 0 auto;
@@ -35,15 +44,16 @@
     flex-shrink: 0;
 }
 .slip-header-text h1 {
-    font-size: 1.5rem;
-    font-weight: 800;
+    font-size: 1.35rem;
+    font-weight: 700;
     letter-spacing: 0.5px;
     margin: 0 0 2px;
-    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif;
 }
 .slip-header-text p {
-    font-size: 0.78rem;
-    color: rgba(255,255,255,0.85);
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.95);
     margin: 0;
 }
 
@@ -56,6 +66,7 @@
     border-bottom: 2px solid #e0d5c5;
     padding: 10px 30px;
     font-size: 0.82rem;
+    font-weight: 400;
     color: #555;
 }
 .bill-meta span { font-weight: 700; color: #333; }
@@ -63,6 +74,7 @@
 /* Body sections */
 .slip-body { padding: 0 30px 30px; }
 
+/* Bank Details Box */
 .bank-box {
     border: 1.5px solid #d4b896;
     border-radius: 10px;
@@ -72,9 +84,9 @@
 }
 .bank-box h3 {
     font-size: 0.72rem;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     color: #7B1C1C;
     margin: 0 0 10px;
     border-bottom: 1px solid #e0c8a8;
@@ -85,61 +97,69 @@
     grid-template-columns: 1fr 1fr;
     gap: 6px 20px;
 }
-.bank-grid .bank-row { display: flex; gap: 6px; font-size: 0.8rem; }
-.bank-grid .bank-label { color: #888; min-width: 80px; flex-shrink: 0; }
+.bank-grid .bank-row { display: flex; gap: 6px; font-size: 0.78rem; }
+.bank-grid .bank-label { font-weight: 400; color: #888; min-width: 80px; flex-shrink: 0; }
 .bank-grid .bank-val { font-weight: 700; color: #222; }
 
 /* To address */
 .to-block {
     margin: 0 0 16px;
-    font-size: 0.82rem;
-    line-height: 1.7;
+    font-size: 0.78rem;
+    line-height: 1.6;
 }
 .to-block .to-label {
-    font-weight: 800;
-    font-size: 0.78rem;
+    font-weight: 700;
+    font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #7B1C1C;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 .to-block address {
     font-style: normal;
+    font-weight: 400;
     color: #444;
     padding-left: 14px;
     border-left: 3px solid #B22222;
 }
+.to-block address strong {
+    font-weight: 700;
+    color: #444;
+}
 
 /* Subject */
 .sub-line {
-    font-size: 0.83rem;
-    margin: 0 0 8px;
+    font-size: 0.8rem;
+    font-weight: 400;
+    margin: 0 0 6px;
     color: #333;
 }
-.sub-line strong { color: #000; }
+.sub-line strong { font-weight: 700; color: #000; }
 
 .body-text {
-    font-size: 0.8rem;
+    font-size: 0.76rem;
+    font-weight: 400;
     color: #555;
-    margin: 0 0 20px;
+    margin: 0 0 18px;
     line-height: 1.6;
 }
+.body-text strong { font-weight: 700; color: #555; }
 
 /* Salary Details Table */
-.sal-table { width: 100%; border-collapse: collapse; margin: 0 0 4px; font-size: 0.83rem; }
+.sal-table { width: 100%; border-collapse: collapse; margin: 0 0 4px; font-size: 0.8rem; }
 .sal-table thead tr th {
     background: #7B1C1C;
     color: #fff;
-    padding: 9px 12px;
+    padding: 8px 12px;
     text-align: left;
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 .sal-table thead tr th:last-child { text-align: right; }
-.sal-table tbody tr td { padding: 9px 12px; border-bottom: 1px solid #e8e0d5; color: #333; }
-.sal-table tbody tr td:last-child { text-align: right; font-weight: 700; }
+.sal-table tbody tr td { padding: 8px 12px; border-bottom: 1px solid #e8e0d5; color: #333; font-weight: 400; font-size: 0.8rem; }
+.sal-table tbody tr td:last-child { text-align: right; font-weight: 700; color: #333; }
 .sal-table tbody tr:hover { background: #fff8f0; }
 
 .sal-table tfoot tr td {
@@ -147,71 +167,81 @@
     font-weight: 700;
     background: #f5f0ea;
     border-top: 2px solid #d4b896;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
 }
-.sal-table tfoot tr td:first-child { text-align: right; color: #555; }
-.sal-table tfoot tr td:last-child { text-align: right; color: #333; }
+.sal-table tfoot tr td:first-child { text-align: right; color: #555; font-weight: 700; }
+.sal-table tfoot tr td:last-child { text-align: right; color: #333; font-weight: 700; }
 
 .tfoot-net td {
     background: #7B1C1C !important;
     color: #fff !important;
-    font-size: 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 700;
     border-top: 2px solid #5a1010 !important;
 }
 
-/* Working days info */
-.days-info {
-    display: flex;
-    gap: 30px;
-    background: #f0f7ff;
-    border: 1.5px solid #c8dff0;
-    border-radius: 10px;
-    padding: 12px 20px;
-    margin: 20px 0;
-    font-size: 0.83rem;
+/* Attendance title */
+.att-title {
+    margin: 18px 0 8px;
+    font-size: 0.85rem;
+    color: #777;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
-.days-info .di { display: flex; flex-direction: column; align-items: center; }
-.days-info .di-val { font-size: 1.5rem; font-weight: 800; color: #1A5C2E; }
-.days-info .di-lbl { font-size: 0.68rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
 
 /* Attendance breakdown */
 .att-row {
     display: flex;
     gap: 10px;
-    margin: 10px 0 20px;
+    margin: 8px 0 16px;
     flex-wrap: wrap;
 }
 .att-badge {
     display: flex; flex-direction: column; align-items: center;
-    padding: 8px 14px; border-radius: 10px; min-width: 70px;
-    font-size: 0.75rem;
+    padding: 8px 14px; border-radius: 8px; min-width: 70px;
 }
-.att-badge .av { font-size: 1.3rem; font-weight: 800; }
-.att-badge .al { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.att-badge .av { font-size: 1.15rem; font-weight: 700; }
+.att-badge .al { font-size: 0.6rem; font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
 .att-p  { background: #d1fae5; color: #065f46; }
 .att-h  { background: #fef3c7; color: #92400e; }
 .att-m  { background: #dbeafe; color: #1e40af; }
 .att-a  { background: #fee2e2; color: #991b1b; }
 
+/* Working days info */
+.days-info {
+    display: flex;
+    gap: 18px;
+    background: #f0f7ff;
+    border: 1.5px solid #c8dff0;
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin: 14px 0 20px;
+}
+.days-info .di { display: flex; flex-direction: column; align-items: center; }
+.days-info .di-val { font-size: 1.25rem; font-weight: 700; }
+.days-info .di-lbl { font-size: 0.6rem; font-weight: 400; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
 /* Signature row */
 .sig-row {
     display: flex;
     justify-content: space-between;
-    margin-top: 32px;
-    padding-top: 16px;
+    margin-top: 28px;
+    padding-top: 14px;
     border-top: 1.5px dashed #ccc;
 }
 .sig-box { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .sig-line { width: 160px; border-bottom: 1.5px solid #333; margin-bottom: 6px; }
-.sig-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #444; letter-spacing: 0.5px; }
-.sig-sub { font-size: 0.68rem; color: #888; }
+.sig-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #444; letter-spacing: 0.5px; }
+.sig-sub { font-size: 0.66rem; font-weight: 400; color: #888; }
 
 /* Disclaimer footer */
 .slip-footer {
     background: #f9f4ee;
     border-top: 1.5px solid #e0d5c5;
     padding: 10px 30px;
-    font-size: 0.7rem;
+    font-size: 0.66rem;
+    font-weight: 400;
     color: #888;
     text-align: center;
 }
@@ -231,7 +261,7 @@
     .tfoot-net td { font-size: 0.85rem !important; }
 }
 
-/* ── Print Styles ── */
+/* ── Print Styles (Exact Typography & Point Sizes matching PDF) ── */
 @media print {
     @page {
         size: A4 portrait;
@@ -239,6 +269,10 @@
     }
 
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+    body, .slip-wrapper, .slip-card, .slip-card * {
+        font-family: 'Poppins', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
 
     body { background: white !important; margin: 0; padding: 0; font-size: 10px !important; }
     nav, .no-print, footer { display: none !important; }
@@ -253,79 +287,86 @@
         break-inside: avoid;
     }
 
-    /* Header — compact */
+    /* Header */
     .slip-header {
-        padding: 8px 14px !important;
-        gap: 10px !important;
+        padding: 10px 18px !important;
+        gap: 12px !important;
     }
-    .slip-header img { width: 44px !important; height: 44px !important; }
-    .slip-header-text h1 { font-size: 0.95rem !important; margin-bottom: 1px !important; }
-    .slip-header-text p { font-size: 0.6rem !important; }
+    .slip-header img { width: 48px !important; height: 48px !important; }
+    .slip-header-text h1 { font-size: 11.4pt !important; font-weight: 700 !important; margin-bottom: 2px !important; }
+    .slip-header-text p { font-size: 7.2pt !important; font-weight: 400 !important; }
 
     /* Bill meta */
-    .bill-meta { padding: 5px 14px !important; font-size: 0.68rem !important; }
+    .bill-meta { padding: 6px 18px !important; font-size: 8.2pt !important; font-weight: 400 !important; }
+    .bill-meta span { font-weight: 700 !important; color: #333 !important; }
 
     /* Body */
-    .slip-body { padding: 0 14px 10px !important; }
+    .slip-body { padding: 0 18px 12px !important; }
 
     /* Bank box */
-    .bank-box { padding: 7px 10px !important; margin: 8px 0 8px !important; }
-    .bank-box h3 { font-size: 0.6rem !important; margin-bottom: 6px !important; padding-bottom: 4px !important; }
-    .bank-grid { gap: 3px 14px !important; }
-    .bank-grid .bank-row { font-size: 0.65rem !important; }
-    .bank-grid .bank-label { min-width: 68px !important; }
+    .bank-box { padding: 8px 12px !important; margin: 10px 0 10px !important; }
+    .bank-box h3 { font-size: 7.2pt !important; font-weight: 700 !important; margin-bottom: 6px !important; padding-bottom: 4px !important; }
+    .bank-grid { gap: 3px 16px !important; }
+    .bank-grid .bank-row { font-size: 7.8pt !important; }
+    .bank-grid .bank-label { font-weight: 400 !important; color: #888 !important; min-width: 72px !important; }
+    .bank-grid .bank-val { font-weight: 700 !important; color: #222 !important; }
 
     /* To / Subject / Body text */
-    .to-block { margin: 0 0 6px !important; font-size: 0.65rem !important; line-height: 1.4 !important; }
-    .to-block .to-label { font-size: 0.6rem !important; margin-bottom: 2px !important; }
-    .sub-line { font-size: 0.67rem !important; margin: 0 0 4px !important; }
-    .body-text { font-size: 0.63rem !important; margin: 0 0 8px !important; line-height: 1.4 !important; }
+    .to-block { margin: 0 0 8px !important; font-size: 7.8pt !important; line-height: 1.5 !important; }
+    .to-block .to-label { font-size: 7.2pt !important; font-weight: 700 !important; margin-bottom: 2px !important; }
+    .to-block address { font-size: 7.8pt !important; font-weight: 400 !important; color: #444 !important; }
+    .to-block address strong { font-weight: 700 !important; }
+    .sub-line { font-size: 8.0pt !important; font-weight: 400 !important; margin: 0 0 4px !important; }
+    .sub-line strong { font-weight: 700 !important; color: #000 !important; }
+    .body-text { font-size: 7.6pt !important; font-weight: 400 !important; margin: 0 0 10px !important; line-height: 1.5 !important; }
+    .body-text strong { font-weight: 700 !important; }
 
     /* Salary table */
-    .sal-table { font-size: 0.67rem !important; margin-bottom: 2px !important; }
-    .sal-table thead tr th { padding: 5px 8px !important; font-size: 0.6rem !important; }
-    .sal-table tbody tr td { padding: 5px 8px !important; }
-    .sal-table tfoot tr td { padding: 4px 8px !important; font-size: 0.65rem !important; }
-    .tfoot-net td { font-size: 0.72rem !important; }
+    .sal-table { font-size: 8.0pt !important; margin-bottom: 4px !important; }
+    .sal-table thead tr th { padding: 6px 10px !important; font-size: 7.2pt !important; font-weight: 700 !important; }
+    .sal-table tbody tr td { padding: 6px 10px !important; font-size: 8.0pt !important; font-weight: 400 !important; }
+    .sal-table tbody tr td:last-child { font-weight: 700 !important; }
+    .sal-table tfoot tr td { padding: 5px 10px !important; font-size: 7.8pt !important; font-weight: 700 !important; }
+    .tfoot-net td { font-size: 7.8pt !important; font-weight: 700 !important; }
 
-    /* Attendance + Days info — merged into a compact single row */
+    /* Attendance title */
+    .att-title { font-size: 9.0pt !important; font-weight: 700 !important; margin: 8px 0 5px !important; }
+
+    /* Attendance + Days info */
     .att-row {
         display: flex !important;
-        gap: 5px !important;
-        margin: 6px 0 5px !important;
+        gap: 6px !important;
+        margin: 6px 0 6px !important;
         flex-wrap: nowrap !important;
     }
     .att-badge {
-        padding: 4px 8px !important;
+        padding: 5px 8px !important;
         min-width: auto !important;
-        border-radius: 5px !important;
+        border-radius: 6px !important;
         flex: 1 !important;
     }
-    .att-badge .av { font-size: 0.8rem !important; }
-    .att-badge .al { font-size: 0.5rem !important; margin-top: 1px !important; }
+    .att-badge .av { font-size: 9.6pt !important; font-weight: 700 !important; }
+    .att-badge .al { font-size: 6.0pt !important; font-weight: 400 !important; margin-top: 1px !important; }
 
     .days-info {
         gap: 0 !important;
-        padding: 5px 8px !important;
-        margin: 5px 0 6px !important;
-        justify-content: space-between !important;
-        border-radius: 5px !important;
+        padding: 6px 10px !important;
+        margin: 6px 0 8px !important;
+        justify-content: space-around !important;
+        border-radius: 6px !important;
     }
     .days-info .di { flex: 1 !important; }
-    .days-info .di-val { font-size: 0.85rem !important; }
-    .days-info .di-lbl { font-size: 0.48rem !important; }
+    .days-info .di-val { font-size: 10.2pt !important; font-weight: 700 !important; }
+    .days-info .di-lbl { font-size: 5.8pt !important; font-weight: 400 !important; }
 
     /* Signature */
-    .sig-row { margin-top: 10px !important; padding-top: 8px !important; }
-    .sig-line { width: 120px !important; margin-bottom: 4px !important; }
-    .sig-title { font-size: 0.58rem !important; }
-    .sig-sub { font-size: 0.55rem !important; }
-
-    /* Attendance label */
-    div[style*="Attendance Breakdown"] { font-size: 0.58rem !important; margin: 5px 0 0 !important; }
+    .sig-row { margin-top: 14px !important; padding-top: 10px !important; }
+    .sig-line { width: 130px !important; margin-bottom: 4px !important; }
+    .sig-title { font-size: 7.0pt !important; font-weight: 700 !important; }
+    .sig-sub { font-size: 6.6pt !important; font-weight: 400 !important; }
 
     /* Footer */
-    .slip-footer { padding: 5px 14px !important; font-size: 0.55rem !important; }
+    .slip-footer { padding: 6px 16px !important; font-size: 6.6pt !important; font-weight: 400 !important; }
 }
 </style>
 {% endblock %}
@@ -510,7 +551,7 @@
             </table>
 
             <!-- Attendance Breakdown -->
-            <div style="margin: 18px 0 0; font-size:0.75rem; color:#777; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">
+            <div class="att-title">
                 Attendance Breakdown
             </div>
             <div class="att-row">
