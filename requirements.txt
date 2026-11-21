@@ -18,6 +18,7 @@ flask-mail==0.9.1
 # Data Processing
 pandas==2.1.4
 openpyxl==3.1.2
+reportlab==5.1.0
 
 # CSRF Protection
 Flask-WTF==1.2.1

@@ -1,290 +1,390 @@
 {% extends "base.html" %}
-{% block title %}Administrator Dashboard - Gayatri Vidyapeeth{% endblock %}
+{% block title %}Admin Dashboard - Gayatri Vidyapeeth{% endblock %}
 {% block content %}
 
-<!-- Header & Welcome Banner -->
-<div class="mb-8 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-amber-300/40">
-    <div class="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none transform translate-x-20 -translate-y-20"></div>
-    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+{% set attendance_rate = ((present_today / total) * 100) if total else 0 %}
+
+<style>
+    body:has(.admin-dash) {
+        background-color: #e9efeb;
+        background-image: radial-gradient(circle at 8% 10%, rgba(235, 190, 104, .16), transparent 25%),
+                          radial-gradient(circle at 92% 25%, rgba(79, 145, 127, .12), transparent 28%),
+                          linear-gradient(140deg, #edf2ee 0%, #f4f0e5 52%, #e8f0ed 100%);
+    }
+    .admin-dash {
+        --ad-ink: #172b35;
+        --ad-muted: #71808a;
+        --ad-line: #e8edf0;
+        --ad-amber: #d98a17;
+        color: var(--ad-ink);
+        padding: 16px;
+        border: 1px solid rgba(255,255,255,.75);
+        border-radius: 28px;
+        background: linear-gradient(145deg, rgba(255,255,255,.36), rgba(229,239,233,.62));
+        box-shadow: 0 18px 48px rgba(35,64,56,.07);
+    }
+    .admin-dash * { box-sizing: border-box; }
+    .ad-hero {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 22px 26px;
+        border-radius: 24px;
+        color: #fff;
+        background: linear-gradient(118deg, #183d3a 0%, #214a46 52%, #263b49 100%);
+        box-shadow: 0 16px 38px rgba(24, 61, 58, .16);
+    }
+    .ad-hero::before, .ad-hero::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        border: 1px solid rgba(255,255,255,.09);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .ad-hero::before { width: 290px; height: 290px; right: 17%; top: -205px; }
+    .ad-hero::after { width: 390px; height: 390px; right: 5%; bottom: -315px; }
+    .ad-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        color: #f6d694;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .15em;
+        text-transform: uppercase;
+    }
+    .ad-eyebrow i { font-size: 10px; }
+    .ad-hero h1 { margin: 0; color: #fff; font-size: clamp(25px, 3vw, 34px); line-height: 1.15; font-weight: 800; letter-spacing: -.035em; }
+    .ad-hero-copy { margin: 9px 0 0; color: rgba(240,248,246,.78); font-size: 15px; }
+    .ad-hero-copy strong { color: #fff; }
+    .ad-hero-tools { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .ad-primary-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 15px;
+        border-radius: 14px;
+        color: #382607;
+        background: #f4c66e;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+        box-shadow: 0 7px 18px rgba(9,30,29,.14);
+        transition: transform .18s ease, background .18s ease;
+    }
+    .ad-primary-action:hover { color: #382607; background: #ffd987; transform: translateY(-2px); }
+    .ad-primary-action i { font-size: 14px; }
+    .ad-date {
+        min-width: 128px;
+        padding: 10px 13px;
+        border: 1px solid rgba(255,255,255,.17);
+        border-radius: 14px;
+        background: rgba(255,255,255,.08);
+    }
+    .ad-date-label { color: rgba(240,248,246,.68); font-size: 10px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    .ad-date-value { margin-top: 4px; color: #fff; font-size: 14px; font-weight: 700; }
+    .ad-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin: 20px 0 10px; }
+    .ad-section-heading h2 { margin: 0; color: var(--ad-ink); font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+    .ad-section-heading p { margin: 4px 0 0; color: var(--ad-muted); font-size: 13px; }
+    .ad-live-label { display: inline-flex; align-items: center; gap: 7px; color: #64737c; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .ad-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #29a879; box-shadow: 0 0 0 4px rgba(41,168,121,.12); }
+    .ad-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .ad-kpi {
+        min-width: 0;
+        padding: 13px 14px 12px;
+        border: 1px solid rgba(89,116,106,.13);
+        border-radius: 18px;
+        background: linear-gradient(145deg, #f9fbf8, #eaf2ed);
+        box-shadow: 0 5px 16px rgba(22,43,53,.035);
+    }
+    .ad-kpi:nth-child(2) { background: linear-gradient(145deg, #f4fbf5, #e2f2e8); border-color: rgba(53,143,99,.18); }
+    .ad-kpi:nth-child(3) { background: linear-gradient(145deg, #fff8f4, #fae9e4); border-color: rgba(193,86,77,.16); }
+    .ad-kpi:nth-child(4) { background: linear-gradient(145deg, #fffaf0, #f5eccf); border-color: rgba(197,143,42,.2); }
+    .ad-kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ad-kpi-label { color: #73818a; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .ad-kpi-icon { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border-radius: 11px; font-size: 14px; }
+    .ad-icon-slate { color: #3d6472; background: #eaf2f4; }
+    .ad-icon-green { color: #16835d; background: #e7f6ef; }
+    .ad-icon-red { color: #c34e54; background: #fff0ef; }
+    .ad-icon-amber { color: #a9680c; background: #fff4dc; }
+    .ad-kpi-value { display: block; margin-top: 6px; color: var(--ad-ink); font-size: 32px; line-height: 1; font-weight: 800; letter-spacing: -.05em; }
+    .ad-kpi-foot { display: flex; align-items: center; gap: 6px; margin-top: 6px; color: #718087; font-size: 12px; }
+    .ad-kpi-foot i { font-size: 10px; }
+    .ad-progress { height: 5px; margin-top: 8px; overflow: hidden; border-radius: 99px; background: #edf1ef; }
+    .ad-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#d99a2b,#30a67d); }
+    .ad-actions { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 9px; }
+    .ad-action {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+        padding: 11px 13px;
+        border: 1px solid rgba(89,116,106,.14);
+        border-radius: 16px;
+        background: linear-gradient(135deg, #fff8e9, #f2e6c9);
+        color: var(--ad-ink);
+        text-decoration: none;
+        transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+    .ad-action:nth-child(2) { background: linear-gradient(135deg, #eff8f6, #dfeeea); }
+    .ad-action:nth-child(3) { background: linear-gradient(135deg, #f0f5f8, #e0eaf0); }
+    .ad-action:hover { color: var(--ad-ink); border-color: #e3c887; box-shadow: 0 10px 22px rgba(26,54,58,.08); transform: translateY(-2px); }
+    .ad-action-icon { display: grid; width: 35px; height: 35px; flex: 0 0 35px; place-items: center; border-radius: 11px; color: #9a6718; background: #fff3d9; font-size: 14px; }
+    .ad-action:nth-child(2) .ad-action-icon { color: #276c70; background: #e7f3f2; }
+    .ad-action:nth-child(3) .ad-action-icon { color: #4a7182; background: #eaf1f6; }
+    .ad-action-title { display: block; font-size: 13px; font-weight: 800; }
+    .ad-action-copy { display: block; margin-top: 3px; color: #74838a; font-size: 12px; line-height: 1.4; }
+    .ad-action-arrow { margin-left: auto; color: #a9b3b8; font-size: 12px; }
+    .ad-analytics { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(250px, .9fr); gap: 14px; }
+    .ad-panel { min-width: 0; overflow: hidden; border: 1px solid rgba(89,116,106,.16); border-radius: 18px; background: linear-gradient(155deg, #fcfdfb, #edf3ef); box-shadow: 0 8px 22px rgba(22,43,53,.05); }
+    .ad-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 13px; border-bottom: 1px solid rgba(90,122,108,.12); background: linear-gradient(100deg, rgba(228,240,232,.88), rgba(246,241,222,.78)); }
+    .ad-panel-title { margin: 0; color: var(--ad-ink); font-size: 15px; font-weight: 800; }
+    .ad-panel-subtitle { margin: 4px 0 0; color: #74838a; font-size: 12px; }
+    .ad-panel-badge { padding: 5px 8px; border-radius: 8px; color: #61737c; background: #f3f6f6; font-size: 11px; font-weight: 800; white-space: nowrap; }
+    .ad-chart-wrap { position: relative; height: 190px; padding: 10px 13px 11px; background: linear-gradient(180deg, rgba(247,251,247,.65), rgba(233,243,237,.65)); }
+    .ad-subject-wrap { height: 190px; padding: 8px 11px 10px; background: linear-gradient(180deg, rgba(250,248,238,.72), rgba(236,243,237,.72)); }
+    .ad-directory { margin-top: 10px; }
+    .ad-directory-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 16px; border-bottom: 1px solid rgba(90,122,108,.16); background: linear-gradient(100deg, #e4efe8, #f4ecd7); }
+    .ad-directory-title { display: flex; align-items: center; gap: 10px; }
+    .ad-directory-mark { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 11px; color: #55747b; background: #edf4f3; }
+    .ad-view-all { display: inline-flex; align-items: center; gap: 7px; color: #946516; font-size: 12px; font-weight: 800; text-decoration: none; }
+    .ad-view-all:hover { color: #63420d; }
+    .ad-table-scroll { overflow-x: auto; }
+    .ad-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .ad-table th { padding: 9px 16px; color: #536a66; background: #e7efea; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    .ad-table td { padding: 8px 16px; border-top: 1px solid #f0f3f4; color: #53636b; font-size: 13px; white-space: nowrap; }
+    .ad-table tr:hover td { background: #f5f7ed; }
+    .ad-teacher { display: flex; align-items: center; gap: 10px; min-width: 180px; }
+    .ad-avatar { display: grid; width: 33px; height: 33px; flex: 0 0 33px; place-items: center; border-radius: 10px; color: hsl(var(--avatar-hue), 48%, 34%); background: hsl(var(--avatar-hue), 68%, 92%); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    .ad-teacher-name { color: var(--ad-ink); font-size: 13px; font-weight: 800; }
+    .ad-teacher-id { margin-top: 2px; color: #74838a; font-family: ui-monospace, monospace; font-size: 10px; }
+    .ad-salary { color: #207c60 !important; font-weight: 800; }
+    .ad-empty { padding: 28px 18px !important; color: #85939a !important; text-align: center; white-space: normal !important; }
+    @media (max-width: 900px) {
+        .ad-hero { align-items: flex-start; flex-direction: column; padding: 19px 22px; }
+        .ad-hero-tools { width: 100%; }
+        .ad-date { margin-left: auto; }
+        .ad-kpis { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .ad-analytics { grid-template-columns: minmax(0,1.3fr) minmax(220px,.9fr); }
+    }
+    @media (max-width: 640px) {
+        .admin-dash { padding: 8px; border-radius: 18px; }
+        .ad-hero { gap: 12px; padding: 16px 14px; border-radius: 16px; }
+        .ad-hero h1 { font-size: 25px; }
+        .ad-hero-copy { max-width: 34ch; margin-top: 6px; font-size: 13px; line-height: 1.4; }
+        .ad-hero-tools { align-items: stretch; gap: 8px; }
+        .ad-primary-action { flex: 1; justify-content: center; padding: 11px 9px; font-size: 12px; }
+        .ad-date { min-width: 105px; margin: 0; padding: 8px 9px; }
+        .ad-date-value { font-size: 12px; }
+        .ad-section-heading { align-items: flex-start; margin: 15px 0 8px; }
+        .ad-section-heading h2 { font-size: 16px; }
+        .ad-section-heading p { margin-top: 2px; font-size: 11px; }
+        .ad-live-label { font-size: 10px; }
+        .ad-kpis { gap: 7px; }
+        .ad-kpi { padding: 10px 10px 9px; border-radius: 13px; }
+        .ad-kpi-label { max-width: 100px; font-size: 10px; }
+        .ad-kpi-icon { width: 29px; height: 29px; flex-basis: 29px; border-radius: 9px; font-size: 12px; }
+        .ad-kpi-value { margin-top: 4px; font-size: 24px; }
+        .ad-kpi-foot { margin-top: 5px; font-size: 10px; }
+        .ad-progress { margin-top: 6px; }
+        .ad-actions { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; }
+        .ad-action { position: relative; min-height: 74px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; padding: 9px; border-radius: 13px; }
+        .ad-action-icon { width: 29px; height: 29px; flex-basis: 29px; border-radius: 9px; font-size: 12px; }
+        .ad-action-title { max-width: 100%; padding-right: 7px; font-size: 11px; line-height: 1.2; }
+        .ad-action-copy { display: none; }
+        .ad-action-arrow { position: absolute; top: 10px; right: 9px; font-size: 10px; }
+        .ad-analytics { grid-template-columns: 1fr; }
+        .ad-panel-head { padding: 11px 13px 9px; }
+        .ad-chart-wrap, .ad-subject-wrap { height: 155px; padding: 7px 9px 8px; }
+        .ad-directory-head { padding: 10px 11px; }
+        .ad-directory-mark { width: 29px; height: 29px; }
+        .ad-table th, .ad-table td { padding: 7px 10px; }
+        .ad-teacher { gap: 7px; min-width: 150px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .ad-primary-action, .ad-action { transition: none; }
+    }
+</style>
+
+<div class="admin-dash">
+    <header class="ad-hero">
         <div>
-            <div class="flex items-center gap-2 mb-2">
-                <span class="bg-amber-950/40 text-amber-200 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider backdrop-blur-sm border border-amber-300/30">
-                    <i class="fas fa-shield-alt mr-1"></i> Central Administration
-                </span>
-                <span class="text-amber-200 text-xs hidden sm:inline">•</span>
-                <span class="text-amber-100 text-xs hidden sm:inline font-medium">Academic Session 2026-27</span>
-            </div>
-            <h1 class="text-2xl sm:text-4xl font-extrabold font-univ tracking-wide text-white drop-shadow-sm">
-                Administrator Dashboard
-            </h1>
-            <p class="text-amber-100 text-sm mt-1">Welcome back, <span class="font-bold text-white">{{ admin_name }}</span> • Real-time overview of faculty, attendance & payroll</p>
+            <div class="ad-eyebrow"><i class="fas fa-circle"></i> Gayatri Vidyapeeth <span aria-hidden="true">/</span> Administration</div>
+            <h1>School overview</h1>
+            <p class="ad-hero-copy">Welcome back, <strong>{{ admin_name or 'Administrator' }}</strong>. Here is today's faculty and attendance snapshot.</p>
         </div>
-        <div class="bg-white/15 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 flex items-center gap-3 shrink-0">
-            <div class="w-10 h-10 rounded-xl bg-amber-400/30 flex items-center justify-center text-amber-100 text-lg">
-                <i class="fas fa-calendar-day"></i>
-            </div>
-            <div>
-                <p class="text-[10px] text-amber-100 uppercase tracking-widest font-semibold">Today's Date</p>
-                <p class="text-sm font-bold text-white">{{ today }}</p>
+        <div class="ad-hero-tools">
+            <a class="ad-primary-action" href="{{ url_for('mark_attendance') }}"><i class="fas fa-calendar-check"></i><span>Mark attendance</span><i class="fas fa-arrow-right"></i></a>
+            <div class="ad-date" aria-label="Today's date">
+                <div class="ad-date-label">Today</div>
+                <div class="ad-date-value"><i class="far fa-calendar-alt mr-1"></i>{{ today }}</div>
             </div>
         </div>
-    </div>
+    </header>
+
+    <section aria-labelledby="overview-heading">
+        <div class="ad-section-heading">
+            <div><h2 id="overview-heading">Today's snapshot</h2><p>Active faculty and recorded attendance</p></div>
+            <span class="ad-live-label"><span class="ad-live-dot"></span>Attendance overview</span>
+        </div>
+        <div class="ad-kpis">
+            <article class="ad-kpi">
+                <div class="ad-kpi-top"><span class="ad-kpi-label">Active faculty</span><span class="ad-kpi-icon ad-icon-slate"><i class="fas fa-chalkboard-teacher"></i></span></div>
+                <strong class="ad-kpi-value">{{ total }}</strong>
+                <div class="ad-kpi-foot"><i class="fas fa-users"></i>Registered teaching staff</div>
+            </article>
+            <article class="ad-kpi">
+                <div class="ad-kpi-top"><span class="ad-kpi-label">Present today</span><span class="ad-kpi-icon ad-icon-green"><i class="fas fa-user-check"></i></span></div>
+                <strong class="ad-kpi-value">{{ present_today }}</strong>
+                <div class="ad-kpi-foot"><i class="fas fa-circle-check"></i>Marked present</div>
+            </article>
+            <article class="ad-kpi">
+                <div class="ad-kpi-top"><span class="ad-kpi-label">Absent today</span><span class="ad-kpi-icon ad-icon-red"><i class="fas fa-user-minus"></i></span></div>
+                <strong class="ad-kpi-value">{{ absent_today }}</strong>
+                <div class="ad-kpi-foot"><i class="fas fa-circle-exclamation"></i>Marked absent</div>
+            </article>
+            <article class="ad-kpi">
+                <div class="ad-kpi-top"><span class="ad-kpi-label">Attendance rate</span><span class="ad-kpi-icon ad-icon-amber"><i class="fas fa-chart-simple"></i></span></div>
+                <strong class="ad-kpi-value">{{ "%.0f"|format(attendance_rate) }}%</strong>
+                <div class="ad-progress" role="progressbar" aria-label="Faculty attendance rate" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ [attendance_rate, 100]|min|round|int }}"><span style="width: {{ [attendance_rate, 100]|min }}%"></span></div>
+                <div class="ad-kpi-foot">{{ present_today }} of {{ total }} faculty marked present</div>
+            </article>
+        </div>
+    </section>
+
+    <section aria-labelledby="actions-heading">
+        <div class="ad-section-heading">
+            <div><h2 id="actions-heading">Quick actions</h2><p>Common tasks, one click away</p></div>
+        </div>
+        <div class="ad-actions">
+            <a class="ad-action" href="{{ url_for('mark_attendance') }}">
+                <span class="ad-action-icon"><i class="fas fa-calendar-check"></i></span>
+                <span><span class="ad-action-title">Record attendance</span><span class="ad-action-copy">Update today's faculty register</span></span>
+                <i class="fas fa-arrow-right ad-action-arrow" aria-hidden="true"></i>
+            </a>
+            <a class="ad-action" href="{{ url_for('payroll') }}">
+                <span class="ad-action-icon"><i class="fas fa-wallet"></i></span>
+                <span><span class="ad-action-title">Open payroll</span><span class="ad-action-copy">Review monthly salary calculations</span></span>
+                <i class="fas fa-arrow-right ad-action-arrow" aria-hidden="true"></i>
+            </a>
+            <a class="ad-action" href="{{ url_for('manage_teachers') }}">
+                <span class="ad-action-icon"><i class="fas fa-users"></i></span>
+                <span><span class="ad-action-title">Manage faculty</span><span class="ad-action-copy">View and update teacher records</span></span>
+                <i class="fas fa-arrow-right ad-action-arrow" aria-hidden="true"></i>
+            </a>
+        </div>
+    </section>
+
+    <section aria-label="Attendance and faculty charts">
+        <div class="ad-section-heading">
+            <div><h2>At a glance</h2><p>Recent attendance and faculty distribution</p></div>
+        </div>
+        <div class="ad-analytics">
+            <article class="ad-panel">
+                <div class="ad-panel-head">
+                    <div><h3 class="ad-panel-title">Attendance trend</h3><p class="ad-panel-subtitle">Present and absent records over the last 7 days</p></div>
+                    <span class="ad-panel-badge">Last 7 days</span>
+                </div>
+                <div class="ad-chart-wrap"><canvas id="attendanceTrendChart" aria-label="Seven day attendance trend" role="img"></canvas></div>
+            </article>
+            <article class="ad-panel">
+                <div class="ad-panel-head">
+                    <div><h3 class="ad-panel-title">Faculty distribution</h3><p class="ad-panel-subtitle">Active faculty by subject or department</p></div>
+                </div>
+                <div class="ad-subject-wrap"><canvas id="subjectPieChart" aria-label="Faculty distribution by subject" role="img"></canvas></div>
+            </article>
+        </div>
+    </section>
+
+    <section class="ad-panel ad-directory" aria-labelledby="directory-heading">
+        <div class="ad-directory-head">
+            <div class="ad-directory-title">
+                <span class="ad-directory-mark"><i class="fas fa-address-book"></i></span>
+                <div><h2 class="ad-panel-title" id="directory-heading">Faculty directory</h2><p class="ad-panel-subtitle">A quick look at active teaching staff</p></div>
+            </div>
+            <a class="ad-view-all" href="{{ url_for('manage_teachers') }}">View all faculty <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="ad-table-scroll">
+            <table class="ad-table">
+                <thead><tr><th scope="col">Faculty member</th><th scope="col">Subject / department</th><th scope="col">Phone</th><th scope="col">Basic salary</th></tr></thead>
+                <tbody>
+                    {% for teacher in teachers[:4] %}
+                    <tr>
+                        <td><div class="ad-teacher"><span class="ad-avatar" style="--avatar-hue: {{ (loop.index0 * 53 + 28) % 360 }}">{{ teacher.name[:1] }}</span><span><span class="ad-teacher-name">{{ teacher.name }}</span><span class="ad-teacher-id">{{ teacher.teacher_id }}</span></span></div></td>
+                        <td>{{ teacher.subject or 'Not specified' }}</td>
+                        <td>{{ teacher.phone or '—' }}</td>
+                        <td class="ad-salary">&#8377;{{ "{:,.2f}".format(teacher.basic_salary or 0) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td class="ad-empty" colspan="4"><i class="fas fa-users mb-2"></i><br>No active faculty records found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 </div>
 
-<!-- Stats Cards -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 mb-8">
-    <!-- Total Teachers -->
-    <div class="bg-white rounded-3xl p-6 card-shadow card-shadow-hover border-t-4 border-amber-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Faculty</p>
-                <p class="text-3xl font-extrabold text-amber-700 mt-1 font-univ">{{ total }}</p>
-                <p class="text-[11px] text-gray-400 mt-1 font-medium">Registered teachers</p>
-            </div>
-            <div class="w-13 h-13 bg-gradient-to-br from-amber-100 to-yellow-200 rounded-2xl flex items-center justify-center text-amber-700 text-2xl shadow-sm">
-                <i class="fas fa-chalkboard-teacher"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Present Today -->
-    <div class="bg-white rounded-3xl p-6 card-shadow card-shadow-hover border-t-4 border-emerald-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Present Today</p>
-                <p class="text-3xl font-extrabold text-emerald-600 mt-1 font-univ">{{ present_today }}</p>
-                <p class="text-[11px] text-emerald-600 mt-1 font-medium"><i class="fas fa-check-circle mr-1"></i>On campus duty</p>
-            </div>
-            <div class="w-13 h-13 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center text-emerald-700 text-2xl shadow-sm">
-                <i class="fas fa-user-check"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Absent Today -->
-    <div class="bg-white rounded-3xl p-6 card-shadow card-shadow-hover border-t-4 border-rose-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Absent / On Leave</p>
-                <p class="text-3xl font-extrabold text-rose-600 mt-1 font-univ">{{ absent_today }}</p>
-                <p class="text-[11px] text-rose-500 mt-1 font-medium"><i class="fas fa-exclamation-circle mr-1"></i>Not in attendance</p>
-            </div>
-            <div class="w-13 h-13 bg-gradient-to-br from-rose-100 to-red-100 rounded-2xl flex items-center justify-center text-rose-600 text-2xl shadow-sm">
-                <i class="fas fa-user-times"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Attendance Rate -->
-    <div class="bg-white rounded-3xl p-6 card-shadow card-shadow-hover border-t-4 border-orange-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Attendance Rate</p>
-                {% set att_rate = ((present_today / total) * 100) if total > 0 else 0 %}
-                <p class="text-3xl font-extrabold text-orange-600 mt-1 font-univ">{{ "%.0f"|format(att_rate) }}%</p>
-                <p class="text-[11px] text-gray-400 mt-1 font-medium">{{ present_today }} of {{ total }} faculty present</p>
-            </div>
-            <div class="w-13 h-13 bg-gradient-to-br from-orange-100 to-amber-200 rounded-2xl flex items-center justify-center text-orange-600 text-2xl shadow-sm">
-                <i class="fas fa-chart-pie"></i>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Actions (DSVV Golden Theme) -->
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-    <a href="{{ url_for('mark_attendance') }}" class="gold-saffron-grad bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 rounded-3xl p-6 text-white card-shadow card-shadow-hover group border border-amber-300/40 relative overflow-hidden shadow-lg hover:shadow-2xl transition duration-300">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-2xl shrink-0 group-hover:scale-110 transition-transform shadow-inner">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <div>
-                <h3 class="font-bold text-lg font-univ tracking-wide text-white drop-shadow-sm">Mark Attendance</h3>
-                <p class="text-amber-100 text-xs mt-0.5 font-medium">Record faculty attendance for today</p>
-            </div>
-        </div>
-    </a>
-
-    <a href="{{ url_for('payroll') }}" class="royal-grad bg-gradient-to-r from-orange-600 via-amber-700 to-amber-900 rounded-3xl p-6 text-white card-shadow card-shadow-hover group border border-orange-300/40 relative overflow-hidden shadow-lg hover:shadow-2xl transition duration-300">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-2xl shrink-0 group-hover:scale-110 transition-transform shadow-inner">
-                <i class="fas fa-rupee-sign"></i>
-            </div>
-            <div>
-                <h3 class="font-bold text-lg font-univ tracking-wide text-white drop-shadow-sm">Payroll Ledger</h3>
-                <p class="text-orange-100 text-xs mt-0.5 font-medium">Calculate monthly salaries & deductions</p>
-            </div>
-        </div>
-    </a>
-
-    <a href="{{ url_for('add_teacher') }}" class="emerald-grad bg-gradient-to-r from-emerald-600 via-teal-700 to-emerald-800 rounded-3xl p-6 text-white card-shadow card-shadow-hover group border border-emerald-300/40 relative overflow-hidden shadow-lg hover:shadow-2xl transition duration-300">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-2xl shrink-0 group-hover:scale-110 transition-transform shadow-inner">
-                <i class="fas fa-user-plus"></i>
-            </div>
-            <div>
-                <h3 class="font-bold text-lg font-univ tracking-wide text-white drop-shadow-sm">Register Teacher</h3>
-                <p class="text-emerald-100 text-xs mt-0.5 font-medium">Add new faculty member to portal</p>
-            </div>
-        </div>
-    </a>
-</div>
-
-<!-- Charts Section -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <!-- Trend Chart -->
-    <div class="lg:col-span-2 bg-white rounded-3xl p-6 card-shadow border border-amber-200/50">
-        <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-100">
-            <h3 class="font-bold text-amber-950 font-univ flex items-center gap-2 text-base sm:text-lg">
-                <i class="fas fa-chart-line text-amber-600"></i> Attendance Trends (Past 7 Days)
-            </h3>
-            <span class="text-xs text-amber-700 bg-amber-100/80 px-2.5 py-1 rounded-full font-semibold">Faculty Duty</span>
-        </div>
-        <div style="height: 280px; position: relative;">
-            <canvas id="attendanceTrendChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Pie Chart -->
-    <div class="bg-white rounded-3xl p-6 card-shadow border border-amber-200/50">
-        <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-100">
-            <h3 class="font-bold text-amber-950 font-univ flex items-center gap-2 text-base sm:text-lg">
-                <i class="fas fa-chart-pie text-amber-600"></i> Faculty Distribution
-            </h3>
-            <span class="text-xs text-amber-700 bg-amber-100/80 px-2.5 py-1 rounded-full font-semibold">By Department</span>
-        </div>
-        <div style="height: 280px; position: relative;" class="flex justify-center items-center">
-            <canvas id="subjectPieChart"></canvas>
-        </div>
-    </div>
-</div>
-
-<!-- Faculty Directory Table -->
-<div class="bg-white rounded-3xl card-shadow overflow-hidden border border-amber-200/60 mb-8">
-    <div class="px-6 py-4.5 bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 border-b border-amber-200/80 flex items-center justify-between">
-        <h2 class="font-bold text-amber-950 font-univ flex items-center gap-2.5 text-base sm:text-lg">
-            <i class="fas fa-users text-amber-600"></i> Active Faculty Directory
-        </h2>
-        <a href="{{ url_for('manage_teachers') }}" class="text-amber-800 hover:text-amber-950 text-xs sm:text-sm font-bold bg-amber-200/60 hover:bg-amber-200 px-3.5 py-1.5 rounded-full transition flex items-center gap-1">
-            View All Teachers <i class="fas fa-arrow-right text-xs"></i>
-        </a>
-    </div>
-    <div class="scroll-x">
-        <table class="w-full">
-            <thead class="bg-amber-100/40 border-b border-amber-200/60">
-                <tr>
-                    <th class="text-left px-5 py-3.5 text-xs font-bold text-amber-950 uppercase tracking-wider">Teacher ID</th>
-                    <th class="text-left px-5 py-3.5 text-xs font-bold text-amber-950 uppercase tracking-wider">Faculty Name</th>
-                    <th class="text-left px-5 py-3.5 text-xs font-bold text-amber-950 uppercase tracking-wider">Subject / Dept</th>
-                    <th class="text-left px-5 py-3.5 text-xs font-bold text-amber-950 uppercase tracking-wider">Phone</th>
-                    <th class="text-left px-5 py-3.5 text-xs font-bold text-amber-950 uppercase tracking-wider">Basic Salary</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-amber-100/60">
-                {% for t in teachers %}
-                <tr class="hover:bg-amber-50/60 transition">
-                    <td class="px-5 py-3.5">
-                        <span class="bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold">{{ t.teacher_id }}</span>
-                    </td>
-                    <td class="px-5 py-3.5 font-semibold text-gray-800">{{ t.name }}</td>
-                    <td class="px-5 py-3.5 text-gray-600 text-sm font-medium">{{ t.subject }}</td>
-                    <td class="px-5 py-3.5 text-gray-600 text-sm font-mono">{{ t.phone }}</td>
-                    <td class="px-5 py-3.5 font-bold text-emerald-700">₹{{ "{:,.2f}".format(t.basic_salary) }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" class="text-center py-10 text-gray-400">
-                        <i class="fas fa-chalkboard-teacher text-3xl mb-2 text-amber-300"></i>
-                        <p>No faculty members found. Please register teachers first.</p>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Chart.js Setup with Warm Golden Palette -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+(function () {
+    if (typeof Chart === 'undefined') return;
+
     const trendLabels = {{ trend_labels | tojson }};
     const trendPresents = {{ trend_presents | tojson }};
     const trendAbsents = {{ trend_absents | tojson }};
-    
-    const pieLabels = {{ pie_labels | tojson }};
-    const pieData = {{ pie_data | tojson }};
+    const subjectLabels = {{ pie_labels | tojson }};
+    const subjectData = {{ pie_data | tojson }};
 
     Chart.defaults.font.family = "'Plus Jakarta Sans', 'Poppins', sans-serif";
+    Chart.defaults.color = '#78868d';
 
-    // 1. Line Chart: Attendance Trend
-    const ctxTrend = document.getElementById('attendanceTrendChart').getContext('2d');
-    new Chart(ctxTrend, {
-        type: 'line',
-        data: {
-            labels: trendLabels,
-            datasets: [
-                {
-                    label: 'Present',
-                    data: trendPresents,
-                    borderColor: '#059669',
-                    backgroundColor: 'rgba(5, 150, 105, 0.12)',
-                    borderWidth: 3,
-                    pointBackgroundColor: '#059669',
-                    pointRadius: 4,
-                    fill: true,
-                    tension: 0.4
-                },
-                {
-                    label: 'Absent',
-                    data: trendAbsents,
-                    borderColor: '#E11D48',
-                    backgroundColor: 'rgba(225, 29, 72, 0.10)',
-                    borderWidth: 3,
-                    pointBackgroundColor: '#E11D48',
-                    pointRadius: 4,
-                    fill: true,
-                    tension: 0.4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { weight: 600 } } },
-                tooltip: { mode: 'index', intersect: false }
+    const trendCanvas = document.getElementById('attendanceTrendChart');
+    if (trendCanvas) {
+        new Chart(trendCanvas, {
+            type: 'line',
+            data: {
+                labels: trendLabels,
+                datasets: [
+                    { label: 'Present', data: trendPresents, borderColor: '#22966e', backgroundColor: 'rgba(34,150,110,.10)', borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5, pointBackgroundColor: '#22966e', fill: true, tension: .35 },
+                    { label: 'Absent', data: trendAbsents, borderColor: '#d76d6f', backgroundColor: 'rgba(215,109,111,.05)', borderWidth: 2, pointRadius: 2.5, pointHoverRadius: 5, pointBackgroundColor: '#d76d6f', fill: false, tension: .35 }
+                ]
             },
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                x: { grid: { display: false } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, padding: 16, font: { size: 11, weight: 600 } } } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0, stepSize: 1 }, grid: { color: '#eff3f3' }, border: { display: false } },
+                    x: { grid: { display: false }, border: { display: false } }
+                }
             }
-        }
-    });
+        });
+    }
 
-    // 2. Doughnut Chart: Subject Distribution
-    const ctxPie = document.getElementById('subjectPieChart').getContext('2d');
-    new Chart(ctxPie, {
-        type: 'doughnut',
-        data: {
-            labels: pieLabels,
-            datasets: [{
-                data: pieData,
-                backgroundColor: [
-                    '#F59E0B', '#D97706', '#059669', '#2563EB', '#EA580C', '#8B5CF6', '#EAB308', '#06B6D4'
-                ],
-                borderWidth: 2,
-                borderColor: '#ffffff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '68%',
-            plugins: {
-                legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11, weight: 500 } } }
+    const subjectCanvas = document.getElementById('subjectPieChart');
+    if (subjectCanvas) {
+        new Chart(subjectCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: subjectLabels,
+                datasets: [{ data: subjectData, backgroundColor: ['#d79a35','#2c8176','#5c7b91','#d4775b','#78976f','#9277a4','#d5b95d','#6c9da0'], borderWidth: 3, borderColor: '#fff', hoverOffset: 5 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, padding: 12, font: { size: 10, weight: 600 } } } }
             }
-        }
-    });
+        });
+    }
+})();
 </script>
 
 {% endblock %}

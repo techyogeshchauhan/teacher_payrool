@@ -2,34 +2,34 @@
 {% block title %}Mark Attendance - Gayatri Vidyapeeth{% endblock %}
 {% block content %}
 
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-3">
     <div>
-        <div class="flex items-center gap-2 mb-1">
+        <div class="hidden sm:flex items-center gap-2 mb-1">
             <span class="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-3 py-0.5 rounded-full border border-amber-200">
                 Daily Faculty Registers
             </span>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 font-serif flex items-center gap-3">
+        <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 font-serif flex items-center gap-2 sm:gap-3">
             <i class="fas fa-calendar-check text-amber-600"></i> Mark Staff Attendance
         </h1>
-        <p class="text-xs sm:text-sm text-gray-500 mt-1">Record attendance, half-days, or medical leaves for institutional staff</p>
+        <p class="hidden sm:block text-xs sm:text-sm text-gray-500 mt-1">Record attendance, half-days, or medical leaves for institutional staff</p>
     </div>
 </div>
 
 <!-- Date Selector -->
-<div class="bg-white rounded-3xl card-shadow p-5 mb-6 flex flex-wrap items-center justify-between gap-4 border border-amber-100">
-    <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg">
+<div class="bg-white rounded-xl sm:rounded-2xl card-shadow p-3 sm:p-4 mb-3 sm:mb-4 flex flex-wrap items-center justify-between gap-2 sm:gap-4 border border-amber-100">
+    <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-sm sm:text-lg shrink-0">
             <i class="fas fa-calendar-day"></i>
         </div>
-        <div>
-            <label class="font-bold text-xs uppercase tracking-wider text-gray-500 block">Select Register Date</label>
+        <div class="min-w-0 flex-1 sm:flex-none">
+            <label class="font-bold text-[10px] sm:text-xs uppercase tracking-wider text-gray-500 block">Attendance Date</label>
             <input type="date" id="dateSelector" value="{{ selected_date }}"
-                class="px-4 py-2 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none font-bold text-gray-800 text-sm mt-1"
+                class="w-full sm:w-auto px-2 sm:px-4 py-1.5 sm:py-2 border-2 border-amber-200 rounded-lg sm:rounded-xl focus:border-amber-500 focus:ring-4 focus:ring-amber-500/15 focus:outline-none font-bold text-gray-800 text-xs sm:text-sm mt-0.5 sm:mt-1"
                 onchange="window.location.href='?date='+this.value">
         </div>
     </div>
-    <div class="bg-amber-50 px-4 py-2 rounded-2xl border border-amber-200/80 text-xs">
+    <div class="hidden sm:block bg-amber-50 px-4 py-2 rounded-2xl border border-amber-200/80 text-xs">
         <span class="text-amber-800 font-semibold">Active Session Date:</span>
         <span class="text-amber-950 font-bold ml-1 font-mono text-sm">{{ selected_date }}</span>
     </div>
@@ -40,111 +40,121 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="att_date" value="{{ selected_date }}">
     
-    <div class="bg-white rounded-3xl card-shadow overflow-hidden mb-6 border border-amber-100">
-        <div class="px-6 py-5 gold-saffron-grad flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-white">
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden mb-3 sm:mb-4 border border-amber-100">
+        <div class="px-3 py-3 sm:px-4 sm:py-4 gold-saffron-grad flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 text-white">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-lg shadow-sm">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-sm sm:text-lg shadow-sm shrink-0">
                     <i class="fas fa-users"></i>
                 </div>
                 <div>
-                    <h2 class="font-bold font-serif text-lg">Attendance Roster</h2>
-                    <p class="text-xs text-amber-100">{{ teachers|length }} Registered Teaching Staff</p>
+                    <h2 class="font-bold font-serif text-base sm:text-lg">Attendance Roster</h2>
+                    <p class="text-[10px] sm:text-xs text-amber-100">{{ teachers|length }} Registered Teaching Staff</p>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-2 text-xs">
+            <div class="flex flex-wrap gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
                 <button type="button" onclick="markAll('P')" 
-                    class="bg-white/95 text-emerald-800 px-3.5 py-2 rounded-xl font-bold hover:bg-white transition shadow-sm flex items-center gap-1.5">
+                    class="bg-white/95 text-emerald-800 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-bold hover:bg-white transition shadow-sm flex items-center gap-1 sm:gap-1.5">
                     <i class="fas fa-check text-emerald-600"></i> All Present
                 </button>
                 <button type="button" onclick="markAll('A')" 
-                    class="bg-white/95 text-rose-800 px-3.5 py-2 rounded-xl font-bold hover:bg-white transition shadow-sm flex items-center gap-1.5">
+                    class="bg-white/95 text-rose-800 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-bold hover:bg-white transition shadow-sm flex items-center gap-1 sm:gap-1.5">
                     <i class="fas fa-times text-rose-600"></i> All Absent
                 </button>
                 <button type="button" onclick="markAll('none')" 
-                    class="bg-amber-950/40 text-amber-100 border border-amber-300/30 px-3 py-2 rounded-xl font-bold hover:bg-amber-950/60 transition">
+                    class="bg-amber-950/40 text-amber-100 border border-amber-300/30 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-bold hover:bg-amber-950/60 transition">
                     Clear Selection
                 </button>
             </div>
+            <p class="w-full text-[9px] leading-3 text-amber-100/90">- Unset &bull; P Present &bull; A Absent &bull; H Half Day &bull; M Medical</p>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-sm">
-                <thead>
-                    <tr class="bg-amber-50/70 border-b border-amber-100 text-xs font-bold uppercase tracking-wider text-amber-950">
-                        <th class="p-4">Faculty Member</th>
-                        <th class="p-4 text-center text-gray-500">Unset</th>
-                        <th class="p-4 text-center text-emerald-700">Present (P)</th>
-                        <th class="p-4 text-center text-rose-700">Absent (A)</th>
-                        <th class="p-4 text-center text-amber-700">Half Day (H)</th>
-                        <th class="p-4 text-center text-blue-700">Medical (M)</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for t in teachers %}
-                    <tr class="hover:bg-amber-50/40 transition">
-                        <td class="p-4">
-                            <div class="flex items-center gap-3.5">
-                                {% if t.photo %}
-                                <img src="{{ url_for('static', filename='uploads/' + t.photo) }}"
-                                     class="w-11 h-11 rounded-2xl object-cover shadow-sm border border-amber-200">
-                                {% else %}
-                                <div class="w-11 h-11 gold-saffron-grad rounded-2xl flex items-center justify-center text-white font-serif font-bold shadow-sm">
-                                    {{ t.name[0] }}
-                                </div>
-                                {% endif %}
-                                <div>
-                                    <p class="font-bold text-gray-900 font-serif text-base">{{ t.name }}</p>
-                                    <p class="text-xs text-gray-500">{{ t.subject }} &bull; <span class="font-mono text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200/80">{{ t.teacher_id }}</span></p>
-                                </div>
-                            </div>
-                        </td>
+        <div class="attendance-pagination" aria-label="Teacher pagination">
+            <button type="button" class="attendance-page-previous" onclick="changeAttendancePage(-1)" aria-label="Previous teacher page">
+                <i class="fas fa-chevron-left"></i> Prev
+            </button>
+            <span class="attendance-page-summary" aria-live="polite"></span>
+            <button type="button" class="attendance-page-next" onclick="changeAttendancePage(1)" aria-label="Next teacher page">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
 
-                        {% if t.teacher_id in teachers_on_leave %}
-                        <td colspan="5" class="p-4 text-center">
-                            <span class="bg-blue-50 text-blue-800 px-4 py-1.5 rounded-xl font-bold border border-blue-200 text-xs inline-flex items-center gap-2">
-                                <i class="fas fa-plane-departure text-blue-600"></i> Approved Leave Record
-                            </span>
-                            <input type="hidden" name="status_{{ t.teacher_id }}" value="none">
-                        </td>
-                        {% else %}
-                        <td class="p-4 text-center">
-                            <input type="radio" name="status_{{ t.teacher_id }}" value="none" 
-                                class="w-5 h-5 text-gray-500 border-gray-300 focus:ring-gray-400 cursor-pointer" 
-                                {% if not existing.get(t.teacher_id) %}checked{% endif %}>
-                        </td>
-                        <td class="p-4 text-center">
-                            <input type="radio" name="status_{{ t.teacher_id }}" value="P" 
-                                class="w-5 h-5 text-emerald-600 border-emerald-300 focus:ring-emerald-500 cursor-pointer" 
-                                {% if existing.get(t.teacher_id) in ['present', 'P'] %}checked{% endif %}>
-                        </td>
-                        <td class="p-4 text-center">
-                            <input type="radio" name="status_{{ t.teacher_id }}" value="A" 
-                                class="w-5 h-5 text-rose-600 border-rose-300 focus:ring-rose-500 cursor-pointer" 
-                                {% if existing.get(t.teacher_id) in ['absent', 'A'] %}checked{% endif %}>
-                        </td>
-                        <td class="p-4 text-center">
-                            <input type="radio" name="status_{{ t.teacher_id }}" value="H" 
-                                class="w-5 h-5 text-amber-500 border-amber-300 focus:ring-amber-500 cursor-pointer" 
-                                {% if existing.get(t.teacher_id) in ['half_day', 'H'] %}checked{% endif %}>
-                        </td>
-                        <td class="p-4 text-center">
-                            <input type="radio" name="status_{{ t.teacher_id }}" value="M" 
-                                class="w-5 h-5 text-blue-600 border-blue-300 focus:ring-blue-500 cursor-pointer" 
-                                {% if existing.get(t.teacher_id) == 'M' %}checked{% endif %}>
-                        </td>
-                        {% endif %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="attendance-roster-grid">
+            {% for t in teachers %}
+            <div class="attendance-person-card">
+                <div class="attendance-person-info">
+                    {% if t.photo %}
+                    <img src="{{ url_for('static', filename='uploads/' + t.photo) }}"
+                         class="attendance-person-photo" alt="">
+                    {% else %}
+                    <div class="attendance-person-initial gold-saffron-grad">{{ t.name[0] }}</div>
+                    {% endif %}
+                    <div class="min-w-0">
+                        <p class="attendance-teacher-name">{{ t.name }}</p>
+                        <p class="attendance-teacher-meta">{{ t.teacher_id }}{% if t.subject %} &bull; {{ t.subject }}{% endif %}</p>
+                    </div>
+                </div>
+
+                {% if t.teacher_id in teachers_on_leave %}
+                <span class="attendance-leave-badge">
+                    <i class="fas fa-plane-departure"></i> Approved Leave
+                </span>
+                <input type="hidden" name="status_{{ t.teacher_id }}" value="none">
+                {% else %}
+                <div class="attendance-status-options">
+                    <label class="attendance-choice choice-none" title="Unset">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="none"
+                            aria-label="{{ t.name }} - Unset"
+                            {% if not existing.get(t.teacher_id) %}checked{% endif %}>
+                        <span>-</span>
+                    </label>
+                    <label class="attendance-choice choice-present" title="Present">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="P"
+                            aria-label="{{ t.name }} - Present"
+                            {% if existing.get(t.teacher_id) in ['present', 'P'] %}checked{% endif %}>
+                        <span>P</span>
+                    </label>
+                    <label class="attendance-choice choice-absent" title="Absent">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="A"
+                            aria-label="{{ t.name }} - Absent"
+                            {% if existing.get(t.teacher_id) in ['absent', 'A'] %}checked{% endif %}>
+                        <span>A</span>
+                    </label>
+                    <label class="attendance-choice choice-half" title="Half Day">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="H"
+                            aria-label="{{ t.name }} - Half Day"
+                            {% if existing.get(t.teacher_id) in ['half_day', 'H'] %}checked{% endif %}>
+                        <span>H</span>
+                    </label>
+                    <label class="attendance-choice choice-medical" title="Medical">
+                        <input type="radio" name="status_{{ t.teacher_id }}" value="M"
+                            aria-label="{{ t.name }} - Medical"
+                            {% if existing.get(t.teacher_id) == 'M' %}checked{% endif %}>
+                        <span>M</span>
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="attendance-pagination attendance-pagination-bottom" aria-label="Teacher pagination">
+            <button type="button" class="attendance-page-previous" onclick="changeAttendancePage(-1)" aria-label="Previous teacher page">
+                <i class="fas fa-chevron-left"></i> Prev
+            </button>
+            <span class="attendance-page-summary" aria-live="polite"></span>
+            <button type="button" class="attendance-page-next" onclick="changeAttendancePage(1)" aria-label="Next teacher page">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
         </div>
     </div>
 
-    <button type="submit"
-        class="gold-saffron-grad text-white px-10 py-4 rounded-2xl font-bold text-base hover:opacity-95 transition shadow-xl flex items-center gap-3">
-        <i class="fas fa-save"></i>
-        <span>Save Attendance Register</span>
-    </button>
+    <div class="attendance-submit-sticky">
+        <button type="submit"
+            class="gold-saffron-grad text-white px-7 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base hover:opacity-95 transition shadow-xl flex items-center gap-2 sm:gap-3">
+            <i class="fas fa-save"></i>
+            <span>Save Attendance</span>
+        </button>
+    </div>
 </form>
 
 {% else %}
@@ -159,12 +169,270 @@
 </div>
 {% endif %}
 
+<style>
+    .attendance-roster-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+        padding: 8px;
+    }
+
+    .attendance-person-card[hidden] {
+        display: none !important;
+    }
+
+    .attendance-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 6px 9px;
+        background: #fffcf5;
+        border-bottom: 1px solid #f3e8c5;
+    }
+
+    .attendance-pagination-bottom {
+        border-top: 1px solid #f3e8c5;
+        border-bottom: 0;
+    }
+
+    .attendance-pagination button {
+        display: inline-flex;
+        min-width: 58px;
+        min-height: 30px;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 4px 8px;
+        border: 1px solid #ead59a;
+        border-radius: 8px;
+        background: #fff;
+        color: #78350f;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .attendance-pagination button:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+    }
+
+    .attendance-page-summary {
+        color: #57534e;
+        font-size: 10px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .attendance-person-card {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 6px;
+        padding: 7px;
+        border: 1px solid #f3e8c5;
+        border-radius: 11px;
+        background: #fff;
+        box-shadow: 0 1px 4px rgba(120, 80, 20, 0.06);
+        transition: background-color 120ms ease, border-color 120ms ease;
+    }
+
+    .attendance-person-card:hover {
+        border-color: #ead59a;
+        background: #fffdf7;
+    }
+
+    .attendance-person-info {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .attendance-person-photo,
+    .attendance-person-initial {
+        display: flex;
+        width: 30px;
+        height: 30px;
+        flex: 0 0 30px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ead59a;
+        border-radius: 9px;
+        object-fit: cover;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .attendance-teacher-name {
+        overflow: hidden;
+        color: #1c1917;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .attendance-teacher-meta {
+        overflow: hidden;
+        color: #78716c;
+        font-size: 9px;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .attendance-status-options {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 3px;
+    }
+
+    .attendance-choice {
+        position: relative;
+        display: flex;
+        min-width: 0;
+        height: 30px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .attendance-choice input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+
+    .attendance-choice span {
+        display: inline-flex;
+        width: 100%;
+        height: 30px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e7e5e4;
+        border-radius: 7px;
+        background: #fafaf9;
+        color: #57534e;
+        font-size: 10px;
+        font-weight: 800;
+        transition: background-color 120ms ease, color 120ms ease;
+    }
+
+    .attendance-choice input:checked + span {
+        border-color: transparent;
+        color: #fff;
+    }
+
+    .attendance-choice input:focus-visible + span {
+        outline: 2px solid #1d4ed8;
+        outline-offset: 1px;
+    }
+
+    .choice-none input:checked + span { background: #57534e; }
+    .choice-present input:checked + span { background: #059669; }
+    .choice-absent input:checked + span { background: #e11d48; }
+    .choice-half input:checked + span { background: #d97706; }
+    .choice-medical input:checked + span { background: #2563eb; }
+
+    .attendance-leave-badge {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        border: 1px solid #bfdbfe;
+        border-radius: 7px;
+        background: #eff6ff;
+        color: #1e40af;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .attendance-submit-sticky {
+        position: sticky;
+        bottom: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: flex-end;
+        padding: 8px 0;
+        background: linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.84), transparent);
+    }
+
+    @media (min-width: 640px) {
+        .attendance-roster-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .attendance-person-card { padding: 8px; }
+        .attendance-person-photo,
+        .attendance-person-initial { width: 34px; height: 34px; flex-basis: 34px; }
+        .attendance-teacher-name { font-size: 13px; }
+        .attendance-teacher-meta { font-size: 10px; }
+        .attendance-choice,
+        .attendance-choice span { height: 32px; }
+    }
+
+    @media (min-width: 1024px) {
+        .attendance-roster-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    }
+
+    @media (min-width: 1600px) {
+        .attendance-roster-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 767px) {
+        .attendance-submit-sticky {
+            padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+        }
+
+        .attendance-submit-sticky button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
 <script>
+const ATTENDANCE_PAGE_SIZE = 16;
+let currentAttendancePage = 1;
+
+function renderAttendancePage() {
+    const cards = Array.from(document.querySelectorAll('.attendance-person-card'));
+    const totalPages = Math.max(1, Math.ceil(cards.length / ATTENDANCE_PAGE_SIZE));
+    currentAttendancePage = Math.min(Math.max(currentAttendancePage, 1), totalPages);
+
+    const firstIndex = (currentAttendancePage - 1) * ATTENDANCE_PAGE_SIZE;
+    const lastIndex = Math.min(firstIndex + ATTENDANCE_PAGE_SIZE, cards.length);
+    cards.forEach((card, index) => {
+        card.hidden = index < firstIndex || index >= lastIndex;
+    });
+
+    const firstShown = cards.length ? firstIndex + 1 : 0;
+    document.querySelectorAll('.attendance-page-summary').forEach(summary => {
+        summary.textContent = `Showing ${firstShown}-${lastIndex} of ${cards.length} • Page ${currentAttendancePage} of ${totalPages}`;
+    });
+    document.querySelectorAll('.attendance-page-previous').forEach(button => {
+        button.disabled = currentAttendancePage === 1;
+    });
+    document.querySelectorAll('.attendance-page-next').forEach(button => {
+        button.disabled = currentAttendancePage === totalPages;
+    });
+}
+
+function changeAttendancePage(direction) {
+    currentAttendancePage += direction;
+    renderAttendancePage();
+    document.querySelector('.attendance-roster-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function markAll(status) {
     document.querySelectorAll(`input[type=radio][value="${status}"]`).forEach(r => {
         r.checked = true;
     });
 }
+
+renderAttendancePage();
 </script>
 
 {% endblock %}

@@ -12,6 +12,7 @@ class Config:
     # ─── Flask Core ──────────────────────────────────────────────────
     SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(32).hex()
     FLASK_ENV = os.environ.get('FLASK_ENV', 'production')
+    DEV_LIVE_RELOAD = False
 
     # ─── MongoDB ─────────────────────────────────────────────────────
     MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/gayatri_school')
@@ -89,6 +90,9 @@ class DevelopmentConfig(Config):
     DEBUG = True
     TESTING = False
     SESSION_COOKIE_SECURE = False  # Allow HTTP in development
+    TEMPLATES_AUTO_RELOAD = True
+    SEND_FILE_MAX_AGE_DEFAULT = 0
+    DEV_LIVE_RELOAD = os.environ.get('DEV_LIVE_RELOAD', '').lower() in ('1', 'true', 'yes')
 
 
 class ProductionConfig(Config):
@@ -96,6 +100,7 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
     SESSION_COOKIE_SECURE = True  # Require HTTPS
+    DEV_LIVE_RELOAD = False
 
     @classmethod
     def init_app(cls, app):

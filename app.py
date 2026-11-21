@@ -30,11 +30,13 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 import re
 import secrets
+import hashlib
 import pandas as pd
 import io
 import calendar
 import math
 import uuid
+import zipfile
 import os
 import logging
 import threading
@@ -43,6 +45,7 @@ from logging.handlers import RotatingFileHandler
 from bson.objectid import ObjectId
 from pymongo import MongoClient, UpdateOne, DeleteOne
 from dotenv import load_dotenv
+from PIL import Image, UnidentifiedImageError
 
 try:
     import dns.resolver
@@ -338,9 +341,15 @@ def principal_required(f):
 def teacher_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('teacher_id'):
+        teacher_id = session.get('teacher_id')
+        if not teacher_id:
             log_security_event('UNAUTH_ACCESS', 'anonymous', f'Path: {request.path}')
             flash('Please log in!')
+            return redirect(url_for('teacher_login'))
+        if not teachers_col.find_one(
+                {'teacher_id': teacher_id, 'active': True}, {'_id': 1}):
+            session.clear()
+            flash('Your teacher account is inactive or unavailable. Please contact the administrator.')
             return redirect(url_for('teacher_login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -398,171 +407,132 @@ def get_working_days(year, month):
     return get_month_summary(year, month)['working_days']
 
 
-def detect_continuous_leave_periods(tid, year, month, sunday_days=None, preloaded_absents=None):
-    """
-    Detect continuous leave periods (3+ consecutive absent days).
-    Sundays are automatically included if they fall between absent days.
-    Supports preloaded_absents for in-memory batch processing.
-    """
-    month_str = f"{year}-{month:02d}"
-    days_in_month = calendar.monthrange(year, month)[1]
-
-    if sunday_days is None:
-        sunday_days = set()
-
-    if preloaded_absents is not None:
-        absent_days = sorted([int(d.split('-')[2]) for d in preloaded_absents if d.startswith(month_str)])
-    else:
-        absent_records = list(attendance_col.find({
-            'teacher_id': tid,
-            'date': {'$gte': f"{month_str}-01", '$lte': f"{month_str}-{days_in_month:02d}"},
-            'status': {'$in': ['absent', 'A']}
-        }).sort('date', 1))
-        absent_days = sorted([int(rec['date'].split('-')[2]) for rec in absent_records])
-
-    if not absent_days:
-        return []
-
-    expanded_absent = set(absent_days)
-    for day in absent_days:
-        for offset in [1, 2, 3]:
-            next_day = day + offset
-            if next_day in sunday_days and next_day <= days_in_month:
-                if any(ad > next_day and ad <= next_day + 3 for ad in absent_days):
-                    expanded_absent.add(next_day)
-
-    absent_days = sorted(list(expanded_absent))
-
-    continuous_periods = []
-    current_start = absent_days[0]
-    current_end = absent_days[0]
-
-    for i in range(1, len(absent_days)):
-        if absent_days[i] == current_end + 1:
-            current_end = absent_days[i]
-        else:
-            if current_end - current_start + 1 >= 3:
-                continuous_periods.append((current_start, current_end))
-            current_start = absent_days[i]
-            current_end = absent_days[i]
-
-    if current_end - current_start + 1 >= 3:
-        continuous_periods.append((current_start, current_end))
-
-    return continuous_periods
+def calculate_paid_days_total(present_days, half_days, medical_days, paid_leave_days,
+                              sunday_count, salary_calc_days):
+    """Apply the salary-slip-generator rule to attendance-derived day totals."""
+    eligible_days = (
+        present_days + (half_days * 0.5) + medical_days + paid_leave_days + sunday_count
+    )
+    return round(min(eligible_days, salary_calc_days), 2)
 
 
-def calculate_paid_days(tid, year, month, summary, preloaded_attendance=None, preloaded_adjustment=None):
-    """
-    Attendance-based paid days calculation with Continuous Leave Rule.
-    Supports preloaded_attendance and preloaded_adjustment to eliminate N+1 DB queries.
-    """
+def count_approved_paid_leave_days(leave_requests, year, month, summary, attendance_dates):
+    """Count approved weekdays not already represented by attendance or a holiday."""
+    month_start = date(year, month, 1)
+    month_end = date(year, month, calendar.monthrange(year, month)[1])
+    holiday_days = summary.get('holiday_days', set())
+    paid_dates = set()
+
+    for leave in leave_requests:
+        try:
+            leave_start = max(date.fromisoformat(leave['start_date']), month_start)
+            leave_end = min(date.fromisoformat(leave['end_date']), month_end)
+        except (KeyError, TypeError, ValueError):
+            continue
+
+        current_day = leave_start
+        while current_day <= leave_end:
+            date_str = current_day.isoformat()
+            if (current_day.weekday() != 6
+                    and current_day.day not in holiday_days
+                    and date_str not in attendance_dates):
+                paid_dates.add(date_str)
+            current_day += timedelta(days=1)
+
+    return len(paid_dates)
+
+
+def calculate_paid_days(tid, year, month, summary, preloaded_attendance=None,
+                        preloaded_adjustment=None, preloaded_approved_leaves=None):
+    """Calculate paid days using the same rule as the salary slip generator."""
     month_str = f"{year}-{month:02d}"
     salary_calc_days = summary.get('salary_calc_days', 30)
+    days_in_month = calendar.monthrange(year, month)[1]
+    date_query = {'$gte': f"{month_str}-01", '$lte': f"{month_str}-{days_in_month:02d}"}
 
     if preloaded_attendance is not None:
         present = 0
         half = 0
         medical = 0
         absent = 0
-        absent_dates = []
+        attendance_dates = set()
         for rec in preloaded_attendance:
             st = rec.get('status')
             dt = rec.get('date', '')
             if st in ['present', 'P']:
                 present += 1
+                if dt:
+                    attendance_dates.add(dt)
             elif st in ['half_day', 'H']:
                 half += 1
+                if dt:
+                    attendance_dates.add(dt)
             elif st == 'M':
                 medical += 1
+                if dt:
+                    attendance_dates.add(dt)
             elif st in ['absent', 'A']:
                 absent += 1
-                if dt:
-                    absent_dates.append(dt)
-        continuous_leave_periods = detect_continuous_leave_periods(
-            tid, year, month, summary.get('sunday_days', set()), preloaded_absents=absent_dates
-        )
     else:
-        days_in_month = calendar.monthrange(year, month)[1]
-        date_query = {'$gte': f"{month_str}-01", '$lte': f"{month_str}-{days_in_month:02d}"}
+        records = list(attendance_col.find(
+            {'teacher_id': tid, 'date': date_query},
+            {'_id': 0, 'date': 1, 'status': 1}
+        ))
+        present = sum(1 for rec in records if rec.get('status') in ['present', 'P'])
+        half = sum(1 for rec in records if rec.get('status') in ['half_day', 'H'])
+        medical = sum(1 for rec in records if rec.get('status') == 'M')
+        absent = sum(1 for rec in records if rec.get('status') in ['absent', 'A'])
+        attendance_dates = {
+            rec.get('date') for rec in records
+            if rec.get('date') and rec.get('status') in ['present', 'P', 'half_day', 'H', 'M']
+        }
 
-        present = attendance_col.count_documents({
-            'teacher_id': tid, 'date': date_query,
-            'status': {'$in': ['present', 'P']}
-        })
-        half = attendance_col.count_documents({
-            'teacher_id': tid, 'date': date_query,
-            'status': {'$in': ['half_day', 'H']}
-        })
-        medical = attendance_col.count_documents({
-            'teacher_id': tid, 'date': date_query,
-            'status': 'M'
-        })
-        absent = attendance_col.count_documents({
-            'teacher_id': tid, 'date': date_query,
-            'status': {'$in': ['absent', 'A']}
-        })
-        continuous_leave_periods = detect_continuous_leave_periods(
-            tid, year, month, summary.get('sunday_days', set())
-        )
-
-    has_any_attendance = (present + half + medical) > 0
-
-    if has_any_attendance:
-        sunday_days = summary.get('sunday_days', set())
-        holiday_days = summary.get('holiday_days', set())
-
-        sundays_paid = 4
-        holidays_paid = len(holiday_days)
-        sundays_in_attendance = False
-
-        # Check for salary adjustments in database or preloaded dictionary
-        if preloaded_adjustment is not None:
-            salary_adj = preloaded_adjustment
-        elif preloaded_attendance is not None and preloaded_adjustment is None:
-            salary_adj = None
-        else:
-            salary_adj = db['salary_adjustments'].find_one({
-                'teacher_id': tid, 'year': year, 'month': month
-            })
-
-        if salary_adj:
-            sundays_paid = salary_adj.get('sundays_paid', sundays_paid)
-            sundays_in_attendance = salary_adj.get('sundays_in_attendance', False)
-        else:
-            # Apply Continuous Leave Rule
-            sundays_in_leave = 0
-            holidays_in_leave = 0
-
-            for leave_start, leave_end in continuous_leave_periods:
-                for day in range(leave_start, leave_end + 1):
-                    if day in sunday_days:
-                        sundays_in_leave += 1
-                    if day in holiday_days:
-                        holidays_in_leave += 1
-
-            sundays_paid = max(0, sundays_paid - sundays_in_leave)
-            holidays_paid = max(0, holidays_paid - holidays_in_leave)
-
-        if sundays_in_attendance:
-            paid_days = present + medical + (half * 0.5) + holidays_paid
-        else:
-            paid_days = present + medical + (half * 0.5) + sundays_paid + holidays_paid
-
-        paid_days = min(paid_days, salary_calc_days)
+    if preloaded_approved_leaves is None:
+        leave_requests = list(leave_requests_col.find({
+            'teacher_id': tid,
+            'status': 'Approved',
+            'start_date': {'$lte': f"{month_str}-{days_in_month:02d}"},
+            'end_date': {'$gte': f"{month_str}-01"}
+        }, {'_id': 0, 'start_date': 1, 'end_date': 1}))
     else:
-        sundays_paid = 0
-        holidays_paid = 0
-        paid_days = 0
+        leave_requests = preloaded_approved_leaves
+
+    approved_leave_days = count_approved_paid_leave_days(
+        leave_requests, year, month, summary, attendance_dates
+    )
+    holidays_paid = len(summary.get('holiday_days', set()))
+    sundays_paid = 4
+    sundays_in_attendance = False
+
+    # Preserve explicit payroll overrides while using the shared day-total formula.
+    if preloaded_adjustment is not None:
+        salary_adj = preloaded_adjustment
+    elif preloaded_attendance is not None:
+        salary_adj = None
+    else:
+        salary_adj = db['salary_adjustments'].find_one({
+            'teacher_id': tid, 'year': year, 'month': month
+        })
+
+    if salary_adj:
+        sundays_paid = salary_adj.get('sundays_paid', sundays_paid)
+        sundays_in_attendance = salary_adj.get('sundays_in_attendance', False)
+
+    paid_leave_days = approved_leave_days + holidays_paid
+    sunday_days_for_pay = 0 if sundays_in_attendance else sundays_paid
+    paid_days = calculate_paid_days_total(
+        present, half, medical, paid_leave_days, sunday_days_for_pay, salary_calc_days
+    )
 
     return {
         'present': present,
         'half': half,
         'medical': medical,
         'absent': absent,
+        'approved_leave_days': approved_leave_days,
         'sundays_paid': sundays_paid,
         'holidays_paid': holidays_paid,
-        'paid_days': round(paid_days, 2),
+        'paid_days': paid_days,
         'leave_taken': absent,
     }
 
@@ -654,6 +624,45 @@ def about():
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
+
+
+@app.route('/__dev/reload-signature')
+@limiter.exempt
+def dev_reload_signature():
+    """Expose a file signature only to the opt-in local development server."""
+    if not app.debug or not app.config.get('DEV_LIVE_RELOAD', False):
+        abort(404)
+
+    ignored_directories = {
+        '.git', '.venv', 'venv', 'env', '__pycache__', 'flask_session',
+        'logs', 'records', 'node_modules'
+    }
+    watched_extensions = {
+        '.py', '.html', '.css', '.js', '.json', '.svg', '.png', '.jpg',
+        '.jpeg', '.webp', '.ico'
+    }
+    file_signatures = []
+
+    for current_root, directories, filenames in os.walk(app.root_path):
+        relative_root = os.path.relpath(current_root, app.root_path).replace('\\', '/')
+        if relative_root == 'static/uploads' or relative_root.startswith('static/uploads/'):
+            directories[:] = []
+            continue
+
+        directories[:] = [directory for directory in directories if directory not in ignored_directories]
+        for filename in filenames:
+            if os.path.splitext(filename)[1].lower() not in watched_extensions:
+                continue
+            full_path = os.path.join(current_root, filename)
+            try:
+                stat = os.stat(full_path)
+            except OSError:
+                continue
+            relative_path = os.path.relpath(full_path, app.root_path).replace('\\', '/')
+            file_signatures.append(f'{relative_path}:{stat.st_mtime_ns}:{stat.st_size}')
+
+    digest = hashlib.sha256('\n'.join(sorted(file_signatures)).encode('utf-8')).hexdigest()
+    return jsonify(signature=digest)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -780,7 +789,7 @@ def teacher_login():
             flash('Too many failed attempts! Please try again after 15 minutes.')
             return render_template('teacher_login.html')
 
-        teacher = teachers_col.find_one({'teacher_id': teacher_id})
+        teacher = teachers_col.find_one({'teacher_id': teacher_id, 'active': True})
 
         if teacher and PasswordManager.verify_password(password, teacher.get('password', '')):
             if PasswordManager.needs_rehash(teacher.get('password', '')):
@@ -1174,21 +1183,11 @@ def mark_attendance():
 def blank_salary_slip():
     return render_template('blank_salary_slip.html')
 
-@app.route('/admin/payroll')
-@admin_required
-def payroll():
-    month = int(safe_str(request.args.get('month', date.today().month), 2) or date.today().month)
-    year = int(safe_str(request.args.get('year', date.today().year), 4) or date.today().year)
 
-    # Bounds check
-    month = max(1, min(12, month))
-    year = max(2020, min(2100, year))
-
-    teachers = list(teachers_col.find({'active': True}))
+def build_monthly_payroll(month, year):
+    teachers = list(teachers_col.find({'active': True}).sort('_id', 1))
     summary = get_month_summary(year, month)
     working_days = summary['working_days']
-
-    # Preload month attendance and salary adjustments in 2 batch queries instead of 300+ round-trips
     days_in_month = calendar.monthrange(year, month)[1]
     month_start = f"{year}-{month:02d}-01"
     month_end = f"{year}-{month:02d}-{days_in_month:02d}"
@@ -1204,17 +1203,27 @@ def payroll():
     adjustments = list(db['salary_adjustments'].find({'year': year, 'month': month}))
     adj_by_teacher = {adj['teacher_id']: adj for adj in adjustments if 'teacher_id' in adj}
 
+    approved_leave_requests = list(leave_requests_col.find({
+        'status': 'Approved',
+        'start_date': {'$lte': month_end},
+        'end_date': {'$gte': month_start}
+    }, {'_id': 0, 'teacher_id': 1, 'start_date': 1, 'end_date': 1}))
+    approved_leaves_by_teacher = {}
+    for leave in approved_leave_requests:
+        approved_leaves_by_teacher.setdefault(leave.get('teacher_id'), []).append(leave)
+
     payroll_data = []
     total_payable = 0
+    salary_calc_days = summary.get('salary_calc_days', 30)
 
-    for teacher in teachers:
+    for bill_index, teacher in enumerate(teachers, start=1):
         tid = teacher['teacher_id']
         att = calculate_paid_days(
             tid, year, month, summary,
             preloaded_attendance=attendance_by_teacher.get(tid, []),
-            preloaded_adjustment=adj_by_teacher.get(tid)
+            preloaded_adjustment=adj_by_teacher.get(tid),
+            preloaded_approved_leaves=approved_leaves_by_teacher.get(tid, [])
         )
-        salary_calc_days = summary.get('salary_calc_days', 30)
         net_salary, deduction, per_day_salary = compute_net_salary(
             teacher['basic_salary'], att, salary_calc_days
         )
@@ -1225,6 +1234,11 @@ def payroll():
             'name': teacher['name'],
             'subject': teacher.get('subject', ''),
             'basic_salary': teacher['basic_salary'],
+            'bank_name': teacher.get('bank_name', ''),
+            'bank_account': teacher.get('bank_account', ''),
+            'ifsc': teacher.get('ifsc', ''),
+            'pan_no': teacher.get('pan_no', ''),
+            'bill_no': f"GVP-{year}-{month:02d}-{bill_index:03d}",
             'days_in_month': summary['days_in_month'],
             'sundays': att['sundays_paid'],
             'holidays': att['holidays_paid'],
@@ -1233,6 +1247,7 @@ def payroll():
             'half_days': att['half'],
             'medical_leaves': att['medical'],
             'absent_days': att['absent'],
+            'approved_leave_days': att['approved_leave_days'],
             'paid_days': att['paid_days'],
             'per_day': round(per_day_salary, 2),
             'deduction': deduction,
@@ -1240,13 +1255,220 @@ def payroll():
             'calculation_days': salary_calc_days
         })
 
+    return payroll_data, summary, working_days, round(total_payable, 2)
+
+
+@app.route('/admin/payroll')
+@admin_required
+def payroll():
+    month = int(safe_str(request.args.get('month', date.today().month), 2) or date.today().month)
+    year = int(safe_str(request.args.get('year', date.today().year), 4) or date.today().year)
+
+    # Bounds check
+    month = max(1, min(12, month))
+    year = max(2020, min(2100, year))
+
+    payroll_data, summary, working_days, total_payable = build_monthly_payroll(month, year)
+
     return render_template('payroll.html',
                          payroll=payroll_data,
                          month=month, year=year,
                          month_name=calendar.month_name[month],
                          working_days=working_days,
-                         total_payable=round(total_payable, 2),
+                         total_payable=total_payable,
                          summary=summary)
+
+
+def make_payroll_salary_slip_pdf(payroll_row, month, year):
+    from xml.sax.saxutils import escape
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import mm
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    output = io.BytesIO()
+    doc = SimpleDocTemplate(
+        output, pagesize=A4, rightMargin=16 * mm, leftMargin=16 * mm,
+        topMargin=15 * mm, bottomMargin=16 * mm,
+        title=f"Salary Slip - {payroll_row['name']} - {calendar.month_name[month]} {year}"
+    )
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name='SchoolTitle', parent=styles['Title'], fontName='Helvetica-Bold',
+        fontSize=17, leading=20, textColor=colors.HexColor('#7B1C1C'),
+        alignment=TA_CENTER, spaceAfter=2
+    ))
+    styles.add(ParagraphStyle(
+        name='SchoolSubTitle', parent=styles['Normal'], fontName='Helvetica',
+        fontSize=8, leading=11, textColor=colors.HexColor('#57534E'),
+        alignment=TA_CENTER, spaceAfter=5
+    ))
+    styles.add(ParagraphStyle(
+        name='SectionHeading', parent=styles['Heading3'], fontName='Helvetica-Bold',
+        fontSize=10, leading=13, textColor=colors.HexColor('#7B1C1C'),
+        spaceBefore=8, spaceAfter=4
+    ))
+    styles.add(ParagraphStyle(
+        name='SlipBody', parent=styles['BodyText'], fontName='Helvetica',
+        fontSize=8, leading=11, textColor=colors.HexColor('#292524')
+    ))
+    styles.add(ParagraphStyle(
+        name='SlipBodyBold', parent=styles['SlipBody'], fontName='Helvetica-Bold'
+    ))
+    styles.add(ParagraphStyle(
+        name='SlipSmall', parent=styles['SlipBody'], fontSize=7, leading=9
+    ))
+
+    def p(value, style='SlipBody'):
+        return Paragraph(escape(str(value if value not in (None, '') else '-')), styles[style])
+
+    month_name = calendar.month_name[month]
+    maroon = colors.HexColor('#7B1C1C')
+    gold = colors.HexColor('#F5D78E')
+    light = colors.HexColor('#FFF8E8')
+    gray = colors.HexColor('#E7E5E4')
+    width = A4[0] - 32 * mm
+    story = [
+        p('GAYATRI VIDYAPEETH, DAUDNAGAR', 'SchoolTitle'),
+        p('Kunti Utsav Bhawan, NH-139, Akorha, Daudnagar, Aurangabad, Bihar - 824113', 'SchoolSubTitle'),
+        p('TEACHER STAFF SALARY SLIP', 'SectionHeading'),
+    ]
+
+    bill_meta = Table([
+        [p(f"Bill No.: {payroll_row['bill_no']}", 'SlipBodyBold'),
+         p(f'Month: {month_name} {year}', 'SlipBodyBold'),
+         p(f"Date: {date.today().strftime('%d/%m/%Y')}", 'SlipBodyBold')]
+    ], colWidths=[width / 3] * 3)
+    bill_meta.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), light),
+        ('BOX', (0, 0), (-1, -1), 0.6, gold),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 7),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 7),
+        ('TOPPADDING', (0, 0), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+    ]))
+    story.extend([bill_meta, Spacer(1, 7)])
+
+    details = [
+        [p('Teacher Name', 'SlipBodyBold'), p(payroll_row['name']),
+         p('Faculty ID', 'SlipBodyBold'), p(payroll_row['teacher_id'])],
+        [p('Subject', 'SlipBodyBold'), p(payroll_row.get('subject')),
+         p('Bank Name', 'SlipBodyBold'), p(payroll_row.get('bank_name'))],
+        [p('Account No.', 'SlipBodyBold'), p(payroll_row.get('bank_account')),
+         p('IFSC Code', 'SlipBodyBold'), p(payroll_row.get('ifsc'))],
+        [p('PAN No.', 'SlipBodyBold'), p(payroll_row.get('pan_no')),
+         p('Days in Month', 'SlipBodyBold'), p(payroll_row['days_in_month'])],
+    ]
+    details_table = Table(details, colWidths=[width * 0.16, width * 0.34, width * 0.16, width * 0.34])
+    details_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), light),
+        ('BACKGROUND', (2, 0), (2, -1), light),
+        ('GRID', (0, 0), (-1, -1), 0.4, gray),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+    ]))
+    story.extend([p('Staff and Bank Details', 'SectionHeading'), details_table])
+
+    money = lambda amount: f"Rs. {amount:,.2f}"
+    salary_rows = [
+        [p('Salary Calculation', 'SlipBodyBold'), p('Amount / Days', 'SlipBodyBold')],
+        [p('Basic Monthly Salary'), p(money(payroll_row['basic_salary']))],
+        [p('Calculation Rate (Basic / 30)'), p(money(payroll_row['per_day']))],
+        [p('Paid Days'), p(f"{payroll_row['paid_days']} / {payroll_row['calculation_days']}")],
+        [p('Attendance Deduction'), p(money(payroll_row['deduction']))],
+        [p('Net Payable Salary', 'SlipBodyBold'), p(money(payroll_row['net_salary']), 'SlipBodyBold')],
+    ]
+    salary_table = Table(salary_rows, colWidths=[width * 0.68, width * 0.32])
+    salary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), maroon),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('BACKGROUND', (0, -1), (-1, -1), light),
+        ('BOX', (0, 0), (-1, -1), 0.6, maroon),
+        ('INNERGRID', (0, 1), (-1, -2), 0.35, gray),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 7),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 7),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    story.extend([p('Salary Details', 'SectionHeading'), salary_table])
+
+    attendance_rows = [
+        [p('Attendance Detail', 'SlipBodyBold'), p('Days', 'SlipBodyBold'),
+         p('Leave and Holidays', 'SlipBodyBold'), p('Days', 'SlipBodyBold')],
+        [p('Present'), p(payroll_row['present_days']), p('Half Days (0.5 each)'), p(payroll_row['half_days'])],
+        [p('Medical (Paid)'), p(payroll_row['medical_leaves']), p('Absent'), p(payroll_row['absent_days'])],
+        [p('Paid Sundays'), p(payroll_row['sundays']), p('Government Holidays'), p(payroll_row['holidays'])],
+        [p('Approved Leave'), p(payroll_row['approved_leave_days']), p('Paid Days Total'), p(payroll_row['paid_days'], 'SlipBodyBold')],
+    ]
+    attendance_table = Table(attendance_rows, colWidths=[width * 0.31, width * 0.19] * 2)
+    attendance_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), maroon),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('BACKGROUND', (0, 1), (0, -1), light),
+        ('BACKGROUND', (2, 1), (2, -1), light),
+        ('GRID', (0, 0), (-1, -1), 0.4, gray),
+        ('ALIGN', (1, 1), (1, -1), 'CENTER'),
+        ('ALIGN', (3, 1), (3, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+    ]))
+    story.extend([
+        p('Attendance Summary', 'SectionHeading'), attendance_table,
+        Spacer(1, 22),
+    ])
+
+    signature_table = Table([
+        [p('Prepared By', 'SlipSmall'), p('Principal', 'SlipSmall'), p('Authorized Signatory', 'SlipSmall')],
+        [p('________________________', 'SlipSmall'), p('________________________', 'SlipSmall'), p('________________________', 'SlipSmall')],
+    ], colWidths=[width / 3] * 3)
+    signature_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'BOTTOM'),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+    ]))
+    story.extend([signature_table, Spacer(1, 8), p('Computer-generated salary slip.', 'SchoolSubTitle')])
+    doc.build(story)
+    return output.getvalue()
+
+
+@app.route('/admin/payroll/download-all-slips')
+@admin_required
+def download_all_salary_slips():
+    month = int(safe_str(request.args.get('month', date.today().month), 2) or date.today().month)
+    year = int(safe_str(request.args.get('year', date.today().year), 4) or date.today().year)
+    month = max(1, min(12, month))
+    year = max(2020, min(2100, year))
+
+    payroll_data, _, _, _ = build_monthly_payroll(month, year)
+    if not payroll_data:
+        flash('No active staff salary slips are available for this month.')
+        return redirect(url_for('payroll', month=month, year=year))
+
+    archive = io.BytesIO()
+    with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as salary_slips_zip:
+        for payroll_row in payroll_data:
+            pdf_bytes = make_payroll_salary_slip_pdf(payroll_row, month, year)
+            safe_name = secure_filename(
+                f"{payroll_row['teacher_id']}_{payroll_row['name']}_{calendar.month_name[month]}_{year}_Salary_Slip.pdf"
+            )
+            salary_slips_zip.writestr(safe_name, pdf_bytes)
+
+    archive.seek(0)
+    filename = f"Salary_Slips_{calendar.month_name[month]}_{year}.zip"
+    return send_file(
+        archive, download_name=filename, as_attachment=True, mimetype='application/zip'
+    )
 
 
 @app.route('/admin/payroll/chart')
@@ -1611,6 +1833,7 @@ def teacher_salary():
                          medical=att['medical'], absent=att['absent'],
                          sundays_paid=att['sundays_paid'],
                          holidays_paid=att['holidays_paid'],
+                         approved_leave_days=att['approved_leave_days'],
                          paid_days=att['paid_days'],
                          leave_taken=att['leave_taken'],
                          per_day=round(per_day, 2),
@@ -1645,12 +1868,6 @@ def admin_salary_slip(teacher_id):
         'teacher_id': teacher_id, 'date': {'$regex': f'^{escaped_month}'}
     })
     no_att_data = total_any == 0
-    is_current_month = (year == today.year and month == today.month)
-    if no_att_data and is_current_month and not request.args.get('force'):
-        prev_month = month - 1 if month > 1 else 12
-        prev_year = year if month > 1 else year - 1
-        return redirect(url_for('admin_salary_slip', teacher_id=teacher_id,
-                                month=prev_month, year=prev_year))
 
     att = calculate_paid_days(teacher_id, year, month, summary)
     salary_calc_days = summary.get('salary_calc_days', 30)
@@ -1676,6 +1893,7 @@ def admin_salary_slip(teacher_id):
                          medical=att['medical'], absent=att['absent'],
                          sundays_paid=att['sundays_paid'],
                          holidays_paid=att['holidays_paid'],
+                         approved_leave_days=att['approved_leave_days'],
                          paid_days=att['paid_days'],
                          leave_taken=att['leave_taken'],
                          per_day=round(per_day, 2),
@@ -1706,6 +1924,14 @@ def teacher_leave():
         valid_e, _ = SecurityValidator.validate_date(end_date)
         if not valid_s or not valid_e:
             flash('⚠️ Invalid dates!')
+            return redirect(url_for('teacher_leave'))
+
+        today_str = date.today().strftime('%Y-%m-%d')
+        if start_date < today_str:
+            flash('Leave applications must start today or later.')
+            return redirect(url_for('teacher_leave'))
+        if start_date > end_date:
+            flash('End date must be on or after the start date.')
             return redirect(url_for('teacher_leave'))
 
         if not reason:
@@ -1805,6 +2031,23 @@ def teacher_profile():
         # Use secure file validation with random filename
         valid, result = SecurityValidator.validate_file_upload(file, ALLOWED_EXTENSIONS)
         if valid:
+            extension = result.rsplit('.', 1)[-1].lower()
+            expected_format = {
+                'jpg': 'JPEG', 'jpeg': 'JPEG', 'png': 'PNG',
+                'gif': 'GIF', 'webp': 'WEBP'
+            }.get(extension)
+            try:
+                file.stream.seek(0)
+                with Image.open(file.stream) as photo:
+                    if not expected_format or photo.format != expected_format:
+                        raise ValueError('Image format does not match the file extension.')
+                    photo.verify()
+                file.stream.seek(0)
+            except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+                valid = False
+                result = 'Please upload a valid JPG, PNG, GIF, or WEBP image.'
+
+        if valid:
             file.save(os.path.join(UPLOAD_FOLDER, result))
             teachers_col.update_one(
                 {'teacher_id': tid}, {'$set': {'photo': result}}
@@ -1837,7 +2080,9 @@ def teacher_forgot_password():
             return redirect(url_for('teacher_forgot_password'))
         teacher_id = result
 
-        teacher = teachers_col.find_one({'teacher_id': teacher_id, 'phone': phone})
+        teacher = teachers_col.find_one({
+            'teacher_id': teacher_id, 'phone': phone, 'active': True
+        })
 
         if teacher:
             if not teacher.get('email'):
@@ -1936,13 +2181,22 @@ def teacher_reset_password():
             flash('Passwords do not match!')
             return render_template('teacher_reset_password.html')
 
-        teachers_col.update_one(
-            {'teacher_id': session['reset_teacher_id']},
+        update_result = teachers_col.update_one(
+            {'teacher_id': session['reset_teacher_id'], 'active': True},
             {'$set': {
                 'password': PasswordManager.hash_password(new_password),
                 'must_change_password': False
             }}
         )
+
+        if update_result.matched_count == 0:
+            session.pop('reset_teacher_id', None)
+            session.pop('otp', None)
+            session.pop('otp_verified', None)
+            session.pop('otp_created', None)
+            session.pop('otp_attempts', None)
+            flash('This teacher account is unavailable. Please contact the administrator.')
+            return redirect(url_for('teacher_login'))
 
         # Clear OTP session data
         session.pop('reset_teacher_id', None)
@@ -2237,7 +2491,9 @@ def salary_slip_generator():
         basic_salary = teacher['basic_salary']
         salary_calc_days = 30  # ALWAYS 30 — fixed divisor, never changes
         # present_days may be fractional (e.g. 23.5); round to 2dp to eliminate noise
-        paid_days = round(min(present_days + paid_leave + sunday_count, salary_calc_days), 2)
+        paid_days = calculate_paid_days_total(
+            present_days, 0, 0, paid_leave, sunday_count, salary_calc_days
+        )
 
         att = {
             'present': present_days,
@@ -2570,8 +2826,16 @@ if __name__ == '__main__':
         print(f"\n[INFO] Port {default_port} is busy or restricted by Windows. Auto-binding to port {target_port} instead.")
         print(f"[INFO] Server running at: http://localhost:{target_port}\n")
 
+    debug_mode = app.config.get('DEBUG', False)
+    external_dev_reloader = (
+        debug_mode
+        and app.config.get('DEV_LIVE_RELOAD', False)
+        and os.environ.get('DEV_EXTERNAL_RELOAD', '').lower() in ('1', 'true', 'yes')
+    )
     app.run(
         host=host,
         port=target_port,
-        debug=app.config.get('DEBUG', False)
+        debug=debug_mode,
+        use_reloader=debug_mode and not external_dev_reloader,
+        use_debugger=debug_mode
     )

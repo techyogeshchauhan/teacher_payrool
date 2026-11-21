@@ -462,5 +462,34 @@
 })();
 </script>
 
+{% if config.get('DEV_LIVE_RELOAD') %}
+<script>
+(function () {
+    const signatureUrl = {{ url_for('dev_reload_signature')|tojson }};
+    let lastSignature = null;
+
+    async function checkForChanges() {
+        try {
+            const response = await fetch(signatureUrl, { cache: 'no-store' });
+            if (response.ok) {
+                const data = await response.json();
+                if (lastSignature !== null && data.signature !== lastSignature) {
+                    window.location.reload();
+                    return;
+                }
+                lastSignature = data.signature;
+            }
+        } catch (error) {
+            // The development server may be restarting after a Python edit.
+        }
+
+        window.setTimeout(checkForChanges, 900);
+    }
+
+    checkForChanges();
+})();
+</script>
+{% endif %}
+
 </body>
 </html>
